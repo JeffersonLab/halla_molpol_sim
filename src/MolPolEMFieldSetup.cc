@@ -36,21 +36,7 @@
 #include <iostream>
 using namespace std;
 
-/*
-MolPolEMFieldSetup* MolPolEMFieldSetup::fMolPolEMFieldSetup=0;
-MolPolEMFieldSetup* MolPolEMFieldSetup::GetMolPolEMFieldSetup()
-{ 
-	if(!fMolPolEMFieldSetup)  
-	{
-		G4cout<<"MolPolEMFieldSetup is not initialized yet...exit...\n";
-		exit(-99);
-	}
-	return fMolPolEMFieldSetup; 
-}
-*/
 
-//////////////////////////////////////////////////////////////////////////
-//
 MolPolEMFieldSetup::MolPolEMFieldSetup()
   : fFieldManager(0),
     fChordFinder(0),
@@ -79,7 +65,7 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
 }
 
 void MolPolEMFieldSetup::InitialseAll()
-{  
+{
 
   fFieldMessenger = new MolPolEMFieldMessenger(this);
   //  fMolPolEMFieldSetup=this;
@@ -88,9 +74,9 @@ void MolPolEMFieldSetup::InitialseAll()
   fEquation = new G4EqMagElectricField(fEMfield);
   fMinStep  = 0.01*mm ; // minimal step of 1 miron, default is 0.01 mm: Doesn't seem to make much difference here
   fStepperType = 4 ;    // ClassicalRK4 -- the default stepper
-  
+
   fFieldManager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
-  
+
   fChordFinder = 0;   //will be set in UpdateField()
   UpdateField();
 
@@ -114,8 +100,6 @@ void MolPolEMFieldSetup::InitialseAll()
   G4double KAPPA4 = 0;
   G4double DIPOLE = 0;
 
-  G4cout << "Source mode: " << fMagSourceMode << G4endl;
-
   if( fMagSourceMode == 0 )
     {
       KAPPA1 = CalA2T(fQ1A, 1) / (5.08 * 1.e-2) * tesla / m;
@@ -125,8 +109,7 @@ void MolPolEMFieldSetup::InitialseAll()
       DIPOLE = CalA2T(fQ5A, 5) * tesla;
     }
   else if( fMagSourceMode == 1)
-    {  
-      G4cout << fQ1T << " " << fQ2T << " " << fQ3T << " " << G4endl;
+    {
       KAPPA1 = fQ1T / (5.08 * 1.e-2) * tesla / m;
       KAPPA2 = fQ2T / (5.08 * 1.e-2) * tesla / m;
       KAPPA3 = fQ3T / (5.08 * 1.e-2) * tesla / m;
@@ -143,28 +126,26 @@ void MolPolEMFieldSetup::InitialseAll()
     G4double DIPOLE = 0.70 * tesla;
   */
 
-  G4cout << "Kappa: "  << KAPPA1 << " " << KAPPA2 << " " << KAPPA3 << " " << KAPPA4 << G4endl;
-
   fMagFieldFZB1 = new MolPolQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, Q1R);
-  fEquationFZB1 = new G4Mag_UsualEqRhs(fMagFieldFZB1);	
+  fEquationFZB1 = new G4Mag_UsualEqRhs(fMagFieldFZB1);
   fStepperFZB1  = new G4ClassicalRK4(fEquationFZB1);
   fLocalFieldManagerFZB1 = new G4FieldManager();
   fChordFinderFZB1 = 0;
   UpdateFieldFZB1();
   fMagFieldFZB2 = new MolPolQuad(KAPPA2, G4ThreeVector(0.0, 0.0, ORIGINQ2), NOROT, Q2R);
-  fEquationFZB2 = new G4Mag_UsualEqRhs(fMagFieldFZB2);	
+  fEquationFZB2 = new G4Mag_UsualEqRhs(fMagFieldFZB2);
   fStepperFZB2  = new G4ClassicalRK4(fEquationFZB2);
   fLocalFieldManagerFZB2 = new G4FieldManager();
   fChordFinderFZB2 = 0;
   UpdateFieldFZB2();
   fMagFieldFZB3 = new MolPolQuad(KAPPA3, G4ThreeVector(0.0, 0.0, ORIGINQ3), NOROT, Q3R);
-  fEquationFZB3 = new G4Mag_UsualEqRhs(fMagFieldFZB3);	
+  fEquationFZB3 = new G4Mag_UsualEqRhs(fMagFieldFZB3);
   fStepperFZB3  = new G4ClassicalRK4(fEquationFZB3);
   fLocalFieldManagerFZB3 = new G4FieldManager();
   fChordFinderFZB3 = 0;
   UpdateFieldFZB3();
   fMagFieldFZB4 = new MolPolQuad(KAPPA4, G4ThreeVector(0.0, 0.0, ORIGINQ4), NOROT, Q4R);
-  fEquationFZB4 = new G4Mag_UsualEqRhs(fMagFieldFZB4);	
+  fEquationFZB4 = new G4Mag_UsualEqRhs(fMagFieldFZB4);
   fStepperFZB4  = new G4ClassicalRK4(fEquationFZB4);
   fLocalFieldManagerFZB4 = new G4FieldManager();
   fChordFinderFZB4 = 0;
@@ -176,7 +157,7 @@ void MolPolEMFieldSetup::InitialseAll()
   fLocalFieldManagerFZB5 = new G4FieldManager();
   fChordFinderFZB5 = 0;
   UpdateFieldFZB5();
-    
+
   G4double SOLENOID = 0.0 * tesla;
   fMagFieldFZB6 = new MolPolSolenoid(SOLENOID, 0, G4ThreeVector(0.0, 0.0, ORIGINQ6));
   fEquationFZB6 = new G4Mag_UsualEqRhs(fMagFieldFZB6);
@@ -193,11 +174,11 @@ void MolPolEMFieldSetup::InitialseAll()
 
 MolPolEMFieldSetup::~MolPolEMFieldSetup()
 {
-	if(fChordFinder)    delete fChordFinder;
-	if(fStepper)        delete fStepper;
-	if(fEquation)       delete fEquation;
-	if(fEMfield)        delete fEMfield;
-	if(fFieldMessenger) delete fFieldMessenger;
+  if(fChordFinder)    delete fChordFinder;
+  if(fStepper)        delete fStepper;
+  if(fEquation)       delete fEquation;
+  if(fEMfield)        delete fEMfield;
+  if(fFieldMessenger) delete fFieldMessenger;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -209,13 +190,13 @@ MolPolEMFieldSetup::~MolPolEMFieldSetup()
 void MolPolEMFieldSetup::UpdateField()
 {
   fStepper = new G4ClassicalRK4( fEquation, 8 );
-  
+
   fFieldManager->SetDetectorField(fEMfield);
-  
+
   if(fChordFinder) delete fChordFinder;
   fIntgrDriver = new G4MagInt_Driver(fMinStep,fStepper,fStepper->GetNumberOfVariables());
   fChordFinder = new G4ChordFinder(fIntgrDriver);
-  fFieldManager->SetChordFinder( fChordFinder );  
+  fFieldManager->SetChordFinder( fChordFinder );
 }
 
 
@@ -223,76 +204,76 @@ void MolPolEMFieldSetup::UpdateField()
 void MolPolEMFieldSetup::UpdateFieldFZB1()
 {
 
-	fLocalFieldManagerFZB1->SetDetectorField(fMagFieldFZB1);
+  fLocalFieldManagerFZB1->SetDetectorField(fMagFieldFZB1);
 
-	if(fChordFinderFZB1) delete fChordFinderFZB1;
-	fIntgrDriverFZB1 = new G4MagInt_Driver(fMinStep,fStepperFZB1,fStepperFZB1->GetNumberOfVariables());
-	fChordFinderFZB1 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB1, fMinStep, fStepperFZB1);
-	fLocalFieldManagerFZB1->SetChordFinder( fChordFinderFZB1 );
-	
+  if(fChordFinderFZB1) delete fChordFinderFZB1;
+  fIntgrDriverFZB1 = new G4MagInt_Driver(fMinStep,fStepperFZB1,fStepperFZB1->GetNumberOfVariables());
+  fChordFinderFZB1 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB1, fMinStep, fStepperFZB1);
+  fLocalFieldManagerFZB1->SetChordFinder( fChordFinderFZB1 );
+
 }
 
 /////////////////////////////////////////////////////////////////////////////
 void MolPolEMFieldSetup::UpdateFieldFZB2()
 {
 
-	fLocalFieldManagerFZB2->SetDetectorField(fMagFieldFZB2);
+  fLocalFieldManagerFZB2->SetDetectorField(fMagFieldFZB2);
 
-	if(fChordFinderFZB2) delete fChordFinderFZB2;
-	fIntgrDriverFZB2 = new G4MagInt_Driver(fMinStep,fStepperFZB2,fStepperFZB2->GetNumberOfVariables());
-	fChordFinderFZB2 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB2, fMinStep, fStepperFZB2);
-	fLocalFieldManagerFZB2->SetChordFinder( fChordFinderFZB2 );
-	
+  if(fChordFinderFZB2) delete fChordFinderFZB2;
+  fIntgrDriverFZB2 = new G4MagInt_Driver(fMinStep,fStepperFZB2,fStepperFZB2->GetNumberOfVariables());
+  fChordFinderFZB2 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB2, fMinStep, fStepperFZB2);
+  fLocalFieldManagerFZB2->SetChordFinder( fChordFinderFZB2 );
+
 }
 
 /////////////////////////////////////////////////////////////////////////////
 void MolPolEMFieldSetup::UpdateFieldFZB3()
 {
 
-	fLocalFieldManagerFZB3->SetDetectorField(fMagFieldFZB3);
+  fLocalFieldManagerFZB3->SetDetectorField(fMagFieldFZB3);
 
-	if(fChordFinderFZB3) delete fChordFinderFZB3;
-	fIntgrDriverFZB3 = new G4MagInt_Driver(fMinStep,fStepperFZB3,fStepperFZB3->GetNumberOfVariables());
-	fChordFinderFZB3 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB3, fMinStep, fStepperFZB3);
-	fLocalFieldManagerFZB3->SetChordFinder( fChordFinderFZB3 );
-	
+  if(fChordFinderFZB3) delete fChordFinderFZB3;
+  fIntgrDriverFZB3 = new G4MagInt_Driver(fMinStep,fStepperFZB3,fStepperFZB3->GetNumberOfVariables());
+  fChordFinderFZB3 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB3, fMinStep, fStepperFZB3);
+  fLocalFieldManagerFZB3->SetChordFinder( fChordFinderFZB3 );
+
 }
 
 /////////////////////////////////////////////////////////////////////////////
 void MolPolEMFieldSetup::UpdateFieldFZB4()
 {
 
-	fLocalFieldManagerFZB4->SetDetectorField(fMagFieldFZB4);
+  fLocalFieldManagerFZB4->SetDetectorField(fMagFieldFZB4);
 
-	if(fChordFinderFZB4) delete fChordFinderFZB4;
-	fIntgrDriverFZB4 = new G4MagInt_Driver(fMinStep,fStepperFZB4,fStepperFZB4->GetNumberOfVariables());
-	fChordFinderFZB4 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB4, fMinStep, fStepperFZB4);
-	fLocalFieldManagerFZB4->SetChordFinder( fChordFinderFZB4 );
-	
+  if(fChordFinderFZB4) delete fChordFinderFZB4;
+  fIntgrDriverFZB4 = new G4MagInt_Driver(fMinStep,fStepperFZB4,fStepperFZB4->GetNumberOfVariables());
+  fChordFinderFZB4 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB4, fMinStep, fStepperFZB4);
+  fLocalFieldManagerFZB4->SetChordFinder( fChordFinderFZB4 );
+
 }
 
 void MolPolEMFieldSetup::UpdateFieldFZB5()
 {
 
-	fLocalFieldManagerFZB5->SetDetectorField(fMagFieldFZB5);
+  fLocalFieldManagerFZB5->SetDetectorField(fMagFieldFZB5);
 
-	if(fChordFinderFZB5) delete fChordFinderFZB5;
-	fIntgrDriverFZB5 = new G4MagInt_Driver(fMinStep,fStepperFZB5,fStepperFZB5->GetNumberOfVariables());
-	fChordFinderFZB5 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB5, fMinStep, fStepperFZB5);
-	fLocalFieldManagerFZB5->SetChordFinder( fChordFinderFZB5 );
-	
+  if(fChordFinderFZB5) delete fChordFinderFZB5;
+  fIntgrDriverFZB5 = new G4MagInt_Driver(fMinStep,fStepperFZB5,fStepperFZB5->GetNumberOfVariables());
+  fChordFinderFZB5 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB5, fMinStep, fStepperFZB5);
+  fLocalFieldManagerFZB5->SetChordFinder( fChordFinderFZB5 );
+
 }
 
 void MolPolEMFieldSetup::UpdateFieldFZB6()
 {
 
-	fLocalFieldManagerFZB6->SetDetectorField(fMagFieldFZB6);
+  fLocalFieldManagerFZB6->SetDetectorField(fMagFieldFZB6);
 
-	if(fChordFinderFZB6) delete fChordFinderFZB6;
-	fIntgrDriverFZB6 = new G4MagInt_Driver(fMinStep,fStepperFZB6,fStepperFZB6->GetNumberOfVariables());
-	fChordFinderFZB6 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB6, fMinStep, fStepperFZB6);
-	fLocalFieldManagerFZB6->SetChordFinder( fChordFinderFZB6 );
-	
+  if(fChordFinderFZB6) delete fChordFinderFZB6;
+  fIntgrDriverFZB6 = new G4MagInt_Driver(fMinStep,fStepperFZB6,fStepperFZB6->GetNumberOfVariables());
+  fChordFinderFZB6 = new G4ChordFinder((G4MagneticField*) fMagFieldFZB6, fMinStep, fStepperFZB6);
+  fLocalFieldManagerFZB6->SetChordFinder( fChordFinderFZB6 );
+
 }
 
 
@@ -304,32 +285,32 @@ void MolPolEMFieldSetup::UpdateFieldFZB6()
 
 void MolPolEMFieldSetup::SetStepper()
 {
-	G4int nvar = 8;
+  G4int nvar = 8;
 
-	if(fStepper) delete fStepper;
+  if(fStepper) delete fStepper;
 
-	switch ( fStepperType )
-	{
-	case 0:
-		fStepper = new G4ExplicitEuler( fEquation, nvar );
-		break;
-	case 1:
-		fStepper = new G4ImplicitEuler( fEquation, nvar );
-		break;
-	case 2:
-		fStepper = new G4SimpleRunge( fEquation, nvar );
-		break;
-	case 3:
-		fStepper = new G4SimpleHeum( fEquation, nvar );
-		break;
-	case 4:
-		fStepper = new G4ClassicalRK4( fEquation, nvar );
-		break;
-	case 5:
-		fStepper = new G4CashKarpRKF45( fEquation, nvar );
-		break;
-	default: fStepper = 0;
-	}
+  switch ( fStepperType )
+    {
+    case 0:
+      fStepper = new G4ExplicitEuler( fEquation, nvar );
+      break;
+    case 1:
+      fStepper = new G4ImplicitEuler( fEquation, nvar );
+      break;
+    case 2:
+      fStepper = new G4SimpleRunge( fEquation, nvar );
+      break;
+    case 3:
+      fStepper = new G4SimpleHeum( fEquation, nvar );
+      break;
+    case 4:
+      fStepper = new G4ClassicalRK4( fEquation, nvar );
+      break;
+    case 5:
+      fStepper = new G4CashKarpRKF45( fEquation, nvar );
+      break;
+    default: fStepper = 0;
+    }
 }
 
 
@@ -346,7 +327,7 @@ G4double MolPolEMFieldSetup::CalA2T(G4double current, G4int magnet)
   G4double fld = 0;
 
   G4double cn = current / 300.;
-  if(magnet == 1)  
+  if(magnet == 1)
     {
       // Moller Quad Q1/MQO1H01/LARGE/new/white
       gl1 = (.0110605+5.33237*cn-.0142794*pow(cn,2)+.259313*pow(cn,3));

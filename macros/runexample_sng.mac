@@ -1,7 +1,7 @@
 # Example run macro for MolPol
 
 /field/MagSourceMode 1
-/field/setQ1A 0 
+/field/setQ1A 0
 /field/setQ2A 0
 /field/setQ3A 0
 /field/setQ4A 0
@@ -12,6 +12,7 @@
 /field/setQ3T  0.096
 /field/setQ4T  0.206
 /field/setQ5T  0.700
+/field/update
 
 /run/initialize
 
