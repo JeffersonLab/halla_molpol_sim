@@ -1,0 +1,47 @@
+# Example run macro for MolPol
+
+/field/MagSourceMode 1
+/field/setQ1A 0 
+/field/setQ2A 0
+/field/setQ3A 0
+/field/setQ4A 0
+/field/setQ5A 0
+
+/field/setQ1T -0.171
+/field/setQ2T  0.131
+/field/setQ3T  0.096
+/field/setQ4T  0.206
+/field/setQ5T  0.700
+
+/run/initialize
+
+/MolPol/filename MolPol_out.root
+/MolPol/seed 50
+
+/MolPol/gen moller
+
+# target at 6.9 cm
+/MolPol/fz 6.9 cm
+
+/MolPol/thcommin 89.5 deg
+/MolPol/thcommax 90.5 deg
+/MolPol/phimin   -0.05 deg
+/MolPol/phimax   0.05  deg
+
+#/MolPol/thcommin 70 deg
+#/MolPol/thcommax 110 deg
+#/MolPol/phimin   -25 deg
+#/MolPol/phimax   25  deg
+
+#/MolPol/emin   1.063 GeV
+#/MolPol/emax   1.063 GeV
+#/MolPol/beamE   2.056 GeV
+#/MolPol/beamE   1.063 GeV
+#/MolPol/beamE   10.6 GeV
+/MolPol/beamE   5.0 GeV
+#/MolPol/beamE   8.5 GeV
+#/MolPol/beamE  4.5 GeV
+
+/gun/particle e-
+
+/run/beamOn 1

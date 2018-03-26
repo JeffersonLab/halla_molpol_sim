@@ -1,0 +1,84 @@
+/gui/addMenu   file   File
+/gui/addButton file   Continue continue
+/gui/addButton file   Quit     exit
+
+/gui/addMenu   viewer Viewer
+/gui/addButton viewer "Set style solid"      "/vis/viewer/set/style solid"
+/gui/addButton viewer "Set style wire"       "/vis/viewer/set/style wire"
+/gui/addButton viewer "Update viewer"        "/vis/viewer/update"
+/gui/addButton viewer "Update scene"         "/vis/scene/notifyHandlers"
+
+/vis/open OGLIQt
+
+/run/initialize
+#
+# Create a new empty scene
+#
+/vis/scene/create
+
+#
+# Add axis (has to be after /vis/scene/create )
+#
+#/vis/scene/add/axes
+
+#
+# Declare that the world volume should be added to the scene
+#
+/vis/scene/add/volume
+
+#
+# Attach scene to scenehandler
+#
+/vis/sceneHandler/attach
+
+#
+# Draw a picture that has just the detector (no trajectories or hits).
+#
+/vis/viewer/flush
+
+#
+# Declare that trajectories and hits should be added to the scene
+#
+/vis/scene/add/trajectories
+/vis/scene/add/hits
+
+#
+# Set camera
+#
+/vis/viewer/reset
+#/vis/viewer/set/viewpointThetaPhi 30 30 deg
+/vis/viewer/set/viewpointThetaPhi 90 90 deg
+#/vis/viewer/zoom 1.4
+/vis/viewer/zoom 1.
+/vis/viewer/set/style w
+#
+# Set surface
+#
+/vis/viewer/set/style surface
+
+#
+# Create style
+#
+/vis/modeling/trajectories/create/drawByParticleID HRSMCStyle
+/vis/modeling/trajectories/HRSMCStyle/set e- red
+/vis/modeling/trajectories/HRSMCStyle/set e+ blue
+/vis/modeling/trajectories/HRSMCStyle/set gamma green
+/vis/modeling/trajectories/HRSMCStyle/set neutron white
+/vis/modeling/trajectories/HRSMCStyle/set opticalphoton yellow
+/vis/modeling/trajectories/HRSMCStyle/set proton magenta
+#
+/vis/modeling/trajectories/select HRSMCStyle
+
+#
+# Event action
+#
+/vis/scene/endOfEventAction accumulate
+
+#
+# Run action
+#
+/vis/scene/endOfRunAction refresh
+#
+
+#/run/initialize
+#/control/execute macros/vis.mac
