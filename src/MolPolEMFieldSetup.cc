@@ -52,6 +52,8 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
   fQ4T = 0;
   fQ5T = 0;
 
+
+  fFieldMessenger = new MolPolEMFieldMessenger(this);
   InitialseAll();
 
 }
@@ -59,8 +61,8 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
 void MolPolEMFieldSetup::InitialseAll()
 {
 
-  fFieldMessenger = new MolPolEMFieldMessenger(this);
-  //  fMolPolEMFieldSetup=this;
+  if(fEMfield) delete fEMfield;
+  if(fEquation) delete fEquation;
 
   fEMfield = new MolPolEMField();
   fEquation = new G4EqMagElectricField(fEMfield);
