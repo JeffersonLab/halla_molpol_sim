@@ -107,19 +107,19 @@ void MolPolEMFieldMessenger::SetNewValue( G4UIcommand* cmd, G4String newValue)
     G4double x = fQ5ACmd->GetNewDoubleValue(newValue);
     fEMfieldSetup->fQ5A = x;
   }else if( cmd == fQ1TCmd ){
-    G4double x = fQ1ACmd->GetNewDoubleValue(newValue);
+    G4double x = fQ1TCmd->GetNewDoubleValue(newValue);
     fEMfieldSetup->fQ1T = x;
   }else if( cmd == fQ2TCmd ){
-    G4double x = fQ2ACmd->GetNewDoubleValue(newValue);
+    G4double x = fQ2TCmd->GetNewDoubleValue(newValue);
     fEMfieldSetup->fQ2T = x;
   }else if( cmd == fQ3TCmd ){
-    G4double x = fQ3ACmd->GetNewDoubleValue(newValue);
+    G4double x = fQ3TCmd->GetNewDoubleValue(newValue);
     fEMfieldSetup->fQ3T = x;
   }else if( cmd == fQ4TCmd ){
-    G4double x = fQ4ACmd->GetNewDoubleValue(newValue);
+    G4double x = fQ4TCmd->GetNewDoubleValue(newValue);
     fEMfieldSetup->fQ4T = x;
   }else if( cmd == fQ5TCmd ){
-    G4double x = fQ5ACmd->GetNewDoubleValue(newValue);
+    G4double x = fQ5TCmd->GetNewDoubleValue(newValue);
     fEMfieldSetup->fQ5T = x;
   }else if( cmd == fInitCmd ){
     fEMfieldSetup->InitialseAll();
