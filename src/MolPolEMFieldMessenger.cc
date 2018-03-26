@@ -58,8 +58,8 @@ MolPolEMFieldMessenger::MolPolEMFieldMessenger(MolPolEMFieldSetup* fieldSetup)
   fQ5TCmd->SetGuidance("Set Dipole field in Tesla");
   fQ5TCmd->SetParameterName("Q5T", false);
 
-  fInitCmd = new G4UIcmdWithoutParameter("/field/update",this);
-  fInitCmd->SetGuidance("This command MUST be applied after setting field values ");
+  fUpdateCmd = new G4UIcmdWithoutParameter("/field/update",this);
+  fUpdateCmd->SetGuidance("This command MUST be applied after setting field values ");
 
 }
 
@@ -68,7 +68,7 @@ MolPolEMFieldMessenger::MolPolEMFieldMessenger(MolPolEMFieldSetup* fieldSetup)
 MolPolEMFieldMessenger::~MolPolEMFieldMessenger()
 {
   delete fFieldDir;
-  delete fInitCmd;
+  delete fUpdateCmd;
   delete fMagSourceCmd;
   delete fQ1ACmd;
   delete fQ2ACmd;
@@ -121,8 +121,8 @@ void MolPolEMFieldMessenger::SetNewValue( G4UIcommand* cmd, G4String newValue)
   }else if( cmd == fQ5TCmd ){
     G4double x = fQ5TCmd->GetNewDoubleValue(newValue);
     fEMfieldSetup->fQ5T = x;
-  }else if( cmd == fInitCmd ){
-    fEMfieldSetup->InitialseAll();
+  }else if( cmd == fUpdateCmd ){
+    //fEMfieldSetup->UpdateConfiguration();
   }else{
     G4cout<<__PRETTY_FUNCTION__<<" at line "<<__LINE__<<G4endl;
     G4cerr <<"Don't know this command :"<<cmd<<G4endl;

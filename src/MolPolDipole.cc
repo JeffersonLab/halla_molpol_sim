@@ -39,27 +39,27 @@ extern"C" {
                 float* fact, float* a,
                 float* fx,   float* fy, float* fz);
   void snakedipole_(float* x,  float* y,  float* z,
-		    float* bx, float* by, float* bz,
-		    float* b0);
+                    float* bx, float* by, float* bz,
+                    float* b0);
 }
 
-static G4RotationMatrix IdentityMatrix; 
+static G4RotationMatrix IdentityMatrix;
 
 MolPolDipole::MolPolDipole(G4double pBend)
 {
-   fBend    = pBend ;
-   fOrigin  = G4ThreeVector( 0.0, 0.0, 0.0) ;
-   fpMatrix = &IdentityMatrix;
+  fBend    = pBend ;
+  fOrigin  = G4ThreeVector( 0.0, 0.0, 0.0) ;
+  fpMatrix = &IdentityMatrix;
 }
 
 /////////////////////////////////////////////////////////////////////////
 
 MolPolDipole::MolPolDipole(G4double pBend, G4ThreeVector
-pOrigin, G4RotationMatrix* pMatrix)
+                           pOrigin, G4RotationMatrix* pMatrix)
 {
-   fBend    = pBend   ;
-   fOrigin  = pOrigin ;
-   fpMatrix = pMatrix ;
+  fBend    = pBend   ;
+  fOrigin  = pOrigin ;
+  fpMatrix = pMatrix ;
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -68,12 +68,21 @@ MolPolDipole::~MolPolDipole()
 {
 }
 
+/////////////////////////////////////////////////////////////////////////
+
+void MolPolDipole::UpdateDipole(G4double pBend, G4ThreeVector
+                                pOrigin, G4RotationMatrix* pMatrix){
+  fBend    = pBend   ;
+  fOrigin  = pOrigin ;
+  fpMatrix = pMatrix ;
+}
+
 ////////////////////////////////////////////////////////////////////////
-//  Allow displaced origin and rotation 
+//  Allow displaced origin and rotation
 //  Extensions by Björn Riese (GSI)
 
 void MolPolDipole::GetFieldValue( const G4double y[7],
-				 G4double B[3]  ) const  
+                                  G4double B[3]  ) const
 {
 
   G4ThreeVector r_global= G4ThreeVector
@@ -106,7 +115,7 @@ void MolPolDipole::GetFieldValue( const G4double y[7],
   //snbz *= -tesla;
 
   //G4ThreeVector B_local = G4ThreeVector( snbx, snby, snbz );
-  
+
   //G4ThreeVector B_global = G4ThreeVector
   //(fpMatrix->rowX() * B_local,
   // fpMatrix->rowY() * B_local,
@@ -115,15 +124,15 @@ void MolPolDipole::GetFieldValue( const G4double y[7],
 
   //if( sqrt( snbx * snbx + snby * snby ) > 2. * cm ){
   //B[0] = B_global.x() ;
-    //B[1] = B_global.y() ;
-    //B[2] = B_global.z() ;
-    //}else{
-    //B[0] = 0.;
+  //B[1] = B_global.y() ;
+  //B[2] = B_global.z() ;
+  //}else{
+  //B[0] = 0.;
 
   B[0] = B_0;
   B[1] = 0.;
   B[2] = 0.;
-    //}
+  //}
 
 
 }

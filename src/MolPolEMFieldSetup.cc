@@ -53,7 +53,6 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
   fQ5T = 0;
 
 
-  fFieldMessenger = new MolPolEMFieldMessenger(this);
   InitialseAll();
 
 }
@@ -61,8 +60,7 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
 void MolPolEMFieldSetup::InitialseAll()
 {
 
-  if(fEMfield) delete fEMfield;
-  if(fEquation) delete fEquation;
+  fFieldMessenger = new MolPolEMFieldMessenger(this);
 
   fEMfield = new MolPolEMField();
   fEquation = new G4EqMagElectricField(fEMfield);
@@ -126,33 +124,6 @@ void MolPolEMFieldSetup::InitialseAll()
 	 << "\tKAPPA1: "<<KAPPA3<<G4endl
 	 << "\tKAPPA1: "<<KAPPA4<<G4endl
 	 << "\tDIPOLE: "<<DIPOLE<<G4endl;
-  if(fMagFieldFZB1) delete fMagFieldFZB1;
-  if(fMagFieldFZB2) delete fMagFieldFZB2;
-  if(fMagFieldFZB3) delete fMagFieldFZB3;
-  if(fMagFieldFZB4) delete fMagFieldFZB4;
-  if(fMagFieldFZB5) delete fMagFieldFZB5;
-  if(fMagFieldFZB6) delete fMagFieldFZB6;
-
-  if(fEquationFZB1) delete fEquationFZB1;
-  if(fEquationFZB2) delete fEquationFZB2;
-  if(fEquationFZB3) delete fEquationFZB3;
-  if(fEquationFZB4) delete fEquationFZB4;
-  if(fEquationFZB5) delete fEquationFZB5;
-  if(fEquationFZB6) delete fEquationFZB6;
-
-  if(fStepperFZB1) delete fStepperFZB1;
-  if(fStepperFZB2) delete fStepperFZB2;
-  if(fStepperFZB3) delete fStepperFZB3;
-  if(fStepperFZB4) delete fStepperFZB4;
-  if(fStepperFZB5) delete fStepperFZB5;
-  if(fStepperFZB6) delete fStepperFZB6;
-
-  if(fLocalFieldManagerFZB1) delete fLocalFieldManagerFZB1;
-  if(fLocalFieldManagerFZB2) delete fLocalFieldManagerFZB2;
-  if(fLocalFieldManagerFZB3) delete fLocalFieldManagerFZB3;
-  if(fLocalFieldManagerFZB4) delete fLocalFieldManagerFZB4;
-  if(fLocalFieldManagerFZB5) delete fLocalFieldManagerFZB5;
-  if(fLocalFieldManagerFZB6) delete fLocalFieldManagerFZB6;
 
   fMagFieldFZB1 = new MolPolQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, Q1R);
   fEquationFZB1 = new G4Mag_UsualEqRhs(fMagFieldFZB1);
@@ -207,6 +178,62 @@ MolPolEMFieldSetup::~MolPolEMFieldSetup()
   if(fEquation)       delete fEquation;
   if(fEMfield)        delete fEMfield;
   if(fFieldMessenger) delete fFieldMessenger;
+}
+/////////////////////////////////////////////////////////////////////////////////
+//
+
+void MolPolEMFieldSetup::UpdateConfiguration(){
+
+  G4RotationMatrix* NOROT = new G4RotationMatrix;
+
+  G4double ORIGINQ1 =  75.19 * cm;
+  G4double ORIGINQ2 = 140.46 * cm;
+  G4double ORIGINQ3 = 209.08 * cm;
+  G4double ORIGINQ4 = 274.59 * cm;
+  G4double ORIGIND  = 423.4  * cm;
+  G4double ORIGINQ6 = 6.9    * cm;
+
+  G4double Q1R = 5.08 * cm;
+  G4double Q2R = 5.08 * cm;
+  G4double Q3R = 5.08 * cm;
+  G4double Q4R = 5.08 * cm;
+
+  G4double KAPPA1 = 0;
+  G4double KAPPA2 = 0;
+  G4double KAPPA3 = 0;
+  G4double KAPPA4 = 0;
+  G4double DIPOLE = 0;
+
+  if( fMagSourceMode == 0 )
+    {
+      KAPPA1 = CalA2T(fQ1A, 1) / (5.08 * 1.e-2) * tesla / m;
+      KAPPA2 = CalA2T(fQ2A, 2) / (5.08 * 1.e-2) * tesla / m;
+      KAPPA3 = CalA2T(fQ3A, 3) / (5.08 * 1.e-2) * tesla / m;
+      KAPPA4 = CalA2T(fQ4A, 4) / (5.08 * 1.e-2) * tesla / m;
+      DIPOLE = CalA2T(fQ5A, 5) * tesla;
+    }
+  else if( fMagSourceMode == 1)
+    {
+      KAPPA1 = fQ1T / (5.08 * 1.e-2) * tesla / m;
+      KAPPA2 = fQ2T / (5.08 * 1.e-2) * tesla / m;
+      KAPPA3 = fQ3T / (5.08 * 1.e-2) * tesla / m;
+      KAPPA4 = fQ4T / (5.08 * 1.e-2) * tesla / m;
+      DIPOLE = fQ5T * tesla;
+    }
+
+  G4cout << __PRETTY_FUNCTION__ <<"\t at line: "<<__LINE__<<G4endl;
+  G4cout << "\tfMagSourceMode: "<<fMagSourceMode<<G4endl
+	 << "\tKAPPA1: "<<KAPPA1<<G4endl
+	 << "\tKAPPA1: "<<KAPPA2<<G4endl
+	 << "\tKAPPA1: "<<KAPPA3<<G4endl
+	 << "\tKAPPA1: "<<KAPPA4<<G4endl
+	 << "\tDIPOLE: "<<DIPOLE<<G4endl;
+
+  fMagFieldFZB1->UpdateQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, Q1R);
+  fMagFieldFZB2->UpdateQuad(KAPPA2, G4ThreeVector(0.0, 0.0, ORIGINQ2), NOROT, Q2R);
+  fMagFieldFZB3->UpdateQuad(KAPPA3, G4ThreeVector(0.0, 0.0, ORIGINQ3), NOROT, Q3R);
+  fMagFieldFZB4->UpdateQuad(KAPPA4, G4ThreeVector(0.0, 0.0, ORIGINQ4), NOROT, Q4R);
+  fMagFieldFZB5->UpdateDipole(DIPOLE, G4ThreeVector(0.0, 0.0, ORIGIND), NOROT);
 }
 
 /////////////////////////////////////////////////////////////////////////////

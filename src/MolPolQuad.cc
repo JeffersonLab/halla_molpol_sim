@@ -41,8 +41,20 @@ MolPolQuad::MolPolQuad(G4double pGradient, G4ThreeVector pOrigin, G4RotationMatr
   fRadius      = pRadius;
 }
 
+
 /////////////////////////////////////////////////////////////////////////
 
+void MolPolQuad::UpdateQuad(G4double pGradient,
+			    G4ThreeVector pOrigin,
+			    G4RotationMatrix* pMatrix,
+			    G4double pRadius){
+  fGradient    = pGradient ;
+  fOrigin      = pOrigin ;
+  fpMatrix     = pMatrix ;
+  fRadius      = pRadius;
+}
+
+/////////////////////////////////////////////////////////////////////////
 MolPolQuad::~MolPolQuad()
 {
 }

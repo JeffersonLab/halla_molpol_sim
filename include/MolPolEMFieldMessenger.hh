@@ -39,7 +39,7 @@ class MolPolEMFieldMessenger: public G4UImessenger
     G4UIcmdWithADouble*        fQ4TCmd;
     G4UIcmdWithADouble*        fQ5TCmd;
 
-    G4UIcmdWithoutParameter*   fInitCmd;
+    G4UIcmdWithoutParameter*   fUpdateCmd;
 
 };
 

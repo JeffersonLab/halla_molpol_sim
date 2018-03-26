@@ -1,13 +1,3 @@
-// ********************************************************************
-//
-// $Id: MolPolEMFieldSetup.hh,v 1.0, 2010/12/26   MolPol Exp $
-//
-//    A class for control of the Electromagnetic Field of the detector.
-//  The field for this case is reading from class MolPolEMFiled.
-//
-//  It is simply a 'setup' class that creates the field and other necessary parts
-// ********************************************************************
-
 #ifndef MolPolEMFieldSetup_H
 #define MolPolEMFieldSetup_H 1
 
@@ -23,81 +13,83 @@ class G4Mag_UsualEqRhs;
 class G4Mag_EqRhs;
 class G4EqMagElectricField;
 class G4MagIntegratorStepper;
-class G4MagInt_Driver; 
+class G4MagInt_Driver;
 class G4UniformMagField;
 class MolPolEMFieldMessenger;
 
-class MolPolEMFieldSetup 
+class MolPolEMFieldSetup
 {
   //public:
-	//Static method which returns the singleton pointer of this class.
-  //	static MolPolEMFieldSetup* GetMolPolEMFieldSetup();
+  //Static method which returns the singleton pointer of this class.
+  //    static MolPolEMFieldSetup* GetMolPolEMFieldSetup();
   /*
     private:
     static MolPolEMFieldSetup* fMolPolEMFieldSetup;
   */
 
-public: 
-	MolPolEMFieldSetup() ;         
-	~MolPolEMFieldSetup() ;  
+public:
+  MolPolEMFieldSetup() ;
+  ~MolPolEMFieldSetup() ;
 
-	void SetStepper();
-	void UpdateField();
+  void SetStepper();
+  void UpdateField();
 
-        void InitialseAll();
+  void InitialseAll();
 
-	inline  void SetStepperType( G4int val) { fStepperType = val ; }
-	inline  G4int GetStepperType() {return fStepperType; }
+  inline  void SetStepperType( G4int val) { fStepperType = val ; }
+  inline  G4int GetStepperType() {return fStepperType; }
 
-	inline void SetMinStep(G4double val) { fMinStep = val ; }
-	inline G4double GetMinStep() { return fMinStep ; }
-	
-	G4FieldManager* GetFieldManager(){return fFieldManager;}
+  inline void SetMinStep(G4double val) { fMinStep = val ; }
+  inline G4double GetMinStep() { return fMinStep ; }
 
-	//Local field  FZB1
-	void UpdateFieldFZB1();
-	void SetBField3VFZB1(G4double fieldGradient);
-	G4FieldManager* GetFieldManagerFZB1(){return fLocalFieldManagerFZB1;}
-	//Local field  FZB2
-	void UpdateFieldFZB2();
-	void SetBField3VFZB2(G4double fieldGradient);
-	G4FieldManager* GetFieldManagerFZB2(){return fLocalFieldManagerFZB2;}
-	//Local field  FZB3
-	void UpdateFieldFZB3();
-	void SetBField3VFZB3(G4double fieldGradient);
-	G4FieldManager* GetFieldManagerFZB3(){return fLocalFieldManagerFZB3;}
-	//Local field  FZB4
-	void UpdateFieldFZB4();
-	void SetBField3VFZB4(G4double fieldGradient);
-	G4FieldManager* GetFieldManagerFZB4(){return fLocalFieldManagerFZB4;}
-	//Local field  FZB5
-	void UpdateFieldFZB5();
-	void SetBField3VFZB5(G4double fieldGradient);
-	G4FieldManager* GetFieldManagerFZB5(){return fLocalFieldManagerFZB5;}
+  G4FieldManager* GetFieldManager(){return fFieldManager;}
 
-	//Local field  FZB6
-	void UpdateFieldFZB6();
-	void SetBField3VFZB6(G4double fieldGradient);
-	G4FieldManager* GetFieldManagerFZB6(){return fLocalFieldManagerFZB6;}
+  //Local field  FZB1
+  void UpdateFieldFZB1();
+  void SetBField3VFZB1(G4double fieldGradient);
+  G4FieldManager* GetFieldManagerFZB1(){return fLocalFieldManagerFZB1;}
+  //Local field  FZB2
+  void UpdateFieldFZB2();
+  void SetBField3VFZB2(G4double fieldGradient);
+  G4FieldManager* GetFieldManagerFZB2(){return fLocalFieldManagerFZB2;}
+  //Local field  FZB3
+  void UpdateFieldFZB3();
+  void SetBField3VFZB3(G4double fieldGradient);
+  G4FieldManager* GetFieldManagerFZB3(){return fLocalFieldManagerFZB3;}
+  //Local field  FZB4
+  void UpdateFieldFZB4();
+  void SetBField3VFZB4(G4double fieldGradient);
+  G4FieldManager* GetFieldManagerFZB4(){return fLocalFieldManagerFZB4;}
+  //Local field  FZB5
+  void UpdateFieldFZB5();
+  void SetBField3VFZB5(G4double fieldGradient);
+  G4FieldManager* GetFieldManagerFZB5(){return fLocalFieldManagerFZB5;}
 
-        G4int fMagSourceMode;
+  //Local field  FZB6
+  void UpdateFieldFZB6();
+  void SetBField3VFZB6(G4double fieldGradient);
+  G4FieldManager* GetFieldManagerFZB6(){return fLocalFieldManagerFZB6;}
 
-        //external input current values
-        G4double                    fQ1A;
-        G4double                    fQ2A;
-        G4double                    fQ3A;
-        G4double                    fQ4A;
-        G4double                    fQ5A;
+  void UpdateConfiguration();
 
-        //external input field (pole tip) values
-        G4double                    fQ1T;
-        G4double                    fQ2T;
-        G4double                    fQ3T;
-        G4double                    fQ4T;
-        G4double                    fQ5T;
-	
+  G4int fMagSourceMode;
+
+  //external input current values
+  G4double                    fQ1A;
+  G4double                    fQ2A;
+  G4double                    fQ3A;
+  G4double                    fQ4A;
+  G4double                    fQ5A;
+
+  //external input field (pole tip) values
+  G4double                    fQ1T;
+  G4double                    fQ2T;
+  G4double                    fQ3T;
+  G4double                    fQ4T;
+  G4double                    fQ5T;
+
 private:
-  MolPolEMField*              fEMfield; 
+  MolPolEMField*              fEMfield;
   G4FieldManager*             fFieldManager;
   G4ChordFinder*              fChordFinder ;
   G4EqMagElectricField*       fEquation ;
@@ -109,7 +101,7 @@ private:
   G4MagInt_Driver*            fIntgrDriverFZB4;
   G4MagInt_Driver*            fIntgrDriverFZB5;
   G4MagInt_Driver*            fIntgrDriverFZB6;
-  
+
   MolPolEMFieldMessenger*     fFieldMessenger;
 
   G4int                       fStepperType ;
