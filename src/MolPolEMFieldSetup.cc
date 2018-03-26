@@ -125,6 +125,13 @@ void MolPolEMFieldSetup::InitialseAll()
     G4double KAPPA4 =  0.206 / (5.08 * 1.e-2) * tesla / m;
     G4double DIPOLE = 0.70 * tesla;
   */
+  G4cout << __PRETTY_FUNCTION__ <<"\t at line: "<<__LINE__<<G4endl;
+  G4cout << "\tfMagSourceMode: "<<fMagSourceMode<<G4endl
+	 << "\tKAPPA1: "<<KAPPA1<<G4endl
+	 << "\tKAPPA1: "<<KAPPA2<<G4endl
+	 << "\tKAPPA1: "<<KAPPA3<<G4endl
+	 << "\tKAPPA1: "<<KAPPA4<<G4endl
+	 << "\tDIPOLE: "<<DIPOLE<<G4endl;
 
   fMagFieldFZB1 = new MolPolQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, Q1R);
   fEquationFZB1 = new G4Mag_UsualEqRhs(fMagFieldFZB1);
