@@ -147,6 +147,13 @@ void MolPolEMFieldSetup::InitialseAll()
   if(fStepperFZB5) delete fStepperFZB5;
   if(fStepperFZB6) delete fStepperFZB6;
 
+  if(fLocalFieldManagerFZB1) delete fLocalFieldManagerFZB1;
+  if(fLocalFieldManagerFZB2) delete fLocalFieldManagerFZB2;
+  if(fLocalFieldManagerFZB3) delete fLocalFieldManagerFZB3;
+  if(fLocalFieldManagerFZB4) delete fLocalFieldManagerFZB4;
+  if(fLocalFieldManagerFZB5) delete fLocalFieldManagerFZB5;
+  if(fLocalFieldManagerFZB6) delete fLocalFieldManagerFZB6;
+
   fMagFieldFZB1 = new MolPolQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, Q1R);
   fEquationFZB1 = new G4Mag_UsualEqRhs(fMagFieldFZB1);
   fStepperFZB1  = new G4ClassicalRK4(fEquationFZB1);
