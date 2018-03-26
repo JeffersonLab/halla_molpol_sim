@@ -1,0 +1,23 @@
+*~
+*.swp
+*.DS_Store
+
+#ignore libraries and helper files
+*.so
+*.d
+
+#ignore output files
+*.root
+*.out
+*.pdf
+*.log
+*.dot
+
+#ignore build and map directory
+build*
+bldXcode
+map_directory
+
+#ignore log and rootfiles directory
+log
+rootfiles
