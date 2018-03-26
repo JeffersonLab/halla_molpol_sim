@@ -1,11 +1,3 @@
-// ********************************************************************
-//
-// $Id: MolPolEMField.hh,v 1.0, 2010/12/26 MolPol Exp $
-// GEANT4 tag $Name: geant4-09-04 $
-//
-//
-//   User Field class Setup implementation.
-//
 #include "MolPolEMFieldSetup.hh"
 #include "MolPolEMFieldMessenger.hh"
 
@@ -132,6 +124,12 @@ void MolPolEMFieldSetup::InitialseAll()
 	 << "\tKAPPA1: "<<KAPPA3<<G4endl
 	 << "\tKAPPA1: "<<KAPPA4<<G4endl
 	 << "\tDIPOLE: "<<DIPOLE<<G4endl;
+  if(fMagFieldFZB1) delete fMagFieldFZB1;
+  if(fMagFieldFZB2) delete fMagFieldFZB2;
+  if(fMagFieldFZB3) delete fMagFieldFZB3;
+  if(fMagFieldFZB4) delete fMagFieldFZB4;
+  if(fMagFieldFZB5) delete fMagFieldFZB5;
+  if(fMagFieldFZB6) delete fMagFieldFZB6;
 
   fMagFieldFZB1 = new MolPolQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, Q1R);
   fEquationFZB1 = new G4Mag_UsualEqRhs(fMagFieldFZB1);
