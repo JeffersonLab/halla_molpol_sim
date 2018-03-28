@@ -67,6 +67,9 @@ class MolPolIO {
 	Double_t fEvPart_X[__IO_MAXHIT];
 	Double_t fEvPart_Y[__IO_MAXHIT];
 	Double_t fEvPart_Z[__IO_MAXHIT];
+	Double_t fEvPart_lX[__IO_MAXHIT];
+	Double_t fEvPart_lY[__IO_MAXHIT];
+	Double_t fEvPart_lZ[__IO_MAXHIT];
 	Double_t fEvPart_P[__IO_MAXHIT];
 	Double_t fEvPart_Px[__IO_MAXHIT];
 	Double_t fEvPart_Py[__IO_MAXHIT];
@@ -92,6 +95,10 @@ class MolPolIO {
 	Double_t fDetHit_X[__IO_MAXHIT];
 	Double_t fDetHit_Y[__IO_MAXHIT];
 	Double_t fDetHit_Z[__IO_MAXHIT];
+
+	Double_t fDetHit_lX[__IO_MAXHIT];
+	Double_t fDetHit_lY[__IO_MAXHIT];
+	Double_t fDetHit_lZ[__IO_MAXHIT];
 
 	Double_t fDetHit_Px[__IO_MAXHIT];
 	Double_t fDetHit_Py[__IO_MAXHIT];

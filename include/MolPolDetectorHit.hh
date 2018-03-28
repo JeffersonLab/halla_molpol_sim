@@ -27,6 +27,7 @@ class MolPolDetectorHit : public G4VHit {
 
 	// Position and momentum in lab coordinates
 	G4ThreeVector f3X;
+	G4ThreeVector f3lX;
 	G4ThreeVector f3P;
 	// Total momentum, energy, mass
 	G4double fP, fE, fM;
