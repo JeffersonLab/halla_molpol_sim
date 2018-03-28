@@ -110,13 +110,12 @@ void MolPolEMFieldSetup::InitialseAll()
     }
 
   // 5GeV (Sasha xcheck)
-  /*
-    G4double KAPPA1 = -0.171 / (5.08 * 1.e-2) * tesla / m;
-    G4double KAPPA2 =  0.131 / (5.08 * 1.e-2) * tesla / m;
-    G4double KAPPA3 =  0.096 / (5.08 * 1.e-2) * tesla / m;
-    G4double KAPPA4 =  0.206 / (5.08 * 1.e-2) * tesla / m;
-    G4double DIPOLE = 0.70 * tesla;
-  */
+  KAPPA1 = -0.171 / (5.08 * 1.e-2) * tesla / m;
+  KAPPA2 =  0.131 / (5.08 * 1.e-2) * tesla / m;
+  KAPPA3 =  0.096 / (5.08 * 1.e-2) * tesla / m;
+  KAPPA4 =  0.206 / (5.08 * 1.e-2) * tesla / m;
+  DIPOLE = 0.70 * tesla;
+  
   G4cout << __PRETTY_FUNCTION__ <<"\t at line: "<<__LINE__<<G4endl;
   G4cout << "\tfMagSourceMode: "<<fMagSourceMode<<G4endl
 	 << "\tKAPPA1: "<<KAPPA1<<G4endl
