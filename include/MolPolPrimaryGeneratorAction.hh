@@ -17,7 +17,7 @@ class Simulation;
 class MolPolPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
 public:
-  MolPolPrimaryGeneratorAction();    
+  MolPolPrimaryGeneratorAction();
   virtual ~MolPolPrimaryGeneratorAction();
 
   void GeneratePrimaries(G4Event*);
@@ -45,11 +45,19 @@ public:
 private:
   MolPolEvent* fDefaultEvent;
   G4ParticleGun* particleGun; //pointer a to G4  class
-  MolPolIO *fIO;    
+  MolPolIO *fIO;
   PrimaryGeneratorMessenger* gunMessenger;   //messenger of this class
   G4String rndmFlag;     //flag for a rndm impact point
   double angle;//in deg
   G4String gentype;
+
+  //Levchuk effect
+  static const G4int eMomDistN = 150;
+  G4double eMomDist[2][eMomDistN];
+  void LevchukEffect(G4double);
+  G4double SampleTargetMomentum(G4bool);
+  void InitTargetMomentum();
+  G4double GetTmpUnpolDist(const G4double p[8],const G4double refMom[8],const G4int k);
 
 };
 
