@@ -34,7 +34,7 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 
   //Requirement (BPM values): <0.1mm
 
-  fBeamPol = "unpol";
+  fBeamPol = "long";
 
   fXmin = 0.0*mm;
   fXmax = 0.0*mm;
@@ -53,7 +53,7 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 
   fZ = 0.0;
 
-  gentype = "flat";
+  gentype = "moller";
 
   fDefaultEvent = new MolPolEvent();
 
