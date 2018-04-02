@@ -12,6 +12,7 @@ class G4ParticleGun;
 class G4Event;
 class PrimaryGeneratorMessenger;
 class Simulation;
+class remollMultScatt;
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class MolPolPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
@@ -33,6 +34,8 @@ public:
   double GetAngle(){return angle;}
   G4double fXmin, fXmax, fYmin, fYmax;
   G4double fZ;
+  G4double fTargLen;
+  G4double fTargPol;//[0,1]
   G4double fBeamE;
   G4double fEmin, fEmax;
   G4double fthetaMin, fthetaMax;
@@ -51,15 +54,20 @@ private:
   double angle;//in deg
   G4String gentype;
 
+  //Initial target multiple scattering
+  remollMultScatt *fMS;
+
   //Levchuk effect
+  G4bool fLevchukFlag;
   static const G4int eMomDistN = 150;
   G4double eMomDist[2][eMomDistN];
-  void LevchukEffect(G4double);
+  void LevchukEffect();
+  G4double fLEcorFac, fLEtgtPol;
   G4double SampleTargetMomentum(G4bool);
   void InitTargetMomentum();
   G4double GetTmpUnpolDist(const G4double p[8],const G4double refMom[8],const G4int k);
-
-};
+  G4double GetElectronStructFct(const G4double, const G4double);
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
