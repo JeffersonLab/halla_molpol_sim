@@ -66,8 +66,9 @@ private:
   G4double SampleTargetMomentum(G4bool);
   void InitTargetMomentum();
   G4double GetTmpUnpolDist(const G4double p[8],const G4double refMom[8],const G4int k);
-  G4double GetElectronStructFct(const G4double, const G4double);
-}
+  G4double GetElectronStructFct(G4double&, const G4double);
+
+};
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 

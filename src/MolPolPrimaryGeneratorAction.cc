@@ -95,7 +95,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       double thcom = acos(G4RandFlat::shoot(cos(fthetaComMax), cos(fthetaComMin)));
       double phcom = G4RandFlat::shoot(fphiMin, fphiMax); //deg
 
-      double zpos = - fTargLen/2 + G4RandFlat::shoot(0, fTargLen);
+      double zpos = - fTargLen/2 + G4UniformRand() * fTargLen;
 
       //Multiple Scattering until the vertex position
       const G4int nTgtMat = 1;
@@ -136,6 +136,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double prob_sample, eloss, sample, env, value, ref;
       G4double fEcut = 1e-6*MeV; // copied over from remollBeamTarget.cc
 
+      G4double Euler = 0.5772157;
       G4double prob = 1.- pow(fEcut/Ekin,bt) - bt/(bt+1.)*(1.- pow(fEcut/Ekin,bt+1.))
         + 0.75*bt/(2.+bt)*(1.- pow(fEcut/Ekin,bt+2.));
       prob = prob/(1.- bt*Euler + bt*bt/2.*(Euler*Euler+pi*pi/6.)); /* Gamma function */
@@ -249,116 +250,63 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double weight = zLum * dPhaseSpace * sigma * strFct;
 
       //CALCULATE THE EVENT WEIGHT FOR THE VARIOUS POLARIZATION DIRECTIONS
-      G4double wTT = fLEtgtPol * sin2t / pow(3 + cos2t,2);
+      G4double wTT = fLEtgtPol * sin2t / pow(3 + cos2t,2);//FIXME do we want to record these
 
       G4double wZZ = wTT * (7 + cos2t);
-      G4double polPlusWeightZ = weight * (1 + wZZ);
-      G4double polMinusWeightZ = weight * (1 - wZZ);
+      G4double polPlusWeightZ = weight * (1 + wZZ);//FIXME do we want to record these
+      G4double polMinusWeightZ = weight * (1 - wZZ);//FIXME do we want to record these
 
       //THE TGT SPIN IS ASSUMED TO BE ALONG THE X AXIS
       G4double wXX = wTT * sin2t * cos(2 * direction.getPhi());
-      G4double polMinusWeightX = weight * (1 - wXX);
-      G4double polPlusWeightX = weight * (1 + wXX);
+      G4double polMinusWeightX = weight * (1 - wXX);//FIXME do we want to record these
+      G4double polPlusWeightX = weight * (1 + wXX);//FIXME do we want to record these
       G4double wYY = wTT * sin2t * sin(2 * direction.getPhi());
-      G4double polMinusWeightY = weight * (1 - wYY);
-      G4double polPlusWeightY = weight * (1 + wYY);
+      G4double polMinusWeightY = weight * (1 - wYY);//FIXME do we want to record these
+      G4double polPlusWeightY = weight * (1 + wYY);//FIXME do we want to record these
 
       //STORE THE RESULTS OF THE EVENT GENERATION
-      //(VEC(I,1) ALREADY CONTAINS THE INCIDENT BEAM DIRECTION)
+      G4double tX = direction.getX()/pBeam;
+      G4double tY = direction.getY()/pBeam;
+      G4double tZ = direction.getZ()/pBeam;
 
-      G4double tX = VEC(4,1)/PBEAM
-      G4double tY = VEC(5,1)/PBEAM
-      G4double tZ = VEC(6,1)/PBEAM
+      //ADD THE ELECTRON DIRECTION
+      G4double tX1 = tX + theta1 * cos(direction.getPhi());
+      G4double tY1 = tY + theta1 * sin(direction.getPhi());
+      G4double arg = 1 - tX1*tX1 - tY1*tY1;
+      G4double tZ1(0);
+      assert(arg >= 0 and "your tX1^2 + tY1^2 > 1");
+      if(arg>0) tZ1 = sqrt(arg);
 
-	//ADD THE ELECTRON DIRECTION
+      particleGun->SetParticlePosition( G4ThreeVector(0, 0, zpos) );
+      particleGun->SetParticleMomentumDirection( G4ThreeVector( tX1, tY1, tZ1 ).unit() );
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, zpos),
+                                        G4ThreeVector(tX1, tY1, tZ1 ) * p1,
+                                        particleGun->GetParticleDefinition()->GetParticleName() );
 
-      TX1=TX+THETA1*COS(PHI)
-      TY1=TY+THETA1*SIN(PHI)
-      ARG=1.-TX1**2-TY1**2
-      IF(ARG.GT.0.) THEN
-         TZ1=SQRT(ARG)
-      ELSE
-         TZ1=0.
-      ENDIF
-      TX2=TX+THETA2*COS(PHI+PI)
-      TY2=TY+THETA2*SIN(PHI+PI)
-      ARG=1.-TX2**2-TY2**2
-      IF(ARG.GT.0.) THEN
-         TZ2=SQRT(ARG)
-      ELSE
-         TZ2=0.
-      ENDIF
-      VEC(4,1)=P1*TX1
-      VEC(5,1)=P1*TY1
-      VEC(6,1)=P1*TZ1
-      VEC(1,2)=VEC(1,1)
-      VEC(2,2)=VEC(2,1)
-      VEC(3,2)=VEC(3,1)
-      VEC(4,2)=P2*TX2
-      VEC(5,2)=P2*TY2
-      VEC(6,2)=P2*TZ2
-C
-C     SAVE THE GENERATED LAB SCATTERING ANGLE AND MOMENTUM
-C
-      TGEN=THETA1
-      PHIGEN=PHI
-      PGEN=P1
-	//Orignial FIXME
-      // leave it for now
+
+      G4double tX2 = tX + theta2 * cos(direction.getPhi() + pi);
+      G4double tY2 = tY + theta2 * sin(direction.getPhi() + pi);
+      arg = 1 - tX2*tX2 - tY2*tY2;
+      G4double tZ2(0);
+      assert(arg >= 0 and "your tX2^2 + tY2^2 > 1");
+      if(arg>0) tZ2 = sqrt(arg);
+
+      particleGun->SetParticlePosition( G4ThreeVector(0, 0, zpos) );
+      particleGun->SetParticleMomentumDirection( G4ThreeVector( tX2, tY2, tZ2 ).unit() );
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, zpos),
+                                        G4ThreeVector(tX2, tY2, tZ2 ) * p2,
+                                        particleGun->GetParticleDefinition()->GetParticleName() );
+
       eff_sigma = sigma;
-
       Azz = -((7+pow(cos(thcom),2))*pow(sin(thcom),2))/pow(3+cos(thcom)*cos(thcom),2);
-
       fDefaultEvent->SetEffCrossSection(eff_sigma);
       fDefaultEvent->SetAsymmetry(Azz);
       fDefaultEvent->SetThCoM(thcom);
       fDefaultEvent->SetPhCoM(phcom);
 
-      //perpendicular and parallel momentum components
-      double pperp = e_com * sin(thcom);
-      double ppar  = e_com * cos(thcom);
-
-      xpos = 0.0;
-      ypos = 0.0;
-      zpos = fZ;
-
-      //generate first electron
-      pX = pperp*cos(phcom);
-      pY = pperp*sin(phcom);
-      pZ = gamma_com*(ppar + e_com*beta_com);
-
-      double kin = sqrt(pX*pX + pY*pY + pZ*pZ + me*me) - me;
-
-      particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, zpos) );
-      particleGun->SetParticleMomentumDirection( G4ThreeVector( pX, pY, pZ ).unit() );
-
-      fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, zpos),
-                                        G4ThreeVector(pX, pY, pZ ),
-                                        particleGun->GetParticleDefinition()->GetParticleName() );
-
-      if(fBeamPol == "long")
-        particleGun->SetParticlePolarization((G4ThreeVector(pX, pY, pZ).unit()));
-
-      particleGun->SetParticleEnergy(kin);
-      particleGun->GeneratePrimaryVertex(anEvent);
-
-      //generate second electron
-      pX = -pperp*cos(phcom);
-      pY = -pperp*sin(phcom);
-      pZ = gamma_com*(-ppar + e_com*beta_com);
-      kin = sqrt(pX*pX + pY*pY + pZ*pZ + me*me) - me;
-
-      particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, zpos) );
-      particleGun->SetParticleMomentumDirection( G4ThreeVector( pX, pY, pZ ).unit() );
-
-      fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, zpos),
-                                        G4ThreeVector(pX, pY, pZ ),
-                                        particleGun->GetParticleDefinition()->GetParticleName() );
-
       fIO->SetEventData(fDefaultEvent);
-      particleGun->SetParticleEnergy(kin);
+      particleGun->SetParticleEnergy(pBeam);
       particleGun->GeneratePrimaryVertex(anEvent);
-
 
     }
   else
@@ -515,7 +463,7 @@ G4double MolPolPrimaryGeneratorAction::GetTmpUnpolDist(const G4double p[8], cons
 ///as given in Alexander et al., Phys.Rev.D37, 56 (1988)
 ///U is 1-X...for precision reasons.
 ///**********************************************************
-G4double MolPolPrimaryGeneratorAction::GetElectronStructFct(const G4double u, const G4double s){
+G4double MolPolPrimaryGeneratorAction::GetElectronStructFct(G4double &u, const G4double s){
 
   //If X is too close to 1, reset it to a more sensible value
   if( u < 1e-30) u = 1e-30;
@@ -529,15 +477,15 @@ G4double MolPolPrimaryGeneratorAction::GetElectronStructFct(const G4double u, co
   G4double dePhot = beta/2 * pow(u, beta/2 - 1)
     * ( 1 + 3 * beta/8 - pow(beta,2) / 48 * (l/3 + pow(pi,2) - 47/8.))
     - beta/4 * (2 - u) + pow(beta,2)/32
-    * (4 * (2 - u) * log(1/u) - (1 + 3 * pow(1 - u , 2) ) / * log(1. - u) - 6 + u);
+    * (4 * (2 - u) * log(1/u) - (1 + 3 * pow(1 - u , 2) ) / u * log(1. - u) - 6 + u);
 
   //Calculate e-e pair structure function
-  G4double dee(0)
+  G4double dee(0);
   if(u > 2*electron_mass_c2/eBeam)
     dee = pow(fine_structure_const/pi,2) *
       ( pow(u - 2 * electron_mass_c2/eBeam, beta/2) / u
 	* pow(l1 - 5/3.,2) / 12 * (1 + pow(1 - u,2) + beta * (l1 - 5/3.) / 6 )
-	+ pow(l,2) / 4 * (2/3. * (1 - pow(1 - u,3)) / (1 - u) + u/2 + (2 - u) * log(1 - x)));
+	+ pow(l,2) / 4 * (2/3. * (1 - pow(1 - u,3)) / (1 - u) + u/2 + (2 - u) * log(1 - u)));
 
   //Sum both contributions to the electron structure function
   return dePhot + dee;
