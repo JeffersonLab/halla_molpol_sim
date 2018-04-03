@@ -52,7 +52,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include ${ROOT_INCLUDE_DIR} ${CMAKE_CU
 # NB: headers are included so they will show up in IDEs
 #
 #file(GLOB sources ${PROJECT_SOURCE_DIR}/src/MolPol*.cc ${PROJECT_SOURCE_DIR}/src/*.f)
-file(GLOB sources ${PROJECT_SOURCE_DIR}/src/MolPol*.cc)
+file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 
 #----------------------------------------------------------------------------
