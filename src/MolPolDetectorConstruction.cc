@@ -72,7 +72,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4Element* Al = new G4Element("Aluminum", "Al", z=13, a=26.98*g/mole);
   G4Element* Fe = new G4Element("Iron"   , "Fe", z=26, a=55.845*g/mole);
   G4Element* Si = new G4Element("Silicon", "Si", z=14, a=28.09 *g/mole);
-  G4Element* Pb = new G4Element("Lead", z=82., a=207.19*g/mole);
+  G4Element* Pb = new G4Element("Lead","Pb", z=82., a=207.19*g/mole);
 
   density = 0.787 * g/cm3;
   a = 55.85 * g /mole;

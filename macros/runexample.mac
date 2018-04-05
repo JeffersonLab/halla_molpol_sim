@@ -20,18 +20,18 @@
 /MolPol/phimin   -25 deg
 /MolPol/phimax   25  deg
 
-/MolPol/MagSourceMode 1
-/MolPol/Q1A 0 
-/MolPol/Q2A 0
-/MolPol/Q3A 0
-/MolPol/Q4A 0
-/MolPol/Q5A 0
+/field/MagSourceMode 1
+/field/setQ1A 0 
+/field/setQ2A 0
+/field/setQ3A 0
+/field/setQ4A 0
+/field/setQ5A 0
 
-/MolPol/Q1T -0.171
-/MolPol/Q2T  0.131
-/MolPol/Q3T  0.096
-/MolPol/Q4T  0.206
-/MolPol/Q5T  0.700
+/field/setQ1T -0.171
+/field/setQ2T  0.131
+/field/setQ3T  0.096
+/field/setQ4T  0.206
+/field/setQ5T  0.700
 
 #/MolPol/emin   1.063 GeV
 #/MolPol/emax   1.063 GeV
