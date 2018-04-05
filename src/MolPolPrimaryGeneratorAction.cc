@@ -17,6 +17,8 @@
 #include "Randomize.hh"
 #include "MolPolIO.hh"
 
+#include <cassert>
+
 MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
   :rndmFlag("off")
 {
