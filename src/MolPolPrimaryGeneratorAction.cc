@@ -163,14 +163,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       assert( beamE >= electron_mass_c2 );
 
       //Levchuck effect
-      if(fLevchukFlag){
-        G4cout << "Levchuk effect set to 'ON'" << G4endl;
-        LevchukEffect();
-        G4cout << "Levchuk effect correction factor: " << fLEcorFac << G4endl;
-      }else{
-        G4cout << "Levchuk effect set to 'OFF'" << G4endl;
-        G4cout << "Levchuk effect correction factor: " << fLEcorFac << G4endl;
-      }
+      if(fLevchukFlag) LevchukEffect();
 
       G4double pBeam = beamE - electron_mass_c2;
 
