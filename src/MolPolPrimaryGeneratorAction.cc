@@ -63,10 +63,13 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
   fDefaultEvent = new MolPolEvent();
 
   fTargLen = 1*mm;
+
   //initialize target momentum distribution for Levchuck effect
   fLevchukFlag = false;
   fTargPol = 0.99;
   InitTargetMomentum();
+  //initialize value of Levchuk correction factor to 1
+  fLEcorFac = 1.;
 }
 
 MolPolPrimaryGeneratorAction::~MolPolPrimaryGeneratorAction()
@@ -173,8 +176,14 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       assert( beamE >= electron_mass_c2 );
 
       //Levchuck effect
-      //if(fLevchukFlag)
+      if(fLevchukFlag){
+        G4cout << "Levchuk effect set to 'ON'" << G4endl;
         LevchukEffect();
+        G4cout << "Levchuk effect correction factor: " << fLEcorFac << G4endl;
+      }else{
+        G4cout << "Levchuk effect set to 'OFF'" << G4endl;
+        G4cout << "Levchuk effect correction factor: " << fLEcorFac << G4endl;
+      }
 
       G4double pBeam = beamE - electron_mass_c2;
 
