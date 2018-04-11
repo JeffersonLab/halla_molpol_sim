@@ -1,7 +1,10 @@
-Please add a list of things to do: 
+Please add a list of things to do (high priority place at top): 
 
-_ : Incorporate Levchuck effect into Messenger/Macro.
-_ : Levchuck effect needs to default to a value of "1" when not used.
+_X_ : Incorporate Levchuck effect into Messenger/Macro.
+
+_X_ : Levchuck effect needs to be initialized to a default value of "1" 
+    when not used.
+
 _ : Various FIXME's need to be addressed.
 
 
