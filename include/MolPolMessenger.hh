@@ -48,7 +48,9 @@ class MolPolMessenger : public G4UImessenger {
   //  MolPolEMFieldSetup *fFieldSet;
 
         G4UIdirectory *fMolPolDir;
-	
+
+        G4UIcmdWithABool     *fLevchukEffectCmd;
+
 	G4UIcmdWithAnInteger *seedCmd;
 	G4UIcmdWithAString   *fileCmd;
         G4UIcmdWithAString   *genSelectCmd;
