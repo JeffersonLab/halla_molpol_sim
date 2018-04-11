@@ -44,6 +44,7 @@ public:
   G4String fBeamPol;
   void SourceModeSet(G4int );
   void SetGenerator(G4String genname){ gentype = genname; }
+  G4bool fLevchukFlag;
 
 private:
   MolPolEvent* fDefaultEvent;
@@ -58,7 +59,6 @@ private:
   remollMultScatt *fMS;
 
   //Levchuk effect
-  G4bool fLevchukFlag;
   static const G4int eMomDistN = 150;
   G4double eMomDist[2][eMomDistN];
   void LevchukEffect();
