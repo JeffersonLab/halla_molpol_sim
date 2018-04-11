@@ -116,23 +116,16 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       msThick[0] = ((zpos + fTargLen/2) * ironDensity )/(g/cm2);
       //~~ Sample multiple scattering + angles
       G4double msth(0), msph(0);
-      G4double bmth(0), bmph(0);
-
       fMS = new remollMultScatt();
       fMS->Init(fBeamE,nTgtMat,msThick,msA,msZ);
 
       msth = fMS->GenerateMSPlane();
       msph = fMS->GenerateMSPlane();
-      bmth = thcom;
-      bmph = phcom;
 
       assert( !std::isnan(msth) && !std::isnan(msph) );
 
       //~~FIXME do we need to take care of a raster?!?!
       G4ThreeVector direction = G4ThreeVector(0,0,1.);
-
-      direction.rotateY( bmth); // Positive th pushes to positive X (around Y-axis)
-      direction.rotateX(-bmph); // Positive ph pushes to positive Y (around X-axis)
 
       //~~apply MS
       direction.rotateY(msth);
@@ -190,7 +183,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //Internal initial state radiation
       G4double s0 = 2 * electron_mass_c2 * pBeam * fLEcorFac;
       //~~The correct scale for the bremsstrahlung is the minimum of T and U
-      G4double TUmin = 0.5 * s0 * ( 1 - abs(cos(direction.getTheta())) );
+      G4double TUmin = 0.5 * s0 * ( 1 - abs(cos(thcom)) );
       //~~The constant HBETA is 1/2 of the bremsstrahlung constant beta
       G4double hBeta = fine_structure_const/pi * (log(TUmin / pow(electron_mass_c2,2))-1);
       //~~Define the minimum value of the photon energy fraction
@@ -226,8 +219,8 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         s = s0 * x1 * x2;
       }while(s < 1e-6);//~~The cross section formally diverges at s=0, protect against
 
-      G4double p1 = pBeam/2 * x1 * ( 1 + cos(direction.getTheta()) );
-      G4double p2 = pBeam/2 * x1 * ( 1 - cos(direction.getTheta()) );
+      G4double p1 = pBeam/2 * x1 * ( 1 + cos(thcom) );
+      G4double p2 = pBeam/2 * x1 * ( 1 - cos(thcom) );
       G4double theta1 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p1 - 1/(x1*pBeam)) );
       G4double theta2 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p2 - 1/(x1*pBeam)) );
 
@@ -250,7 +243,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       p2 *= x4;
 
       //CALCULATE THE M0LLER CROSS SECTION
-      G4double cos2t = pow(cos(direction.getTheta()),2);
+      G4double cos2t = pow(cos(thcom),2);
       G4double sin2t = 1 - cos2t;
 
       G4double sigma = pow(fine_structure_const,2) / s * pow(hbarc,2) *
@@ -274,10 +267,10 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double polMinusWeightZ = weight * (1 - wZZ);//FIXME do we want to record these
 
       //THE TGT SPIN IS ASSUMED TO BE ALONG THE X AXIS
-      G4double wXX = wTT * sin2t * cos(2 * direction.getPhi());
+      G4double wXX = wTT * sin2t * cos(2 * phcom );
       G4double polMinusWeightX = weight * (1 - wXX);//FIXME do we want to record these
       G4double polPlusWeightX = weight * (1 + wXX);//FIXME do we want to record these
-      G4double wYY = wTT * sin2t * sin(2 * direction.getPhi());
+      G4double wYY = wTT * sin2t * sin(2 * phcom );
       G4double polMinusWeightY = weight * (1 - wYY);//FIXME do we want to record these
       G4double polPlusWeightY = weight * (1 + wYY);//FIXME do we want to record these
 
@@ -287,8 +280,8 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double tZ = direction.getZ()/pBeam;
 
       //ADD THE ELECTRON DIRECTION
-      G4double tX1 = tX + theta1 * cos(direction.getPhi());
-      G4double tY1 = tY + theta1 * sin(direction.getPhi());
+      G4double tX1 = tX + theta1 * cos(phcom);
+      G4double tY1 = tY + theta1 * sin(phcom);
       G4double arg = 1 - tX1*tX1 - tY1*tY1;
       G4double tZ1(0);
       assert(arg >= 0 and "your tX1^2 + tY1^2 > 1");
@@ -300,8 +293,8 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
                                         G4ThreeVector(tX1, tY1, tZ1 ) * p1,
                                         particleGun->GetParticleDefinition()->GetParticleName() );
 
-      G4double tX2 = tX + theta2 * cos(direction.getPhi() + pi);
-      G4double tY2 = tY + theta2 * sin(direction.getPhi() + pi);
+      G4double tX2 = tX + theta2 * cos(phcom + pi);
+      G4double tY2 = tY + theta2 * sin(phcom + pi);
       arg = 1 - tX2*tX2 - tY2*tY2;
       G4double tZ2(0);
       assert(arg >= 0 and "your tX2^2 + tY2^2 > 1");
