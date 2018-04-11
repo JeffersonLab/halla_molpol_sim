@@ -91,56 +91,14 @@ MolPolMessenger::MolPolMessenger(){
     fphiMinCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/phimin", this);
     fphiMinCmd->SetGuidance("Set phi range minimum");
     fphiMinCmd->SetParameterName("phimin", false);
- 
+
     fphiMaxCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/phimax", this);
     fphiMaxCmd->SetGuidance("Set phi range maximum");
     fphiMaxCmd->SetParameterName("phimax", false);
 
-    /*
-    fMagSourceCmd = new G4UIcmdWithAnInteger("/MolPol/MagSourceMode", this);
-    fMagSourceCmd->SetGuidance("Set source mode for mag field setting");
-    fMagSourceCmd->SetParameterName("magsource", false);
-
-    fQ1ACmd = new G4UIcmdWithADouble("/MolPol/Q1A", this);
-    fQ1ACmd->SetGuidance("Set Q1 current");
-    fQ1ACmd->SetParameterName("Q1A", false);
-
-    fQ2ACmd = new G4UIcmdWithADouble("/MolPol/Q2A", this);
-    fQ2ACmd->SetGuidance("Set Q2 current");
-    fQ2ACmd->SetParameterName("Q2A", false);
-
-    fQ3ACmd = new G4UIcmdWithADouble("/MolPol/Q3A", this);
-    fQ3ACmd->SetGuidance("Set Q3 current");
-    fQ3ACmd->SetParameterName("Q3A", false);
-
-    fQ4ACmd = new G4UIcmdWithADouble("/MolPol/Q4A", this);
-    fQ4ACmd->SetGuidance("Set Q4 current");
-    fQ4ACmd->SetParameterName("Q4A", false);
-
-    fQ5ACmd = new G4UIcmdWithADouble("/MolPol/Q5A", this);
-    fQ5ACmd->SetGuidance("Set Dipole current");
-    fQ5ACmd->SetParameterName("Q5A", false);
-
-    fQ1TCmd = new G4UIcmdWithADouble("/MolPol/Q1T", this);
-    fQ1TCmd->SetGuidance("Set Q1 field in Tesla");
-    fQ1TCmd->SetParameterName("Q1T", false);
-
-    fQ2TCmd = new G4UIcmdWithADouble("/MolPol/Q2T", this);
-    fQ2TCmd->SetGuidance("Set Q2 field in Tesla" );
-    fQ2TCmd->SetParameterName("Q2T", false);
-
-    fQ3TCmd = new G4UIcmdWithADouble("/MolPol/Q3T", this);
-    fQ3TCmd->SetGuidance("Set Q3 field in Tesla");
-    fQ3TCmd->SetParameterName("Q3T", false);
-
-    fQ4TCmd = new G4UIcmdWithADouble("/MolPol/Q4T", this);
-    fQ4TCmd->SetGuidance("Set Q4 field in Tesla");
-    fQ4TCmd->SetParameterName("Q4T", false);
-
-    fQ5TCmd = new G4UIcmdWithADouble("/MolPol/Q5T", this);
-    fQ5TCmd->SetGuidance("Set Dipole field in Tesla");
-    fQ5TCmd->SetParameterName("Q5T", false);
-    */
+    fLevchukEffectCmd = new G4UIcmdWithABool("/MolPol/calculateLevchuk", this);
+    fLevchukEffectCmd->SetGuidance("Set Levchuck Effect On:True Off:False");
+    fLevchukEffectCmd->SetParameterName("calculateLevchuk",false);
 
     fZCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/fz", this);
     fZCmd->SetGuidance("Set particle z");
@@ -153,10 +111,13 @@ MolPolMessenger::~MolPolMessenger(){
 
 
 void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
+  if( cmd == fLevchukEffectCmd ){
+    G4bool flag = fLevchukEffectCmd->GetNewBoolValue(newValue);
+    fprigen->fLevchukFlag = flag;
+  }
   if( cmd == fileCmd ){
     fIO->SetFilename(newValue);
   }
-
   if( cmd == seedCmd ){
     G4int seed = seedCmd->GetNewIntValue(newValue);
     CLHEP::HepRandom::setTheSeed(seed);
@@ -178,7 +139,6 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == genSelectCmd ){
     fprigen->SetGenerator(newValue);
   }
-
   if( cmd == fXminCmd ){
     G4double x = fXminCmd->GetNewDoubleValue(newValue);
     fprigen->fXmin = x;
