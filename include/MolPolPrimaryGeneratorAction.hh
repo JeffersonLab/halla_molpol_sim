@@ -50,7 +50,6 @@ private:
   MolPolEvent* fDefaultEvent;
   G4ParticleGun* particleGun; //pointer a to G4  class
   MolPolIO *fIO;
-  PrimaryGeneratorMessenger* gunMessenger;   //messenger of this class
   G4String rndmFlag;     //flag for a rndm impact point
   double angle;//in deg
   G4String gentype;

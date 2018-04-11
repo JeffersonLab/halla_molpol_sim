@@ -27,102 +27,109 @@ class MolPolScintDetectorHit;
 #define __ASYMM_SCALE 1e-9 // ppb
 
 class MolPolIO {
-    public:
-	 MolPolIO();
-	~MolPolIO();
+public:
+  MolPolIO();
+  ~MolPolIO();
 
-	void SetFilename(G4String  fn);
-	G4String GetFilename(){return fFilename;}
+  void SetFilename(G4String  fn);
+  G4String GetFilename(){return fFilename;}
 
-	void FillTree();
-	void Flush();
-	void WriteTree();
+  void FillTree();
+  void Flush();
+  void WriteTree();
 
-	void WriteRun();
+  void WriteRun();
 
-	void InitializeTree();
+  void InitializeTree();
 
-    private:
-	TFile *fFile;
-	TTree *fTree;
+private:
+  TFile *fFile;
+  TTree *fTree;
 
-	char fFilename[__FILENAMELEN];
+  char fFilename[__FILENAMELEN];
 
-	//  Interfaces and buffers to the tree
-	//  This is potentially going to get very long...
+  //  Interfaces and buffers to the tree
+  //  This is potentially going to get very long...
 
-	// Event data
-    public:
-	void SetEventData(MolPolEvent *);
-    private:
+  // Event data
+public:
+  void SetEventData(MolPolEvent *);
+private:
 
-        Int_t fNEvPart;
-	Double_t fEvEffXs;
-	Double_t fEvAsym;
-        Double_t fEvThCoM;
-        Double_t fEvPhCoM;
+  G4int fNEvPart;
+  G4double fEvEffXs;
+  G4double fEvAsym;
+  G4double fEvThCoM;
+  G4double fEvPhCoM;
+  G4double fUnpolWght;
+  G4double fpolPlusWghtX;
+  G4double fpolPlusWghtY;
+  G4double fpolPlusWghtZ;
+  G4double fpolMinusWghtX;
+  G4double fpolMinusWghtY;
+  G4double fpolMinusWghtZ;
 
-	Int_t fEvPart_PID[__IO_MAXHIT];
+  G4int fEvPart_PID[__IO_MAXHIT];
 
-	Double_t fEvPart_X[__IO_MAXHIT];
-	Double_t fEvPart_Y[__IO_MAXHIT];
-	Double_t fEvPart_Z[__IO_MAXHIT];
-	Double_t fEvPart_lX[__IO_MAXHIT];
-	Double_t fEvPart_lY[__IO_MAXHIT];
-	Double_t fEvPart_lZ[__IO_MAXHIT];
-	Double_t fEvPart_P[__IO_MAXHIT];
-	Double_t fEvPart_Px[__IO_MAXHIT];
-	Double_t fEvPart_Py[__IO_MAXHIT];
-	Double_t fEvPart_Pz[__IO_MAXHIT];
-	Double_t fEvPart_Th[__IO_MAXHIT];
-	Double_t fEvPart_Ph[__IO_MAXHIT];
+  G4double fEvPart_X[__IO_MAXHIT];
+  G4double fEvPart_Y[__IO_MAXHIT];
+  G4double fEvPart_Z[__IO_MAXHIT];
+  G4double fEvPart_lX[__IO_MAXHIT];
+  G4double fEvPart_lY[__IO_MAXHIT];
+  G4double fEvPart_lZ[__IO_MAXHIT];
+  G4double fEvPart_P[__IO_MAXHIT];
+  G4double fEvPart_Px[__IO_MAXHIT];
+  G4double fEvPart_Py[__IO_MAXHIT];
+  G4double fEvPart_Pz[__IO_MAXHIT];
+  G4double fEvPart_Th[__IO_MAXHIT];
+  G4double fEvPart_Ph[__IO_MAXHIT];
 
 
 
-	//  DetectorHit
-    public:
-	void AddDetectorHit(MolPolDetectorHit *);
-    private:
-	Int_t fNDetHit;
-	Int_t fDetHit_det[__IO_MAXHIT];
-	Int_t fDetHit_id[__IO_MAXHIT];
+  //  DetectorHit
+public:
+  void AddDetectorHit(MolPolDetectorHit *);
+private:
+  G4int fNDetHit;
+  G4int fDetHit_det[__IO_MAXHIT];
+  G4int fDetHit_id[__IO_MAXHIT];
 
-	Int_t fDetHit_trid[__IO_MAXHIT];
-	Int_t fDetHit_pid[__IO_MAXHIT];
-	Int_t fDetHit_gen[__IO_MAXHIT];
-	Int_t fDetHit_mtrid[__IO_MAXHIT];
+  G4int fDetHit_trid[__IO_MAXHIT];
+  G4int fDetHit_pid[__IO_MAXHIT];
+  G4int fDetHit_gen[__IO_MAXHIT];
+  G4int fDetHit_mtrid[__IO_MAXHIT];
 
-	Double_t fDetHit_X[__IO_MAXHIT];
-	Double_t fDetHit_Y[__IO_MAXHIT];
-	Double_t fDetHit_Z[__IO_MAXHIT];
+  G4double fDetHit_X[__IO_MAXHIT];
+  G4double fDetHit_Y[__IO_MAXHIT];
+  G4double fDetHit_Z[__IO_MAXHIT];
 
-	Double_t fDetHit_lX[__IO_MAXHIT];
-	Double_t fDetHit_lY[__IO_MAXHIT];
-	Double_t fDetHit_lZ[__IO_MAXHIT];
+  G4double fDetHit_lX[__IO_MAXHIT];
+  G4double fDetHit_lY[__IO_MAXHIT];
+  G4double fDetHit_lZ[__IO_MAXHIT];
 
-	Double_t fDetHit_Px[__IO_MAXHIT];
-	Double_t fDetHit_Py[__IO_MAXHIT];
-	Double_t fDetHit_Pz[__IO_MAXHIT];
-	Double_t fDetHit_P[__IO_MAXHIT];
-	Double_t fDetHit_E[__IO_MAXHIT];
-	Double_t fDetHit_M[__IO_MAXHIT];
+  G4double fDetHit_Px[__IO_MAXHIT];
+  G4double fDetHit_Py[__IO_MAXHIT];
+  G4double fDetHit_Pz[__IO_MAXHIT];
+  G4double fDetHit_P[__IO_MAXHIT];
+  G4double fDetHit_E[__IO_MAXHIT];
+  G4double fDetHit_M[__IO_MAXHIT];
 
-	Double_t fDetHit_Vx[__IO_MAXHIT];
-	Double_t fDetHit_Vy[__IO_MAXHIT];
-	Double_t fDetHit_Vz[__IO_MAXHIT];
-	Double_t fDetHit_Vdx[__IO_MAXHIT];
-	Double_t fDetHit_Vdy[__IO_MAXHIT];
-	Double_t fDetHit_Vdz[__IO_MAXHIT];
+  G4double fDetHit_Vx[__IO_MAXHIT];
+  G4double fDetHit_Vy[__IO_MAXHIT];
+  G4double fDetHit_Vz[__IO_MAXHIT];
+  G4double fDetHit_Vdx[__IO_MAXHIT];
+  G4double fDetHit_Vdy[__IO_MAXHIT];
+  G4double fDetHit_Vdz[__IO_MAXHIT];
 
-	//  ScintDetectorHit
-    public:
-	void AddScintDetectorHit(MolPolScintDetectorHit *);
-    private:
-	Int_t fNScintDetHit;
-	Int_t fScintDetHit_det[__IO_MAXHIT];
-	Int_t fScintDetHit_id[__IO_MAXHIT];
+  //  ScintDetectorHit
+public:
+  void AddScintDetectorHit(MolPolScintDetectorHit *);
+private:
+  G4int fNScintDetHit;
+  G4int fScintDetHit_det[__IO_MAXHIT];
+  G4int fScintDetHit_id[__IO_MAXHIT];
 
-	Double_t fScintDetHit_edep[__IO_MAXHIT];
+  G4double fScintDetHit_edep[__IO_MAXHIT];
 
 };
 

@@ -75,7 +75,6 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 MolPolPrimaryGeneratorAction::~MolPolPrimaryGeneratorAction()
 {
   delete particleGun;
-  delete gunMessenger;
   delete fDefaultEvent;
 }
 
@@ -91,19 +90,14 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
   if( gentype == "moller" )
     {
-      double beamE = fBeamE;
-      double me = electron_mass_c2; //electron mass in MeV (0.51099906)
-
-      double beta_com = sqrt( (beamE - me)/(beamE + me) );
-      double gamma_com = 1.0/sqrt(1.0 - beta_com*beta_com);
-      double e_com = me*gamma_com;
+      G4double beamE = fBeamE;
 
       //direction at face of Target
-      double thcom = acos(G4RandFlat::shoot(cos(fthetaComMax), cos(fthetaComMin)));
-      double phcom = G4RandFlat::shoot(fphiMin, fphiMax); //deg
+      G4double thcom = acos(G4RandFlat::shoot(cos(fthetaComMax), cos(fthetaComMin)));
+      G4double phcom = G4RandFlat::shoot(fphiMin, fphiMax); //deg
 
       ///zpos: random position within the target
-      double zpos = ( G4UniformRand() - 0.5 ) * fTargLen;
+      G4double zpos = ( G4UniformRand() - 0.5 ) * fTargLen;
 
       //Multiple Scattering until the vertex position
       const G4int nTgtMat = 1;
@@ -258,26 +252,26 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double dPhaseSpace = 1. * (cos(fthetaMax) - cos(fthetaMin));
       G4double zLum = msZ[0] * ironDensity * (zpos + fTargLen/2) * Avogadro / msA[0];
       G4double weight = zLum * dPhaseSpace * sigma * strFct;
+      fDefaultEvent->fUnpolWght = weight;
 
       //CALCULATE THE EVENT WEIGHT FOR THE VARIOUS POLARIZATION DIRECTIONS
-      G4double wTT = fLEtgtPol * sin2t / pow(3 + cos2t,2);//FIXME do we want to record these
+      G4double wTT = fLEtgtPol * sin2t / pow(3 + cos2t,2);
 
       G4double wZZ = wTT * (7 + cos2t);
-      G4double polPlusWeightZ = weight * (1 + wZZ);//FIXME do we want to record these
-      G4double polMinusWeightZ = weight * (1 - wZZ);//FIXME do we want to record these
+      fDefaultEvent->fpolPlusWghtZ = weight * (1 + wZZ);
+      fDefaultEvent->fpolMinusWghtZ  = weight * (1 - wZZ);
 
       //THE TGT SPIN IS ASSUMED TO BE ALONG THE X AXIS
       G4double wXX = wTT * sin2t * cos(2 * phcom );
-      G4double polMinusWeightX = weight * (1 - wXX);//FIXME do we want to record these
-      G4double polPlusWeightX = weight * (1 + wXX);//FIXME do we want to record these
+      fDefaultEvent->fpolPlusWghtX = weight * (1 + wXX);
+      fDefaultEvent->fpolMinusWghtX  = weight * (1 - wXX);
       G4double wYY = wTT * sin2t * sin(2 * phcom );
-      G4double polMinusWeightY = weight * (1 - wYY);//FIXME do we want to record these
-      G4double polPlusWeightY = weight * (1 + wYY);//FIXME do we want to record these
+      fDefaultEvent->fpolPlusWghtY = weight * (1 + wYY);
+      fDefaultEvent->fpolMinusWghtY  = weight * (1 - wYY);
 
       //STORE THE RESULTS OF THE EVENT GENERATION
       G4double tX = direction.getX()/pBeam;
       G4double tY = direction.getY()/pBeam;
-      G4double tZ = direction.getZ()/pBeam;
 
       //ADD THE ELECTRON DIRECTION
       G4double tX1 = tX + theta1 * cos(phcom);
