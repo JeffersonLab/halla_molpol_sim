@@ -19,6 +19,8 @@
 
 #include <cassert>
 
+#include <cmath> /* Used for isnan, isinf, debugging... */
+
 MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
   :rndmFlag("off")
 {
@@ -60,7 +62,7 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 
   fDefaultEvent = new MolPolEvent();
 
-  fTargLen = 1 * mm;
+  fTargLen = 1*mm;
   //initialize target momentum distribution for Levchuck effect
   fLevchukFlag = false;
   fTargPol = 0.99;
@@ -97,29 +99,35 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       double thcom = acos(G4RandFlat::shoot(cos(fthetaComMax), cos(fthetaComMin)));
       double phcom = G4RandFlat::shoot(fphiMin, fphiMax); //deg
 
-      double zpos = - fTargLen/2 + G4UniformRand() * fTargLen;
+      ///zpos: random position within the target
+      double zpos = ( G4UniformRand() - 0.5 ) * fTargLen;
 
       //Multiple Scattering until the vertex position
       const G4int nTgtMat = 1;
       G4double msA[nTgtMat], msZ[nTgtMat], msThick[nTgtMat];
-      msA[0] = 57.14;//FIXME
-      msZ[0] = 26.43;//FIXME
+      msA[0] = 57.14;//
+      msZ[0] = 26.43;//
 
       //~~ Iron density in g/cm3; divide by g/cm2 at the end to get back into G4units
-      G4double ironDensity = 8.15; //FIXME density of Iron -- taken from DG fortran code
-      msThick[0] = ((zpos*cm + fTargLen*cm/2) * ironDensity )/ (g/cm2);
-
+      G4double ironDensity = 8.15*g/cm3; //FIXME
+      msThick[0] = ((zpos + fTargLen/2) * ironDensity )/(g/cm2);
       //~~ Sample multiple scattering + angles
       G4double msth(0), msph(0);
       G4double bmth(0), bmph(0);
-      fMS->Init( fBeamE, nTgtMat, msThick, msA, msZ );
+
+      fMS = new remollMultScatt();
+      fMS->Init(fBeamE,nTgtMat,msThick,msA,msZ);
+
       msth = fMS->GenerateMSPlane();
       msph = fMS->GenerateMSPlane();
+      bmth = thcom;
+      bmph = phcom;
 
       assert( !std::isnan(msth) && !std::isnan(msph) );
 
       //~~FIXME do we need to take care of a raster?!?!
-      G4ThreeVector direction = G4ThreeVector(0,0, 1);
+      G4ThreeVector direction = G4ThreeVector(0,0,1.);
+
       direction.rotateY( bmth); // Positive th pushes to positive X (around Y-axis)
       direction.rotateX(-bmph); // Positive ph pushes to positive Y (around X-axis)
 
@@ -165,45 +173,43 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       assert( beamE >= electron_mass_c2 );
 
       //Levchuck effect
-      if(fLevchukFlag)
+      //if(fLevchukFlag)
         LevchukEffect();
 
       G4double pBeam = beamE - electron_mass_c2;
 
       //Internal initial state radiation
       G4double s0 = 2 * electron_mass_c2 * pBeam * fLEcorFac;
-
       //~~The correct scale for the bremsstrahlung is the minimum of T and U
       G4double TUmin = 0.5 * s0 * ( 1 - abs(cos(direction.getTheta())) );
-
       //~~The constant HBETA is 1/2 of the bremsstrahlung constant beta
       G4double hBeta = fine_structure_const/pi * (log(TUmin / pow(electron_mass_c2,2))-1);
-
       //~~Define the minimum value of the photon energy fraction
       G4double uMin = 1e-30;
 
       //~~Calculate the corresponding minimum random number (for U1,U2 gen)
       G4double rMin = pow(uMin , hBeta);
+      //if(std::isinf(rMin)) G4Exception("rMin->inf","inf",FatalException,"");
 
       //~~Choose X1 and X2 to account for initial state bremsstrahlung
       //~~First, choose the photon energy fractions according to roughly the
       //~~correct distribution (U1,U2 are MUCH more important that X1,X2)
-
       G4double s(0), u1(0), u2(0);
       G4double x1(0), x2(0);
+
       do{
         G4double rand = G4UniformRand();
-        if( rand < rMin )
+        if( rand < rMin ){
           u1 = uMin;
-        else
+        }else{
           u1 = pow(rand, 1/hBeta);
-
+        }
         rand = G4UniformRand();
-        if( rand < rMin )
+        if( rand < rMin ){
           u2 = uMin;
-        else
+        }else{
           u2 = pow(rand, 1/hBeta);
-
+        }
         //~~Now convert them to X1,X2, and S
         x1 = 1 - u1;
         x2 = 1 - u2;
@@ -212,7 +218,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       }while(s < 1e-6);//~~The cross section formally diverges at s=0, protect against
 
       G4double p1 = pBeam/2 * x1 * ( 1 + cos(direction.getTheta()) );
-      G4double p2 = pBeam/2 * x2 * ( 1 - cos(direction.getTheta()) );
+      G4double p2 = pBeam/2 * x1 * ( 1 - cos(direction.getTheta()) );
       G4double theta1 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p1 - 1/(x1*pBeam)) );
       G4double theta2 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p2 - 1/(x1*pBeam)) );
 
@@ -285,7 +291,6 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
                                         G4ThreeVector(tX1, tY1, tZ1 ) * p1,
                                         particleGun->GetParticleDefinition()->GetParticleName() );
 
-
       G4double tX2 = tX + theta2 * cos(direction.getPhi() + pi);
       G4double tY2 = tY + theta2 * sin(direction.getPhi() + pi);
       arg = 1 - tX2*tX2 - tY2*tY2;
@@ -309,7 +314,6 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       fIO->SetEventData(fDefaultEvent);
       particleGun->SetParticleEnergy(pBeam);
       particleGun->GeneratePrimaryVertex(anEvent);
-
     }
   else
     {
@@ -335,10 +339,8 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       double kinE = sqrt(pX*pX + pY*pY + pZ*pZ + me*me) - me;
       particleGun->SetParticleEnergy( kinE );
-
       particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, zpos) );
       particleGun->SetParticleMomentumDirection( G4ThreeVector( pX, pY, pZ ).unit() );
-
 
       fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, zpos),
                                         G4ThreeVector(pX, pY, pZ ),
@@ -359,7 +361,6 @@ void MolPolPrimaryGeneratorAction::SourceModeSet(G4int i) {
 
 void MolPolPrimaryGeneratorAction::LevchukEffect() {
   G4double rand  = G4RandFlat::shoot( 0., 1. );
-
   if (rand <= fTargPol){
     G4double aaa = G4RandFlat::shoot(-1.,1.);
     G4double tgtMom = SampleTargetMomentum(1);
