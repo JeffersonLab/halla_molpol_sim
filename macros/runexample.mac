@@ -7,6 +7,8 @@
 
 /MolPol/gen moller
 
+/MolPol/calculateLevchuk true
+
 # target at 6.9 cm
 /MolPol/fz 6.9 cm
 
