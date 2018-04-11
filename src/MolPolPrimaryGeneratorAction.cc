@@ -24,19 +24,15 @@
 MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
   :rndmFlag("off")
 {
-
-  G4int n_particle = 1;
-  particleGun  = new G4ParticleGun(n_particle);
-
+  particleGun  = new G4ParticleGun();
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
   G4String particleName;
   G4ParticleDefinition* particle = particleTable->FindParticle(particleName="e-");
   particleGun->SetParticleDefinition(particle);
   angle = 0;
 
+  //SET SOME DEFAULT VALUES IF NONE ARE SET IN THE MACRO
   fBeamE = 1.063*GeV;
-  particleGun->SetParticleEnergy(fBeamE*GeV);
-
   //Requirement (BPM values): <0.1mm
 
   fBeamPol = "long";
@@ -58,11 +54,12 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 
   fZ = 0.0;
 
+  fTargLen = 1.0*mm;
+
   gentype = "moller";
 
+  //CREATE NEW MOLPOLEVENT OBJECT TO STORE EVENT INFORMATION FOR RECORDING
   fDefaultEvent = new MolPolEvent();
-
-  fTargLen = 1*mm;
 
   //initialize target momentum distribution for Levchuck effect
   fLevchukFlag = false;
@@ -149,14 +146,12 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
           eloss = fEcut*pow(Ekin/fEcut,sample);
           env = 1./eloss;
           value = 1./eloss*(1.-eloss/Ekin+0.75*pow(eloss/Ekin,2))*pow(eloss/Ekin,bt);
-
           sample = G4UniformRand();
           ref = value/env;
         } while (sample > ref);
-
         beamE = fBeamE - eloss;
         assert( fSampE > electron_mass_c2 );
-      } else {
+      else {
         beamE = fBeamE;
       }
 
@@ -185,47 +180,37 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //~~correct distribution (U1,U2 are MUCH more important that X1,X2)
       G4double s(0), u1(0), u2(0);
       G4double x1(0), x2(0);
-
       do{
         G4double rand = G4UniformRand();
-        if( rand < rMin ){
-          u1 = uMin;
-        }else{
-          u1 = pow(rand, 1/hBeta);
-        }
+        if( rand < rMin ) u1 = uMin;
+        else u1 = pow(rand, 1/hBeta);
         rand = G4UniformRand();
-        if( rand < rMin ){
-          u2 = uMin;
-        }else{
-          u2 = pow(rand, 1/hBeta);
-        }
+        if( rand < rMin ) u2 = uMin;
+        else u2 = pow(rand, 1/hBeta);
         //~~Now convert them to X1,X2, and S
         x1 = 1 - u1;
         x2 = 1 - u2;
 
         s = s0 * x1 * x2;
-      }while(s < 1e-6);//~~The cross section formally diverges at s=0, protect against
+      } while(s < 1e-6);//~~The cross section formally diverges at s=0, protect against
 
+      //CALCULATE LAB FRAME MOMENTA AND SCATTERING ANGLES
       G4double p1 = pBeam/2 * x1 * ( 1 + cos(thcom) );
       G4double p2 = pBeam/2 * x1 * ( 1 - cos(thcom) );
       G4double theta1 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p1 - 1/(x1*pBeam)) );
       G4double theta2 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p2 - 1/(x1*pBeam)) );
 
-      //Internal final state radiation
+      //INTERNAL FINAL STATE RADIATION
       G4double u3(0), u4(0);
       G4double x3(0), x4(0);
       G4double rand = G4UniformRand();
-      if( rand < rMin )
-	u3 = uMin;
-      else
-	u3 = pow(rand, 1/hBeta);
-
+      if( rand < rMin ) u3 = uMin;
+      else u3 = pow(rand, 1/hBeta);
       rand = G4UniformRand();
-      if( rand < rMin )
-	u4 = uMin;
-      else
-	u4 = pow(rand, 1/hBeta);
-
+      if( rand < rMin ) u4 = uMin;
+      else u4 = pow(rand, 1/hBeta);
+      x3 = 1 - u3;
+      x4 = 1 - u4;
       p1 *= x3;
       p2 *= x4;
 
@@ -266,43 +251,53 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double tX = direction.getX()/pBeam;
       G4double tY = direction.getY()/pBeam;
 
-      //ADD THE ELECTRON DIRECTION
+      //CALCULATE EACH ELECTRONS MOMENTUM DIRECTION COMPONENTS
+      //electron #1
       G4double tX1 = tX + theta1 * cos(phcom);
       G4double tY1 = tY + theta1 * sin(phcom);
-      G4double arg = 1 - tX1*tX1 - tY1*tY1;
+      G4double arg1 = 1 - tX1*tX1 - tY1*tY1;
       G4double tZ1(0);
-      assert(arg >= 0 and "your tX1^2 + tY1^2 > 1");
-      if(arg>0) tZ1 = sqrt(arg);
-
-      particleGun->SetParticlePosition( G4ThreeVector(0, 0, zpos) );
-      particleGun->SetParticleMomentumDirection( G4ThreeVector( tX1, tY1, tZ1 ).unit() );
-      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, zpos),
-                                        G4ThreeVector(tX1, tY1, tZ1 ) * p1,
-                                        particleGun->GetParticleDefinition()->GetParticleName() );
-
+      assert(arg1 >= 0 and "your tX1^2 + tY1^2 > 1");
+      if(arg1 > 0) tZ1 = sqrt(arg1);
+      //electron #2
       G4double tX2 = tX + theta2 * cos(phcom + pi);
       G4double tY2 = tY + theta2 * sin(phcom + pi);
-      arg = 1 - tX2*tX2 - tY2*tY2;
+      G4double arg2 = 1 - tX2*tX2 - tY2*tY2;
       G4double tZ2(0);
-      assert(arg >= 0 and "your tX2^2 + tY2^2 > 1");
-      if(arg>0) tZ2 = sqrt(arg);
+      assert(arg2 >= 0 and "your tX2^2 + tY2^2 > 1");
+      if(arg2 > 0) tZ2 = sqrt(arg2);
 
-      particleGun->SetParticlePosition( G4ThreeVector(0, 0, zpos) );
-      particleGun->SetParticleMomentumDirection( G4ThreeVector( tX2, tY2, tZ2 ).unit() );
-      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, zpos),
-                                        G4ThreeVector(tX2, tY2, tZ2 ) * p2,
-                                        particleGun->GetParticleDefinition()->GetParticleName() );
-
+      //STORE EVENT QUANTITIES OF IMPORTANCE
       eff_sigma = sigma;
       Azz = -((7+pow(cos(thcom),2))*pow(sin(thcom),2))/pow(3+cos(thcom)*cos(thcom),2);
+
       fDefaultEvent->SetEffCrossSection(eff_sigma);
       fDefaultEvent->SetAsymmetry(Azz);
       fDefaultEvent->SetThCoM(thcom);
       fDefaultEvent->SetPhCoM(phcom);
 
-      fIO->SetEventData(fDefaultEvent);
-      particleGun->SetParticleEnergy(pBeam);
+      //GENERATE PARTICLES
+      //electron #1
+      G4double KE1 = electron_mass_c2 * sqrt( 1 + pow(p1/electron_mass_c2,2)) - electron_mass_c2;
+      particleGun->SetParticleEnergy( KE1 );
+      particleGun->SetParticlePosition( G4ThreeVector(0, 0, zpos) );
+      particleGun->SetParticleMomentumDirection( G4ThreeVector( tX1, tY1, tZ1 ).unit() );
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, zpos),
+                                        G4ThreeVector(tX1, tY1, tZ1 ) * p1,
+                                        particleGun->GetParticleDefinition()->GetParticleName() );
       particleGun->GeneratePrimaryVertex(anEvent);
+      //electron#2
+      G4double KE2 = electron_mass_c2 * sqrt( 1 + pow(p2/electron_mass_c2,2)) - electron_mass_c2;
+      particleGun->SetParticleEnergy( KE2 );
+      particleGun->SetParticlePosition( G4ThreeVector(0, 0, zpos) );
+      particleGun->SetParticleMomentumDirection( G4ThreeVector( tX2, tY2, tZ2 ).unit() );
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, zpos),
+                                        G4ThreeVector(tX2, tY2, tZ2 ) * p2,
+                                        particleGun->GetParticleDefinition()->GetParticleName() );
+      particleGun->GeneratePrimaryVertex(anEvent);
+
+      //FINALIZE EVENT DATA FOR RECORDING
+      fIO->SetEventData(fDefaultEvent);
     }
   else
     {
@@ -330,13 +325,13 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       particleGun->SetParticleEnergy( kinE );
       particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, zpos) );
       particleGun->SetParticleMomentumDirection( G4ThreeVector( pX, pY, pZ ).unit() );
-
       fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, zpos),
                                         G4ThreeVector(pX, pY, pZ ),
                                         particleGun->GetParticleDefinition()->GetParticleName() );
-      fIO->SetEventData(fDefaultEvent);
       particleGun->GeneratePrimaryVertex(anEvent);
 
+      //FINALIZE EVENT DATA FOR RECORDING
+      fIO->SetEventData(fDefaultEvent);
     }
 
 }
