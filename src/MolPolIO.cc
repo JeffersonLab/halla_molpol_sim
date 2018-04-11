@@ -50,6 +50,7 @@ void MolPolIO::InitializeTree(){
 
     fTree = new TTree("T", "Geant4 Moller Polarimetry Simulation");
 
+    /* ORIGINAL TREE BRANCH NAMES.  MY ROOT WAS NOT LIKING THE '.' AT THE COMMAND LINE
     // Event information
     fTree->Branch("ev.npart", &fNEvPart,    "ev.npart/I");
     fTree->Branch("ev.pid",   &fEvPart_PID, "ev.pid[ev.npart]/I");
@@ -101,6 +102,60 @@ void MolPolIO::InitializeTree(){
     fTree->Branch("hit.p",    &fDetHit_P,   "hit.p[hit.n]/D");
     fTree->Branch("hit.e",    &fDetHit_E,   "hit.e[hit.n]/D");
     fTree->Branch("hit.m",    &fDetHit_M,   "hit.m[hit.n]/D");
+    */
+
+    // Event information
+    fTree->Branch("evNpart", &fNEvPart,    "ev.npart/I");
+    fTree->Branch("evPid",   &fEvPart_PID, "ev.pid[ev.npart]/I");
+    fTree->Branch("evVx",    &fEvPart_X,   "ev.vx[ev.npart]/D");
+    fTree->Branch("evVy",    &fEvPart_Y,   "ev.vy[ev.npart]/D");
+    fTree->Branch("evVz",    &fEvPart_Z,   "ev.vz[ev.npart]/D");
+    fTree->Branch("evP",     &fEvPart_P,   "ev.p[ev.npart]/D");
+    fTree->Branch("evPx",    &fEvPart_Px,  "ev.px[ev.npart]/D");
+    fTree->Branch("evPy",    &fEvPart_Py,  "ev.py[ev.npart]/D");
+    fTree->Branch("evPz",    &fEvPart_Pz,  "ev.pz[ev.npart]/D");
+    fTree->Branch("evTh",    &fEvPart_Th,  "ev.th[ev.npart]/D");
+    fTree->Branch("evPh",    &fEvPart_Ph,  "ev.ph[ev.npart]/D");
+
+    fTree->Branch("evPhcom", &fEvPhCoM,    "ev.phcom/D");
+    fTree->Branch("evThcom", &fEvThCoM,    "ev.thcom/D");
+    fTree->Branch("evXs",    &fEvEffXs,    "ev.xs/D");
+    fTree->Branch("evAsym",  &fEvAsym,     "ev.asym/D");
+
+    // DetectorHit
+    fTree->Branch("hitN",    &fNDetHit,     "hit.n/I");
+    fTree->Branch("hitDet",  &fDetHit_det,  "hit.det[hit.n]/I");
+    fTree->Branch("hitVid",  &fDetHit_id,   "hit.vid[hit.n]/I");
+
+    fTree->Branch("hitPid",  &fDetHit_pid,   "hit.pid[hit.n]/I");
+    fTree->Branch("hitTrid", &fDetHit_trid,  "hit.trid[hit.n]/I");
+    fTree->Branch("hitMtrid",&fDetHit_mtrid, "hit.mtrid[hit.n]/I");
+    fTree->Branch("hitGen",  &fDetHit_gen,   "hit.gen[hit.n]/I");
+
+    fTree->Branch("hitX",    &fDetHit_X,   "hit.x[hit.n]/D");
+    fTree->Branch("hitY",    &fDetHit_Y,   "hit.y[hit.n]/D");
+    fTree->Branch("hitZ",    &fDetHit_Z,   "hit.z[hit.n]/D");
+
+    fTree->Branch("hitLx",    &fDetHit_lX,   "hit.lx[hit.n]/D");
+    fTree->Branch("hitLy",    &fDetHit_lY,   "hit.ly[hit.n]/D");
+    fTree->Branch("hitLz",    &fDetHit_lZ,   "hit.lz[hit.n]/D");
+
+    fTree->Branch("hitPx",   &fDetHit_Px,   "hit.px[hit.n]/D");
+    fTree->Branch("hitPy",   &fDetHit_Py,   "hit.py[hit.n]/D");
+    fTree->Branch("hitPz",   &fDetHit_Pz,   "hit.pz[hit.n]/D");
+
+    fTree->Branch("hitVx",   &fDetHit_Vx,   "hit.vx[hit.n]/D");
+    fTree->Branch("hitVy",   &fDetHit_Vy,   "hit.vy[hit.n]/D");
+    fTree->Branch("hitVz",   &fDetHit_Vz,   "hit.vz[hit.n]/D");
+
+    fTree->Branch("hitVdx",   &fDetHit_Vdx,   "hit.vdx[hit.n]/D");
+    fTree->Branch("hitVdy",   &fDetHit_Vdy,   "hit.vdy[hit.n]/D");
+    fTree->Branch("hitVdz",   &fDetHit_Vdz,   "hit.vdz[hit.n]/D");
+
+    fTree->Branch("hitP",    &fDetHit_P,   "hit.p[hit.n]/D");
+    fTree->Branch("hitE",    &fDetHit_E,   "hit.e[hit.n]/D");
+    fTree->Branch("hitM",    &fDetHit_M,   "hit.m[hit.n]/D");
+
 
     return;
 }
