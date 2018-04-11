@@ -10,6 +10,7 @@
 
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
+#include "MolPolIO.hh"
 
 remollMultScatt::remollMultScatt() {
     InitInternal();
@@ -108,7 +109,7 @@ void remollMultScatt::Init( double p, int nmat, double t[], double A[], double Z
 
     // First calculate b
 
-    
+
     double expb_num, expb_den;
     double bsum = 0.0;
 
