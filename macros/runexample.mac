@@ -2,12 +2,15 @@
 
 /run/initialize
 
-/MolPol/filename MolPol_out.root
+# Activate/Inactivate MSC by Commenting/Uncommenting next line
+/process/inactivate msc
+
+/MolPol/filename MolPol_REMOLL.root
+/MolPol/calculateLevchuk false
+
 /MolPol/seed 50
 
 /MolPol/gen moller
-
-/MolPol/calculateLevchuk true
 
 # target at 6.9 cm
 /MolPol/fz 6.9 cm
