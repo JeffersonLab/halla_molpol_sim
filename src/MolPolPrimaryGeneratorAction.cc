@@ -151,7 +151,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         } while (sample > ref);
         beamE = fBeamE - eloss;
         assert( fSampE > electron_mass_c2 );
-      else {
+      } else {
         beamE = fBeamE;
       }
 
@@ -248,8 +248,8 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       fDefaultEvent->fpolMinusWghtY  = weight * (1 - wYY);
 
       //STORE THE RESULTS OF THE EVENT GENERATION
-      G4double tX = direction.getX()/pBeam;
-      G4double tY = direction.getY()/pBeam;
+      G4double tX = direction.getX();
+      G4double tY = direction.getY();
 
       //CALCULATE EACH ELECTRONS MOMENTUM DIRECTION COMPONENTS
       //electron #1
