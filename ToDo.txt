@@ -5,6 +5,17 @@ _X_ : Incorporate Levchuck effect into Messenger/Macro.
 _X_ : Levchuck effect needs to be initialized to a default value of "1" 
     when not used.
 
-_ : Various FIXME's need to be addressed.
+___ : There are a couple of FIXME's left to be addressed.
+
+___ : Incorporate macro/messenger command to turn off G4MSC
+
+___ : Dial back the energy to 1GeV
+
+___ : Incorporate macro to turn radiative corrections on and off
+
+___ : After radiative corrections are turned off we should be able to fix the 
+      COM scattering angle and be able to observe the width of the smear from LE.
+
+___ : Target width should be ideally 10 microns.
 
 
