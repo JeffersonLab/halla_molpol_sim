@@ -36,27 +36,32 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
   //Requirement (BPM values): <0.1mm
 
   fBeamPol = "long";
-
   fXmin = 0.0*mm;
   fXmax = 0.0*mm;
-
   fYmin = 0.0*mm;
   fYmax = 0.0*mm;
-
   fthetaMin = 1.0*deg;   //unit: rad (x* (pi/180))
   fthetaMax = 3.0*deg;
-
   fthetaComMin = 70*deg;
   fthetaComMax = 110*deg;
-
   fphiMin = -8.0*deg;
   fphiMax = 8.0*deg;
-
   fZ = 0.0;
-
   fTargLen = 1.0*mm;
-
   gentype = "moller";
+
+  //radiative correction factors calculations, default to 1.0 for no usage.
+  fBeamRadCorrFlag = false;
+  x1 = 1.0;
+  x2 = 1.0;
+  fElectronsRadCorrFlag = false;
+  x3 = 1.0;
+  x4 = 1.0;
+  u1 = 0.;
+  u2 = 0.;
+  u3 = 0.;
+  u4 = 0.;
+  s = 0.;
 
   //CREATE NEW MOLPOLEVENT OBJECT TO STORE EVENT INFORMATION FOR RECORDING
   fDefaultEvent = new MolPolEvent();
@@ -175,24 +180,26 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double rMin = pow(uMin , hBeta);
       //if(std::isinf(rMin)) G4Exception("rMin->inf","inf",FatalException,"");
 
-      //~~Choose X1 and X2 to account for initial state bremsstrahlung
-      //~~First, choose the photon energy fractions according to roughly the
-      //~~correct distribution (U1,U2 are MUCH more important that X1,X2)
-      G4double s(0), u1(0), u2(0);
-      G4double x1(0), x2(0);
-      do{
-        G4double rand = G4UniformRand();
-        if( rand < rMin ) u1 = uMin;
-        else u1 = pow(rand, 1/hBeta);
-        rand = G4UniformRand();
-        if( rand < rMin ) u2 = uMin;
-        else u2 = pow(rand, 1/hBeta);
-        //~~Now convert them to X1,X2, and S
-        x1 = 1 - u1;
-        x2 = 1 - u2;
 
-        s = s0 * x1 * x2;
-      } while(s < 1e-6);//~~The cross section formally diverges at s=0, protect against
+      if( fBeamRadCorrFlag ){
+        //~~Choose X1 and X2 to account for initial state bremsstrahlung
+        //~~First, choose the photon energy fractions according to roughly the
+        //~~correct distribution (U1,U2 are MUCH more important that X1,X2)
+        do{
+          G4double rand = G4UniformRand();
+          if( rand < rMin ) u1 = uMin;
+          else u1 = pow(rand, 1/hBeta);
+          rand = G4UniformRand();
+          if( rand < rMin ) u2 = uMin;
+          else u2 = pow(rand, 1/hBeta);
+          //~~Now convert them to X1,X2, and S
+          x1 = 1 - u1;
+          x2 = 1 - u2;
+          s = s0 * x1 * x2;
+        } while(s < 1e-6);//~~The cross section formally diverges at s=0, protect against
+      } else {
+        s = s0;
+      }
 
       //CALCULATE LAB FRAME MOMENTA AND SCATTERING ANGLES
       G4double p1 = pBeam/2 * x1 * ( 1 + cos(thcom) );
@@ -201,18 +208,19 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double theta2 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p2 - 1/(x1*pBeam)) );
 
       //INTERNAL FINAL STATE RADIATION
-      G4double u3(0), u4(0);
-      G4double x3(0), x4(0);
-      G4double rand = G4UniformRand();
-      if( rand < rMin ) u3 = uMin;
-      else u3 = pow(rand, 1/hBeta);
-      rand = G4UniformRand();
-      if( rand < rMin ) u4 = uMin;
-      else u4 = pow(rand, 1/hBeta);
-      x3 = 1 - u3;
-      x4 = 1 - u4;
-      p1 *= x3;
-      p2 *= x4;
+      if( fElectronsRadCorrFlag ){
+        G4double u3(0), u4(0);
+        G4double rand = G4UniformRand();
+        if( rand < rMin ) u3 = uMin;
+        else u3 = pow(rand, 1/hBeta);
+        rand = G4UniformRand();
+        if( rand < rMin ) u4 = uMin;
+        else u4 = pow(rand, 1/hBeta);
+        x3 = 1 - u3;
+        x4 = 1 - u4;
+        p1 *= x3;
+        p2 *= x4;
+      }
 
       //CALCULATE THE M0LLER CROSS SECTION
       G4double cos2t = pow(cos(thcom),2);
@@ -221,11 +229,23 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double sigma = pow(fine_structure_const,2) / s * pow(hbarc,2) *
 	pow(3 + cos2t,2)/pow(sin2t,2) / (2 * electron_mass_c2 * beamE);
 
+      //CALCULATE INDV ELECTRON STRUCTURE FACTORS AND COMPLETE strFct
+      G4double strFct1,strFct2,strFct3,strFct4;
+      //in the case of no radiative corrections the u's initialize to zero.
+      //GetElectronStructFct will set that to a nominal value to calculate
+      //strFct product. strFct necessarily computes to zero unless these
+      //individual factors for each are calculated first and the u's are set
+      //to a non-zero value. Final values are still zero... at least for current
+      //hBeta...
+      strFct1 = GetElectronStructFct(u1, TUmin);
+      strFct2 = GetElectronStructFct(u2, TUmin);
+      strFct3 = GetElectronStructFct(u3, TUmin);
+      strFct4 = GetElectronStructFct(u4, TUmin);
       G4double strFct =
-	pow(GetElectronStructFct(u1, TUmin) * u1, (1 - hBeta)/hBeta) *
-	pow(GetElectronStructFct(u2, TUmin) * u2, (1 - hBeta)/hBeta) *
-	pow(GetElectronStructFct(u3, TUmin) * u3, (1 - hBeta)/hBeta) *
-	pow(GetElectronStructFct(u4, TUmin) * u4, (1 - hBeta)/hBeta);
+        pow( strFct1*u1 , (1 - hBeta)/hBeta ) *
+	pow( strFct2*u2 , (1 - hBeta)/hBeta ) *
+	pow( strFct3*u3 , (1 - hBeta)/hBeta ) *
+	pow( strFct4*u4 , (1 - hBeta)/hBeta );
 
       G4double dPhaseSpace = 1. * (cos(fthetaMax) - cos(fthetaMin));
       G4double zLum = msZ[0] * ironDensity * (zpos + fTargLen/2) * Avogadro / msA[0];
@@ -234,7 +254,6 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       //CALCULATE THE EVENT WEIGHT FOR THE VARIOUS POLARIZATION DIRECTIONS
       G4double wTT = fLEtgtPol * sin2t / pow(3 + cos2t,2);
-
       G4double wZZ = wTT * (7 + cos2t);
       fDefaultEvent->fpolPlusWghtZ = weight * (1 + wZZ);
       fDefaultEvent->fpolMinusWghtZ  = weight * (1 - wZZ);
