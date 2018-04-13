@@ -36,7 +36,7 @@ class MolPolMessenger : public G4UImessenger {
 	void SetEvAct( MolPolEventAction *ev ){ fevact = ev; }
 	void SetStepAct( MolPolSteppingAction *st ){ fStepAct = st; }
   //    void SetFieldSet( MolPolEMFieldSetup* fs ){ fFieldSet = fs; }
-		    
+
 	void SetNewValue(G4UIcommand* cmd, G4String newValue);
 
     private:
@@ -50,6 +50,8 @@ class MolPolMessenger : public G4UImessenger {
         G4UIdirectory *fMolPolDir;
 
         G4UIcmdWithABool     *fLevchukEffectCmd;
+        G4UIcmdWithABool     *fBeamRadCorrCmd;
+        G4UIcmdWithABool     *fElectronsRadCorrCmd;
 
 	G4UIcmdWithAnInteger *seedCmd;
 	G4UIcmdWithAString   *fileCmd;
