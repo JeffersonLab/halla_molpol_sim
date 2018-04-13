@@ -5,8 +5,14 @@
 # Activate/Inactivate MSC by Commenting/Uncommenting next line
 /process/inactivate msc
 
-/MolPol/filename MolPol_REMOLL.root
-/MolPol/calculateLevchuk false
+/MolPol/filename                MolPol_REMOLL.root
+
+# Calculate the Levchuk effect correction factor?
+/MolPol/calculateLevchuk        false
+
+# Calculate radiative correction factors?
+/MolPol/beamRadCorrections      false
+/MolPol/electronsRadCorrections false
 
 /MolPol/seed 50
 
