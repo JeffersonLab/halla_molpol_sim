@@ -45,6 +45,9 @@ public:
   void SourceModeSet(G4int );
   void SetGenerator(G4String genname){ gentype = genname; }
   G4bool fLevchukFlag;
+  G4bool fBeamRadCorrFlag;
+  G4bool fElectronsRadCorrFlag;
+  G4double x1,x2,x3,x4,u1,u2,u3,u4,s;
 
 private:
   MolPolEvent* fDefaultEvent;
