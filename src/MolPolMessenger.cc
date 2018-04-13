@@ -104,6 +104,13 @@ MolPolMessenger::MolPolMessenger(){
     fZCmd->SetGuidance("Set particle z");
     fZCmd->SetParameterName("fz", false);
 
+    fBeamRadCorrCmd = new G4UIcmdWithABool("/MolPol/beamRadorr",this);
+    fBeamRadCorrCmd->SetGuidance("Radiative corrections for beam? True:On False:Off");
+    fBeamRadCorrCmd->("beamRadCorr",false);
+
+    fElectronsRadCorrCmd = new G4UIcmdWithABool("/MolPol/electronsRadCorr",this);
+    fElectronsRadCorrCmd->SetGuidance("Radiative corrections for electrons? True:On False:Off");
+    fElectronsRadCorrCmd->("electronsRadCorr",false);
 }
 
 MolPolMessenger::~MolPolMessenger(){
@@ -111,6 +118,14 @@ MolPolMessenger::~MolPolMessenger(){
 
 
 void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
+  if( cmd == fBeamRadCorr ){
+    G4bool flag = fBeamRadCorr->GetNewBoolValue(newValue);
+    fprigen->fBeamRadCorrFlag = flag;
+  }
+  if( cmd == fElectronsRadCorr ){
+    G4bool flag = fElectronsRadCorr->GetNewBoolValue(newValue);
+    fprigen->fElectronsRadCorrFlag = flag;
+  }
   if( cmd == fLevchukEffectCmd ){
     G4bool flag = fLevchukEffectCmd->GetNewBoolValue(newValue);
     fprigen->fLevchukFlag = flag;
