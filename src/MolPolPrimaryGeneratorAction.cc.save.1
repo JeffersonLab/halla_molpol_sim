@@ -197,9 +197,8 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
           x2 = 1 - u2;
           s = s0 * x1 * x2;
         } while(s < 1e-6);//~~The cross section formally diverges at s=0, protect against
-      } else {
-        s = s0;
       }
+      s = s0 * x1 * x2;
 
       //CALCULATE LAB FRAME MOMENTA AND SCATTERING ANGLES
       G4double p1 = pBeam/2 * x1 * ( 1 + cos(thcom) );
@@ -229,23 +228,11 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double sigma = pow(fine_structure_const,2) / s * pow(hbarc,2) *
 	pow(3 + cos2t,2)/pow(sin2t,2) / (2 * electron_mass_c2 * beamE);
 
-      //CALCULATE INDV ELECTRON STRUCTURE FACTORS AND COMPLETE strFct
-      G4double strFct1,strFct2,strFct3,strFct4;
-      //in the case of no radiative corrections the u's initialize to zero.
-      //GetElectronStructFct will set that to a nominal value to calculate
-      //strFct product. strFct necessarily computes to zero unless these
-      //individual factors for each are calculated first and the u's are set
-      //to a non-zero value. Final values are still zero... at least for current
-      //hBeta...
-      strFct1 = GetElectronStructFct(u1, TUmin);
-      strFct2 = GetElectronStructFct(u2, TUmin);
-      strFct3 = GetElectronStructFct(u3, TUmin);
-      strFct4 = GetElectronStructFct(u4, TUmin);
       G4double strFct =
-        pow( strFct1*u1 , (1 - hBeta)/hBeta ) *
-	pow( strFct2*u2 , (1 - hBeta)/hBeta ) *
-	pow( strFct3*u3 , (1 - hBeta)/hBeta ) *
-	pow( strFct4*u4 , (1 - hBeta)/hBeta );
+	pow(GetElectronStructFct(u1, TUmin) * u1, (1 - hBeta)/hBeta) *
+	pow(GetElectronStructFct(u2, TUmin) * u2, (1 - hBeta)/hBeta) *
+	pow(GetElectronStructFct(u3, TUmin) * u3, (1 - hBeta)/hBeta) *
+	pow(GetElectronStructFct(u4, TUmin) * u4, (1 - hBeta)/hBeta);
 
       G4double dPhaseSpace = 1. * (cos(fthetaMax) - cos(fthetaMin));
       G4double zLum = msZ[0] * ironDensity * (zpos + fTargLen/2) * Avogadro / msA[0];
@@ -254,6 +241,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       //CALCULATE THE EVENT WEIGHT FOR THE VARIOUS POLARIZATION DIRECTIONS
       G4double wTT = fLEtgtPol * sin2t / pow(3 + cos2t,2);
+
       G4double wZZ = wTT * (7 + cos2t);
       fDefaultEvent->fpolPlusWghtZ = weight * (1 + wZZ);
       fDefaultEvent->fpolMinusWghtZ  = weight * (1 - wZZ);
@@ -367,14 +355,12 @@ void MolPolPrimaryGeneratorAction::LevchukEffect() {
   if (rand <= fTargPol){
     G4double aaa = G4RandFlat::shoot(-1.,1.);
     G4double tgtMom = SampleTargetMomentum(1);
-    fDefaultEvent->SetTargetMomentum( tgtMom );
     //G4double pPol = 1e6 * tgtMom * aaa; //Used for printout in fortran
     fLEcorFac = 1 + tgtMom * aaa / electron_mass_c2;
     fLEtgtPol = 1;
   }else{
     G4double aaa = G4RandFlat::shoot(-1.,1.);
     G4double tgtMom = SampleTargetMomentum(0);
-    fDefaultEvent->SetTargetMomentum( tgtMom );
     //G4double pUnpol = 1e6 * tgtMom * aaa;//Used for printout in fortran
     fLEcorFac = 1 + tgtMom * aaa / electron_mass_c2;
     fLEtgtPol = 0;

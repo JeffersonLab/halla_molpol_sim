@@ -39,7 +39,7 @@ void MolPolEvent::Reset(){
   fpolMinusWghtX = -1e9;
   fpolMinusWghtY = -1e9;
   fpolMinusWghtZ = -1e9;
-
+  fTargMom = -1e9;
 }
 
 void MolPolEvent::UndoLastParticle(){

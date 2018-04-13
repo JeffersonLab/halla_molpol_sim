@@ -68,6 +68,7 @@ private:
   G4double fpolMinusWghtX;
   G4double fpolMinusWghtY;
   G4double fpolMinusWghtZ;
+  G4double fEvTargMom;
 
   G4int fEvPart_PID[__IO_MAXHIT];
 

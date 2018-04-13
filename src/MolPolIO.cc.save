@@ -75,8 +75,8 @@ void MolPolIO::InitializeTree(){
   fTree->Branch("evPolMinusWghtY", &fpolMinusWghtY, "ev.polMinusWghtY/D");
   fTree->Branch("evPolMinusWghtZ", &fpolMinusWghtZ, "ev.polMinusWghtZ/D");
 
-  //record target particle momentum generated to view distributions - can remove later
-  fTree->Branch("evTargMom", &fEvTargMom, "ev.targMom/D");
+  //Tran
+  fTree->Branch("evPt", 
 
   // DetectorHit
   fTree->Branch("hitN",    &fNDetHit,     "hit.n/I");
@@ -199,7 +199,6 @@ void MolPolIO::SetEventData(MolPolEvent *ev){
   fEvThCoM   = ev->fThCoM/deg;
   fEvEffXs   = ev->fEffXs/microbarn;
   fEvAsym    = ev->fAsym;
-  fEvTargMom = ev->fTargMom;
 
   fUnpolWght = ev->fUnpolWght;
   fpolPlusWghtX = ev->fpolPlusWghtX;

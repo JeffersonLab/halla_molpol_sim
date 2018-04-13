@@ -23,6 +23,7 @@ public:
   void SetAsymmetry( G4double Asym ){ fAsym = Asym; }
   void SetThCoM( G4double th ){fThCoM = th;}
   void SetPhCoM( G4double ph ){fPhCoM = ph;}
+  void SetTargetMomentum( G4double pt ){fTargMom = pt;}
 
   void Reset();
   void UndoLastParticle();
@@ -49,7 +50,7 @@ public:
   G4double fpolMinusWghtX;
   G4double fpolMinusWghtY;
   G4double fpolMinusWghtZ;
-
+  G4double fTargMom;
 };
 
 #endif//__MOLPOLEVENT_HH
