@@ -86,12 +86,6 @@ void MolPolPrimaryGeneratorAction::rand(){
 
 void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-  /*
-  if(intialTargetMomentaCalculated == false){
-    InitTargetMomentum();
-  intialTargetMomentaCalculated = true;
-  }*/
-
   fDefaultEvent->Reset();
 
   double xpos, ypos, zpos, thetaPos, phiPos;
@@ -376,14 +370,14 @@ void MolPolPrimaryGeneratorAction::LevchukEffect() {
     G4double tgtMom = SampleTargetMomentum(1);
     fDefaultEvent->SetTargetMomentum( tgtMom );
     //G4double pPol = 1e6 * tgtMom * aaa; //Used for printout in fortran
-    fLEcorFac = 1 + tgtMom * aaa / electron_mass_c2;
+    fLEcorFac = 1 + tgtMom * aaa / (electron_mass_c2*0.001); //tgtMom returned in GeV ... need Me in GeV
     fLEtgtPol = 1;
   }else{
     G4double aaa = G4RandFlat::shoot(-1.,1.);
     G4double tgtMom = SampleTargetMomentum(0);
     fDefaultEvent->SetTargetMomentum( tgtMom );
     //G4double pUnpol = 1e6 * tgtMom * aaa;//Used for printout in fortran
-    fLEcorFac = 1 + tgtMom * aaa / electron_mass_c2;
+    fLEcorFac = 1 + tgtMom * aaa / (electron_mass_c2*0.001); //tgtMom returned in GeV ... need Me in Gev
     fLEtgtPol = 0;
   }
 }
