@@ -49,9 +49,11 @@ class MolPolMessenger : public G4UImessenger {
 
         G4UIdirectory *fMolPolDir;
 
-        G4UIcmdWithABool     *fLevchukEffectCmd;
-        G4UIcmdWithABool     *fBeamRadCorrCmd;
-        G4UIcmdWithABool     *fElectronsRadCorrCmd;
+        G4UIcmdWithABool         *fLevchukEffectCmd;
+        //added in targpolcmd for testing/validation to avoid recompiling every time needed to change.
+	G4UIcmdWithADouble *fTargPolCmd;
+        G4UIcmdWithABool         *fBeamRadCorrCmd;
+        G4UIcmdWithABool         *fElectronsRadCorrCmd;
 
 	G4UIcmdWithAnInteger *seedCmd;
 	G4UIcmdWithAString   *fileCmd;
