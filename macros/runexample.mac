@@ -5,12 +5,14 @@
 # Activate/Inactivate MSC by Commenting/Uncommenting next line
 /process/inactivate msc
 
-/MolPol/filename                MolPol_REMOLL.root
+# ROOT output filename
+/MolPol/filename  MolPol_REMOLL.root
 
-# Calculate the Levchuk effect correction factor?
-/MolPol/calculateLevchuk        false
+# Calculate LE: true/false->on/off; 0. <= targPol <= 1.
+/MolPol/calculateLevchuk  true
+/MolPol/targPolPct        0.0
 
-# Calculate radiative correction factors?
+# Calculate rad correction factors
 /MolPol/beamRadCorrections      false
 /MolPol/electronsRadCorrections false
 
@@ -18,7 +20,7 @@
 
 /MolPol/gen moller
 
-# target at 6.9 cm
+# z placement of target at 6.9 cm
 /MolPol/fz 6.9 cm
 
 #/MolPol/thcommin 89.99 deg
