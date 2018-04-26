@@ -111,6 +111,10 @@ MolPolMessenger::MolPolMessenger(){
     fElectronsRadCorrCmd = new G4UIcmdWithABool("/MolPol/electronsRadCorrections",this);
     fElectronsRadCorrCmd->SetGuidance("Radiative corrections for electrons? True:On False:Off");
     fElectronsRadCorrCmd->SetParameterName("electronsRadCorrections",false);
+
+    fTargPolCmd = new G4UIcmdWithADouble("/MolPol/targetPolPct",this);
+    fTargPolCmd->SetGuidance("Target polarization percentage? (Between 0 and 1)");
+    fTargPolCmd->SetParameterName("targetPolPct",false);
 }
 
 MolPolMessenger::~MolPolMessenger(){
@@ -118,6 +122,11 @@ MolPolMessenger::~MolPolMessenger(){
 
 
 void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
+  if( cmd == fTargPolCmd ){
+    G4double x = fTargPolCmd->GetNewDoubleValue(newValue);
+    if( x >= 0.0 && x <= 1.0) fprigen->fTargPol = x;
+    else  G4Exception("MolPolMessenger.cc","",RunMustBeAborted,"targetPolPct set outside of allowable bounds; default value being used.");
+  }
   if( cmd == fBeamRadCorrCmd ){
     G4bool flag = fBeamRadCorrCmd->GetNewBoolValue(newValue);
     fprigen->fBeamRadCorrFlag = flag;
