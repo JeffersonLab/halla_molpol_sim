@@ -17,6 +17,8 @@
 #include "Randomize.hh"
 #include "MolPolIO.hh"
 
+#include "G4ios.hh"
+
 #include <cassert>
 
 #include <cmath> /* Used for isnan, isinf, debugging... */
@@ -46,32 +48,28 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
   fthetaComMax = 110*deg;
   fphiMin = -8.0*deg;
   fphiMax = 8.0*deg;
-  fZ = 0.0;
-  fTargLen = 1.0*mm;
+  fZ = 6.9*cm;
+  fTargLen = .124*mm;
   gentype = "moller";
 
-  //radiative correction factors calculations, default to 1.0 for no usage.
-  fBeamRadCorrFlag = false;
-  x1 = 1.0;
-  x2 = 1.0;
-  fElectronsRadCorrFlag = false;
-  x3 = 1.0;
-  x4 = 1.0;
-  u1 = 0.;
-  u2 = 0.;
-  u3 = 0.;
-  u4 = 0.;
-  s = 0.;
+  //RADIATIVE CORRECTION CALCULATIONS - DEFAULT TO TRUE UNLESS OVERRIDDEN IN MACRO
+  //Merge to single later.
+  fBeamRadCorrFlag = true;
+  fElectronsRadCorrFlag = true;
 
   //CREATE NEW MOLPOLEVENT OBJECT TO STORE EVENT INFORMATION FOR RECORDING
   fDefaultEvent = new MolPolEvent();
-
-  //initialize target momentum distribution for Levchuck effect
-  fLevchukFlag = false;
+  
+  //LEVCHUCK FLAG AND VALUES - INITIALIZE FLAG TO 'true' BY DEFAULT AND POLARIZATION TO SOME VALUE
+  //ADDITIONALLY, fLEcorFac MUST INITIALIZE TO 1.
+  fLevchukFlag = true;
   fTargPol = 0.;
   fLEcorFac = 1.;
+  
+  //MOLPOL MSC ON/OFF FLAG -- DEFAULTS TO TRUE/ON
+  fRemollMSFlag = true;
 
-  //intialTargetMomentaCalculated = false;
+  //INITIALIZE TARGET MOMENTUM DISTRIBUTION FOR LEVCHUK EFFECT
   InitTargetMomentum();
 }
 
@@ -99,8 +97,8 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double thcom = acos(G4RandFlat::shoot(cos(fthetaComMax), cos(fthetaComMin)));
       G4double phcom = G4RandFlat::shoot(fphiMin, fphiMax); //deg
 
-      ///zpos: random position within the target
-      G4double zpos = ( G4UniformRand() - 0.5 ) * fTargLen;
+      ///zpos: random position within the target of length fTargLen and placement at fZ
+      G4double zpos = ( G4UniformRand() - 0.5 ) * fTargLen + fZ;
 
       //Multiple Scattering until the vertex position
       const G4int nTgtMat = 1;
@@ -113,11 +111,16 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       msThick[0] = ((zpos + fTargLen/2) * ironDensity )/(g/cm2);
       //~~ Sample multiple scattering + angles
       G4double msth(0), msph(0);
-      fMS = new remollMultScatt();
-      fMS->Init(fBeamE,nTgtMat,msThick,msA,msZ);
 
-      msth = fMS->GenerateMSPlane();
-      msph = fMS->GenerateMSPlane();
+	  //G4cout << "Remoll MS next..." << G4endl;
+	  //if(!fRemollMSFlag) G4cout << "Remoll MSc off..." << G4endl;
+      if(fRemollMSFlag){
+		  fMS = new remollMultScatt();
+		  fMS->Init(fBeamE,nTgtMat,msThick,msA,msZ);
+		  msth = fMS->GenerateMSPlane();
+		  msph = fMS->GenerateMSPlane();
+		  //G4cout << "Remoll MSc on..." << G4endl;
+      }
 
       assert( !std::isnan(msth) && !std::isnan(msph) );
 
@@ -140,8 +143,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double fEcut = 1e-6*MeV; // copied over from remollBeamTarget.cc
 
       G4double Euler = 0.5772157;
-      G4double prob = 1.- pow(fEcut/Ekin,bt) - bt/(bt+1.)*(1.- pow(fEcut/Ekin,bt+1.))
-        + 0.75*bt/(2.+bt)*(1.- pow(fEcut/Ekin,bt+2.));
+      G4double prob = 1.- pow(fEcut/Ekin,bt) - bt/(bt+1.)*(1.- pow(fEcut/Ekin,bt+1.)) + 0.75*bt/(2.+bt)*(1.- pow(fEcut/Ekin,bt+2.));
       prob = prob/(1.- bt*Euler + bt*bt/2.*(Euler*Euler+pi*pi/6.)); /* Gamma function */
 
       prob_sample = G4UniformRand();
@@ -171,7 +173,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //Internal initial state radiation
       G4double s0 = 2 * electron_mass_c2 * pBeam * fLEcorFac;
       //~~The correct scale for the bremsstrahlung is the minimum of T and U
-      G4double TUmin = 0.5 * s0 * ( 1 - abs(cos(thcom)) );
+      G4double TUmin = 0.5 * s0 * ( 1 - fabs(cos(thcom)) );
       //~~The constant HBETA is 1/2 of the bremsstrahlung constant beta
       G4double hBeta = fine_structure_const/pi * (log(TUmin / pow(electron_mass_c2,2))-1);
       //~~Define the minimum value of the photon energy fraction
@@ -181,7 +183,8 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double rMin = pow(uMin , hBeta);
       //if(std::isinf(rMin)) G4Exception("rMin->inf","inf",FatalException,"");
 
-
+      G4double s(0), u1(0), u2(0);
+      G4double x1(1), x2(1);
       if( fBeamRadCorrFlag ){
         //~~Choose X1 and X2 to account for initial state bremsstrahlung
         //~~First, choose the photon energy fractions according to roughly the
@@ -208,9 +211,10 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double theta1 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p1 - 1/(x1*pBeam)) );
       G4double theta2 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p2 - 1/(x1*pBeam)) );
 
-      //INTERNAL FINAL STATE RADIATION
+	  //INTERNAL FINAL STATE RADIATION
+      G4double u3(0), u4(0);
+      G4double x3(1), x4(1);
       if( fElectronsRadCorrFlag ){
-        G4double u3(0), u4(0);
         G4double rand = G4UniformRand();
         if( rand < rMin ) u3 = uMin;
         else u3 = pow(rand, 1/hBeta);
@@ -228,7 +232,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double sin2t = 1 - cos2t;
 
       G4double sigma = pow(fine_structure_const,2) / s * pow(hbarc,2) *
-	pow(3 + cos2t,2)/pow(sin2t,2) / (2 * electron_mass_c2 * beamE);
+	      pow(3 + cos2t,2)/pow(sin2t,2) / (2 * electron_mass_c2 * beamE);
 
       //CALCULATE INDV ELECTRON STRUCTURE FACTORS AND COMPLETE strFct
       G4double strFct1,strFct2,strFct3,strFct4;
@@ -243,10 +247,10 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       strFct3 = GetElectronStructFct(u3, TUmin);
       strFct4 = GetElectronStructFct(u4, TUmin);
       G4double strFct =
-        pow( strFct1*u1 , (1 - hBeta)/hBeta ) *
-	pow( strFct2*u2 , (1 - hBeta)/hBeta ) *
-	pow( strFct3*u3 , (1 - hBeta)/hBeta ) *
-	pow( strFct4*u4 , (1 - hBeta)/hBeta );
+		pow( strFct1*u1 , (1 - hBeta)/hBeta ) *
+		pow( strFct2*u2 , (1 - hBeta)/hBeta ) *
+		pow( strFct3*u3 , (1 - hBeta)/hBeta ) *
+		pow( strFct4*u4 , (1 - hBeta)/hBeta );
 
       G4double dPhaseSpace = 1. * (cos(fthetaMax) - cos(fthetaMin));
       G4double zLum = msZ[0] * ironDensity * (zpos + fTargLen/2) * Avogadro / msA[0];
