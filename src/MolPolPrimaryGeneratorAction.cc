@@ -247,10 +247,10 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       strFct3 = GetElectronStructFct(u3, TUmin);
       strFct4 = GetElectronStructFct(u4, TUmin);
       G4double strFct =
-		pow( strFct1*u1 , (1 - hBeta)/hBeta ) *
-		pow( strFct2*u2 , (1 - hBeta)/hBeta ) *
-		pow( strFct3*u3 , (1 - hBeta)/hBeta ) *
-		pow( strFct4*u4 , (1 - hBeta)/hBeta );
+		pow( strFct1*u1 , (1 - hBeta) ) / hBeta *
+		pow( strFct2*u2 , (1 - hBeta) ) / hBeta *
+		pow( strFct3*u3 , (1 - hBeta) ) / hBeta *
+		pow( strFct4*u4 , (1 - hBeta) ) / hBeta;
 
       G4double dPhaseSpace = 1. * (cos(fthetaMax) - cos(fthetaMin));
       G4double zLum = msZ[0] * ironDensity * (zpos + fTargLen/2) * Avogadro / msA[0];
