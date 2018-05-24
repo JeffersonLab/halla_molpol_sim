@@ -52,20 +52,16 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
   fTargLen = .124*mm;
   gentype = "moller";
 
-  //RADIATIVE CORRECTION CALCULATIONS - DEFAULT TO TRUE UNLESS OVERRIDDEN IN MACRO
-  //Merge to single later.
-  fBeamRadCorrFlag = true;
-  fElectronsRadCorrFlag = true;
-
   //CREATE NEW MOLPOLEVENT OBJECT TO STORE EVENT INFORMATION FOR RECORDING
   fDefaultEvent = new MolPolEvent();
-  
+
   //LEVCHUCK FLAG AND VALUES - INITIALIZE FLAG TO 'true' BY DEFAULT AND POLARIZATION TO SOME VALUE
   //ADDITIONALLY, fLEcorFac MUST INITIALIZE TO 1.
   fLevchukFlag = true;
   fTargPol = 0.;
   fLEcorFac = 1.;
-  
+  //RADIATIVE CORRECTION CALCULATIONS - DEFAULT TO TRUE UNLESS OVERRIDDEN IN MACRO
+  fRadCorrFlag = true;
   //MOLPOL MSC ON/OFF FLAG -- DEFAULTS TO TRUE/ON
   fRemollMSFlag = true;
 
@@ -85,6 +81,13 @@ void MolPolPrimaryGeneratorAction::rand(){
 void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   fDefaultEvent->Reset();
+
+  //Print check for macro values
+
+  G4cout << "           Levchuk Effect: " << fLevchukFlag << G4endl;
+  G4cout << "      Target Polarization: " << fTargPol << G4endl;
+  G4cout << "     Radiaton Corrections: " << fRadCorrFlag << G4endl;
+  G4cout << "  Remoll Multiple Scatter: " << fRemollMSFlag << G4endl;
 
   double xpos, ypos, zpos, thetaPos, phiPos;
   double pX, pY, pZ, eff_sigma, Azz;
@@ -112,14 +115,14 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //~~ Sample multiple scattering + angles
       G4double msth(0), msph(0);
 
-	  //G4cout << "Remoll MS next..." << G4endl;
-	  //if(!fRemollMSFlag) G4cout << "Remoll MSc off..." << G4endl;
+  	  //G4cout << "Remoll MS next..." << G4endl;
+  	  //if(!fRemollMSFlag) G4cout << "Remoll MSc off..." << G4endl;
       if(fRemollMSFlag){
-		  fMS = new remollMultScatt();
-		  fMS->Init(fBeamE,nTgtMat,msThick,msA,msZ);
-		  msth = fMS->GenerateMSPlane();
-		  msph = fMS->GenerateMSPlane();
-		  //G4cout << "Remoll MSc on..." << G4endl;
+  		  fMS = new remollMultScatt();
+  		  fMS->Init(fBeamE,nTgtMat,msThick,msA,msZ);
+  		  msth = fMS->GenerateMSPlane();
+  		  msph = fMS->GenerateMSPlane();
+  		  //G4cout << "Remoll MSc on..." << G4endl;
       }
 
       assert( !std::isnan(msth) && !std::isnan(msph) );
@@ -185,7 +188,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       G4double s(0), u1(0), u2(0);
       G4double x1(1), x2(1);
-      if( fBeamRadCorrFlag ){
+      if( fRadCorrFlag ){
         //~~Choose X1 and X2 to account for initial state bremsstrahlung
         //~~First, choose the photon energy fractions according to roughly the
         //~~correct distribution (U1,U2 are MUCH more important that X1,X2)
@@ -211,10 +214,10 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double theta1 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p1 - 1/(x1*pBeam)) );
       G4double theta2 = sqrt(fLEcorFac * 2 * electron_mass_c2 * x2 * (1/p2 - 1/(x1*pBeam)) );
 
-	  //INTERNAL FINAL STATE RADIATION
+      //INTERNAL FINAL STATE RADIATION
       G4double u3(0), u4(0);
       G4double x3(1), x4(1);
-      if( fElectronsRadCorrFlag ){
+      if( fRadCorrFlag ){
         G4double rand = G4UniformRand();
         if( rand < rMin ) u3 = uMin;
         else u3 = pow(rand, 1/hBeta);
@@ -231,30 +234,29 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double cos2t = pow(cos(thcom),2);
       G4double sin2t = 1 - cos2t;
 
+      //
       G4double sigma = pow(fine_structure_const,2) / s * pow(hbarc,2) *
 	      pow(3 + cos2t,2)/pow(sin2t,2) / (2 * electron_mass_c2 * beamE);
 
       //CALCULATE INDV ELECTRON STRUCTURE FACTORS AND COMPLETE strFct
-      G4double strFct1,strFct2,strFct3,strFct4;
-      //in the case of no radiative corrections the u's initialize to zero.
-      //GetElectronStructFct will set that to a nominal value to calculate
-      //strFct product. strFct necessarily computes to zero unless these
-      //individual factors for each are calculated first and the u's are set
-      //to a non-zero value. Final values are still zero... at least for current
-      //hBeta...
-      strFct1 = GetElectronStructFct(u1, TUmin);
-      strFct2 = GetElectronStructFct(u2, TUmin);
-      strFct3 = GetElectronStructFct(u3, TUmin);
-      strFct4 = GetElectronStructFct(u4, TUmin);
-      G4double strFct =
-		pow( strFct1*u1 , (1 - hBeta) ) / hBeta *
-		pow( strFct2*u2 , (1 - hBeta) ) / hBeta *
-		pow( strFct3*u3 , (1 - hBeta) ) / hBeta *
-		pow( strFct4*u4 , (1 - hBeta) ) / hBeta;
+      G4double strFct1,strFct2,strFct3,strFct4,strFct;
+      if(fRadCorrFlag){
+        strFct1 = GetElectronStructFct(u1, TUmin);
+        strFct2 = GetElectronStructFct(u2, TUmin);
+        strFct3 = GetElectronStructFct(u3, TUmin);
+        strFct4 = GetElectronStructFct(u4, TUmin);
+        strFct =
+          strFct1 * pow(u1 , (1. - hBeta) ) / hBeta *
+          strFct2 * pow(u2 , (1. - hBeta) ) / hBeta *
+          strFct3 * pow(u3 , (1. - hBeta) ) / hBeta *
+          strFct4 * pow(u4 , (1. - hBeta) ) / hBeta;
+      } else {
+        strFct = 1.;
+      }
 
       G4double dPhaseSpace = 1. * (cos(fthetaMax) - cos(fthetaMin));
       G4double zLum = msZ[0] * ironDensity * (zpos + fTargLen/2) * Avogadro / msA[0];
-      G4double weight = zLum * dPhaseSpace * sigma * strFct;
+      G4double weight = 1. * zLum * dPhaseSpace * sigma * strFct;
       fDefaultEvent->fUnpolWght = weight;
 
       //CALCULATE THE EVENT WEIGHT FOR THE VARIOUS POLARIZATION DIRECTIONS
@@ -449,7 +451,7 @@ void MolPolPrimaryGeneratorAction::InitTargetMomentum() {
       //xTmp1/2 are partial calculation of the integrand (hence temporary)
       G4double xTmp1 = GetTmpUnpolDist(p,refMom,0);
       G4double xTmp2 = GetTmpUnpolDist(p,refMom,4);
-      //xInt1 is the unpolarized distribution.  Although not noted in DG's original FORTRAN code, I assume that 
+      //xInt1 is the unpolarized distribution.  Although not noted in DG's original FORTRAN code, I assume that
       //xInt2 is the polarized distribtuion.
       G4double xInt1 = (xTmp1 + xTmp2) / 48.495;
       G4double xInt2 = ( 570281 * pow(p[2],3) / pow(1 + 9 * p[2],8) / refMom[2] +

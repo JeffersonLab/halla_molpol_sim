@@ -47,17 +47,17 @@ class MolPolMessenger : public G4UImessenger {
 	MolPolSteppingAction *fStepAct;
   //  MolPolEMFieldSetup *fFieldSet;
 
-        G4UIdirectory *fMolPolDir;
+  G4UIdirectory *fMolPolDir;
 
-        G4UIcmdWithABool         *fLevchukEffectCmd;
-        //added in targpolcmd for testing/validation to avoid recompiling every time needed to change.
-	G4UIcmdWithADouble *fTargPolCmd;
-        G4UIcmdWithABool         *fBeamRadCorrCmd;
-        G4UIcmdWithABool         *fElectronsRadCorrCmd;
+  G4UIcmdWithABool         *fLevchukEffectCmd;
+  //added in targpolcmd for testing/validation to avoid recompiling every time needed to change.
+  G4UIcmdWithADouble       *fTargPolCmd;
+  G4UIcmdWithABool         *fRadCorrCmd;
+  G4UIcmdWithABool         *fRemollMSFlagCmd;
 
 	G4UIcmdWithAnInteger *seedCmd;
 	G4UIcmdWithAString   *fileCmd;
-        G4UIcmdWithAString   *genSelectCmd;
+  G4UIcmdWithAString   *genSelectCmd;
 
 	G4UIcmdWithADoubleAndUnit *fXminCmd;
 	G4UIcmdWithADoubleAndUnit *fXmaxCmd;
@@ -98,5 +98,3 @@ class MolPolMessenger : public G4UImessenger {
 };
 
 #endif//MolPolMessenger_HH
-
-

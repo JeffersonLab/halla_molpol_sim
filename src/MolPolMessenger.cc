@@ -58,7 +58,7 @@ MolPolMessenger::MolPolMessenger(){
 
     fYmaxCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/ymax", this);
     fYmaxCmd->SetGuidance("Set y range maximum");
-    fYmaxCmd->SetParameterName("ymax", false); 
+    fYmaxCmd->SetParameterName("ymax", false);
 
     fBeamECmd = new G4UIcmdWithADoubleAndUnit("/MolPol/beamE", this);
     fBeamECmd->SetGuidance("Set beam energy");
@@ -104,13 +104,13 @@ MolPolMessenger::MolPolMessenger(){
     fZCmd->SetGuidance("Set particle z");
     fZCmd->SetParameterName("fz", false);
 
-    fBeamRadCorrCmd = new G4UIcmdWithABool("/MolPol/beamRadCorrections",this);
-    fBeamRadCorrCmd->SetGuidance("Radiative corrections for beam? True:On False:Off");
-    fBeamRadCorrCmd->SetParameterName("beamRadCorrections",false);
+    fRadCorrCmd = new G4UIcmdWithABool("/MolPol/radCorrections",this);
+    fRadCorrCmd->SetGuidance("Radiative corrections? True:On False:Off");
+    fRadCorrCmd->SetParameterName("radCorrections",false);
 
-    fElectronsRadCorrCmd = new G4UIcmdWithABool("/MolPol/electronsRadCorrections",this);
-    fElectronsRadCorrCmd->SetGuidance("Radiative corrections for electrons? True:On False:Off");
-    fElectronsRadCorrCmd->SetParameterName("electronsRadCorrections",false);
+    fRemollMSFlagCmd = new G4UIcmdWithABool("/MolPol/remollMS",this);
+    fRemollMSFlagCmd->SetGuidance("Remoll Multiple Scattering? True:On False:Off");
+    fRemollMSFlagCmd->SetParameterName("remollMS",false);
 
     fTargPolCmd = new G4UIcmdWithADouble("/MolPol/targetPolPct",this);
     fTargPolCmd->SetGuidance("Target polarization percentage? (Between 0 and 1)");
@@ -127,13 +127,13 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     if( x >= 0.0 && x <= 1.0) fprigen->fTargPol = x;
     else  G4Exception("MolPolMessenger.cc","",RunMustBeAborted,"targetPolPct set outside of allowable bounds; default value being used.");
   }
-  if( cmd == fBeamRadCorrCmd ){
-    G4bool flag = fBeamRadCorrCmd->GetNewBoolValue(newValue);
-    fprigen->fBeamRadCorrFlag = flag;
+  if( cmd == fRadCorrCmd ){
+    G4bool flag = fRadCorrCmd->GetNewBoolValue(newValue);
+    fprigen->fRadCorrFlag = flag;
   }
-  if( cmd == fElectronsRadCorrCmd ){
-    G4bool flag = fElectronsRadCorrCmd->GetNewBoolValue(newValue);
-    fprigen->fElectronsRadCorrFlag = flag;
+  if( cmd == fRemollMSFlagCmd ){
+    G4bool flag = fRemollMSFlagCmd->GetNewBoolValue(newValue);
+    fprigen->fRemollMSFlag = flag;
   }
   if( cmd == fLevchukEffectCmd ){
     G4bool flag = fLevchukEffectCmd->GetNewBoolValue(newValue);
@@ -180,7 +180,7 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     fprigen->fYmax = x;
   }
   if( cmd == fBeamECmd ){
-    G4double x = fBeamECmd->GetNewDoubleValue(newValue);    
+    G4double x = fBeamECmd->GetNewDoubleValue(newValue);
     fprigen->fBeamE = x;
   }
   if( cmd == fEminCmd ){
@@ -265,5 +265,5 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double x = fZCmd->GetNewDoubleValue(newValue);
     fprigen->fZ = x;
   }
-    
+
 }
