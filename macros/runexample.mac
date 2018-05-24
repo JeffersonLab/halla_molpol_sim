@@ -1,59 +1,46 @@
-# Example run macro for MolPol
-
 /run/initialize
 
-# Activate/Inactivate MSC by Commenting/Uncommenting next line
-/process/inactivate msc
-
-# ROOT output filename
-/MolPol/filename  MolPol_REMOLL.root
-
-# Calculate LE: true/false->on/off; 0. <= targPol <= 1.
+/MolPol/gen               moller
+/MolPol/filename          MolPol_REMOLL.root
 /MolPol/calculateLevchuk  true
-/MolPol/targPolPct        0.0
+/MolPol/targetPolPct      0.1428
+/MolPol/radCorrections    true
+/MolPol/remollMS          true
+/MolPol/seed              50
 
-# Calculate rad correction factors
-/MolPol/beamRadCorrections      false
-/MolPol/electronsRadCorrections false
+/MolPol/fz                6.9 cm
 
-/MolPol/seed 50
+#/MolPol/thcommin         89.99 deg
+#/MolPol/thcommax         90.0 deg
+#/MolPol/phimin           -0.001 deg
+#/MolPol/phimax           0.001  deg
 
-/MolPol/gen moller
+/MolPol/thcommin          70 deg
+/MolPol/thcommax          110 deg
+/MolPol/phimin            -25 deg
+/MolPol/phimax            25  deg
 
-# z placement of target at 6.9 cm
-/MolPol/fz 6.9 cm
+/field/MagSourceMode      1
+/field/setQ1A             0 
+/field/setQ2A             0
+/field/setQ3A             0
+/field/setQ4A             0
+/field/setQ5A             0
 
-#/MolPol/thcommin 89.99 deg
-#/MolPol/thcommax 90.0 deg
-#/MolPol/phimin   -0.001 deg
-#/MolPol/phimax   0.001  deg
+/field/setQ1T             -0.171
+/field/setQ2T             0.131
+/field/setQ3T             0.096
+/field/setQ4T             0.206
+/field/setQ5T             0.700
 
-/MolPol/thcommin 70 deg
-/MolPol/thcommax 110 deg
-/MolPol/phimin   -25 deg
-/MolPol/phimax   25  deg
+#/MolPol/emin             1.063 GeV
+#/MolPol/emax             1.063 GeV
+#/MolPol/beamE            10.6 GeV
+/MolPol/beamE             5.0 GeV
+#/MolPol/beamE            8.5 GeV
+#/MolPol/beamE            4.5 GeV
 
-/field/MagSourceMode 1
-/field/setQ1A 0 
-/field/setQ2A 0
-/field/setQ3A 0
-/field/setQ4A 0
-/field/setQ5A 0
+/gun/particle             e-
 
-/field/setQ1T -0.171
-/field/setQ2T  0.131
-/field/setQ3T  0.096
-/field/setQ4T  0.206
-/field/setQ5T  0.700
-
-#/MolPol/emin   1.063 GeV
-#/MolPol/emax   1.063 GeV
-#/MolPol/beamE   10.6 GeV
-/MolPol/beamE   5.0 GeV
-#/MolPol/beamE   8.5 GeV
-#/MolPol/beamE  4.5 GeV
-
-/gun/particle e-
-
-/run/beamOn 50000
+/run/beamOn               50000
 
