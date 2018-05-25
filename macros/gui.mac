@@ -8,7 +8,7 @@
 /gui/addButton viewer "Update viewer"        "/vis/viewer/update"
 /gui/addButton viewer "Update scene"         "/vis/scene/notifyHandlers"
 
-/vis/open OGLIQt
+/vis/open OGL
 
 /run/initialize
 #
