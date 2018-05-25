@@ -80,6 +80,7 @@ public:
   G4double                    fQ3A;
   G4double                    fQ4A;
   G4double                    fQ5A;
+  G4double                    fQ6A;
 
   //external input field (pole tip) values
   G4double                    fQ1T;
@@ -87,6 +88,7 @@ public:
   G4double                    fQ3T;
   G4double                    fQ4T;
   G4double                    fQ5T;
+  G4double                    fQ6T;
 
 private:
   MolPolEMField*              fEMfield;

@@ -45,12 +45,14 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
   fQ3A = 0;
   fQ4A = 0;
   fQ5A = 0;
+  fQ6A = 0;
 
   fQ1T = 0;
   fQ2T = 0;
   fQ3T = 0;
   fQ4T = 0;
   fQ5T = 0;
+  fQ6T = 0;
 
 
   InitialseAll();
@@ -114,8 +116,8 @@ void MolPolEMFieldSetup::InitialseAll()
   KAPPA2 =  0.131 / (5.08 * 1.e-2) * tesla / m;
   KAPPA3 =  0.096 / (5.08 * 1.e-2) * tesla / m;
   KAPPA4 =  0.206 / (5.08 * 1.e-2) * tesla / m;
-  DIPOLE = 0.70 * tesla;
-  
+  DIPOLE =  0.70 * tesla;
+
   G4cout << __PRETTY_FUNCTION__ <<"\t at line: "<<__LINE__<<G4endl;
   G4cout << "\tfMagSourceMode: "<<fMagSourceMode<<G4endl
 	 << "\tKAPPA1: "<<KAPPA1<<G4endl
@@ -130,18 +132,21 @@ void MolPolEMFieldSetup::InitialseAll()
   fLocalFieldManagerFZB1 = new G4FieldManager();
   fChordFinderFZB1 = 0;
   UpdateFieldFZB1();
+
   fMagFieldFZB2 = new MolPolQuad(KAPPA2, G4ThreeVector(0.0, 0.0, ORIGINQ2), NOROT, Q2R);
   fEquationFZB2 = new G4Mag_UsualEqRhs(fMagFieldFZB2);
   fStepperFZB2  = new G4ClassicalRK4(fEquationFZB2);
   fLocalFieldManagerFZB2 = new G4FieldManager();
   fChordFinderFZB2 = 0;
   UpdateFieldFZB2();
+
   fMagFieldFZB3 = new MolPolQuad(KAPPA3, G4ThreeVector(0.0, 0.0, ORIGINQ3), NOROT, Q3R);
   fEquationFZB3 = new G4Mag_UsualEqRhs(fMagFieldFZB3);
   fStepperFZB3  = new G4ClassicalRK4(fEquationFZB3);
   fLocalFieldManagerFZB3 = new G4FieldManager();
   fChordFinderFZB3 = 0;
   UpdateFieldFZB3();
+
   fMagFieldFZB4 = new MolPolQuad(KAPPA4, G4ThreeVector(0.0, 0.0, ORIGINQ4), NOROT, Q4R);
   fEquationFZB4 = new G4Mag_UsualEqRhs(fMagFieldFZB4);
   fStepperFZB4  = new G4ClassicalRK4(fEquationFZB4);
