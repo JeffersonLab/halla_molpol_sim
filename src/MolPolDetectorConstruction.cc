@@ -27,43 +27,44 @@
 #include "G4VisAttributes.hh"
 #include "MolPolEMFieldSetup.hh"
 
-//#include <iostream>
-//using namespace std;
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 void MolPolDetectorConstruction::DetModeSet(G4int detMode = 1) {
-	
 }
 
 void MolPolDetectorConstruction::StandModeSet(G4int standMode = 0) {
-        
 }
 
 
 MolPolDetectorConstruction::MolPolDetectorConstruction():
   fCheckOverlaps(false)
-{    
+{
   mEMFieldSetup = 0;
 }
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 MolPolDetectorConstruction::~MolPolDetectorConstruction(){
 	if(mEMFieldSetup) delete mEMFieldSetup;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
 G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
-  // Define materials
-    
+	//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+	//// Define Visual Attributes
+	G4double alphaVacuum = 0.15;
+	G4double alphaMatStd = 0.50;
+	G4VisAttributes* IronVisAtt = new G4VisAttributes( G4Colour( 10./255., 10./255., 10./255.,alphaMatStd) );
+	G4VisAttributes* LeadVisAtt = new G4VisAttributes( G4Colour(149./255.,149./255.,100./255.,alphaMatStd) );
+	G4VisAttributes* SteelVisAtt= new G4VisAttributes( G4Colour(  0./255., 80./255.,225./255.,alphaMatStd) );
+	G4VisAttributes* AlumVisAtt = new G4VisAttributes( G4Colour(  0./255.,237./255.,  0./255.,alphaMatStd) );
+	G4VisAttributes* VacVisAtt  = new G4VisAttributes( G4Colour(255./255.,255./255.,255./255.,alphaVacuum) );
+	G4VisAttributes* CuVisAtt   = new G4VisAttributes( G4Colour(178./255.,102./255., 26./255.,alphaMatStd) );
+	G4VisAttributes* ScintVisAtt= new G4VisAttributes( G4Colour(  0./255.,100./255.,100./255.,alphaMatStd) );
+	G4VisAttributes* DipVisAtt  = new G4VisAttributes( G4Colour(  0./255., 80./255.,225./255.,alphaVacuum) );
+
+
+	//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  //// Materials Setup
   G4double a, z, density, pressure, temperature;
   G4int nelements, natoms;
 
-  
-  // Air
   G4Element* N  = new G4Element("Nitrogen", "N", z=7 , a=14.01*g/mole);
   G4Element* O  = new G4Element("Oxygen"  , "O", z=8 , a=16.00*g/mole);
   G4Element* H  = new G4Element("Hydrogen", "H", z=1 , a=1.01 *g/mole);
@@ -76,7 +77,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   density = 0.787 * g/cm3;
   a = 55.85 * g /mole;
-  G4Material* steel = new G4Material("steel", z=26, a, density);
+  G4Material* iron = new G4Material("iron", z=26, a, density);
 
   density = 7.65 *g/cm3;
   G4Material* siliconsteel = new G4Material("SiliconSteel", density, nelements=2);
@@ -94,14 +95,13 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   a = 63.55*g/mole;
   G4Material* Cu = new G4Material("Copper" , z=29., a, density);
 
-
   density = 1.032*g/cm3;
   a = 12.01*g/mole;
   G4Material* scint = new G4Material("scint", z=6., a, density);
 
-  density = 1.e-6/760.0 * 1.29*mg/cm3; //0.001 of air density                                                                                                                                                
+  density = 1.e-6/760.0 * 1.29*mg/cm3; //0.001 of air density
   pressure = 1.e-6/760.0 *atmosphere;
-  temperature = 293.15 *kelvin;  //room temperature                                                                                                                                                          
+  temperature = 293.15 *kelvin;  //room temperature
   a = 28.97 *g/mole;
 
   G4Material* Vacuum = new G4Material("Vacuum",z=1,a,density,kStateGas,temperature,pressure);
@@ -109,29 +109,17 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   Air->AddElement(N, 79.0*perCent);
   Air->AddElement(O, 21.0*perCent);
 
-  G4double world_x, world_y, world_z;
-  
-  world_x = world_y = world_z = 10*m;
-
-  G4VisAttributes* IronVisAtt = new G4VisAttributes(G4Colour(100./255.,149./255.,237./255.));
-  G4VisAttributes* LeadVisAtt = new G4VisAttributes(G4Colour(149./255.,149./255.,100./255.));
-  G4VisAttributes* SteelVisAtt= new G4VisAttributes(G4Colour(0./255.,0./255.,237./255.));
-  G4VisAttributes* AlumVisAtt = new G4VisAttributes(G4Colour(0./255.,237./255.,0./255.));  
-  G4VisAttributes* VacVisAtt  = new G4VisAttributes(G4Colour(120./255.,237./255.,120./255.));  
-  G4VisAttributes* CuVisAtt   = new G4VisAttributes(G4Colour(0.7, 0.4, 0.1));
-  G4VisAttributes* ScintVisAtt= new G4VisAttributes(G4Colour(0./255.,100./255.,100./255.));  
-
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // Build world
+  G4double world_x = 10*m;	G4double world_y = 10*m;  G4double world_z = 10*m;
   G4Box* world_box = new G4Box("World",world_x,world_y,world_z);
-    
-  G4LogicalVolume* world_log
-    = new G4LogicalVolume(world_box,Vacuum,"World",0,0,0);
-  
+  G4LogicalVolume* world_log = new G4LogicalVolume(world_box,Vacuum,"World",0,0,0);
   world_log->SetVisAttributes(G4VisAttributes::Invisible);
-  
-  G4VPhysicalVolume* world_phys
-    = new G4PVPlacement(0,G4ThreeVector(),world_log,"World",0,false,fCheckOverlaps);    
+  G4VPhysicalVolume* world_phys = new G4PVPlacement(0,G4ThreeVector(),world_log,"World",0,false,fCheckOverlaps);
 
-  mEMFieldSetup = new MolPolEMFieldSetup();  //setup the field, 
+	//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // Field Setup
+  mEMFieldSetup = new MolPolEMFieldSetup();  //setup the field,
   G4FieldManager* Q1FieldManager = mEMFieldSetup->GetFieldManagerFZB1();
   G4FieldManager* Q2FieldManager = mEMFieldSetup->GetFieldManagerFZB2();
   G4FieldManager* Q3FieldManager = mEMFieldSetup->GetFieldManagerFZB3();
@@ -140,69 +128,65 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4FieldManager* Q6FieldManager = mEMFieldSetup->GetFieldManagerFZB6();
   G4bool allLocal = true;
 
-
-  // // // // // // // // TARGET // // // // // // // //
-
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // Target
   G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm;   G4double pMTATHLZ = 0.0062 * cm;
   G4double pMTATPos_X = 0.0 * cm; G4double pMTATPos_Y = 0.0 * cm; G4double pMTATPos_Z = 6.9 * cm;
-
   G4VSolid* MTATSolid = new G4Tubs( "MTATTube", pMTATRin, pMTATRout, pMTATHLZ, 0.0, 360.0 * deg );
-  G4LogicalVolume* MTATLogical = new G4LogicalVolume(MTATSolid, steel, "MTATLogical", 0, 0, 0);
-  MTATLogical->SetVisAttributes(CuVisAtt);
+  G4LogicalVolume* MTATLogical = new G4LogicalVolume(MTATSolid, iron, "Target", 0, 0, 0);
+  MTATLogical->SetVisAttributes(IronVisAtt);
+  new G4PVPlacement(0, G4ThreeVector(0,0,pMTATPos_Z), MTATLogical, "Target", world_log, 0, 0, fCheckOverlaps);
 
-  new G4PVPlacement(0, G4ThreeVector(0,0,pMTATPos_Z), MTATLogical, "MTATPhys", world_log, 0, 0, fCheckOverlaps);		
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // Target BPIPE
+  G4double pBPITRin = 0.0 * cm;   G4double pBPITRout = 5.08 * cm;   G4double pBPITHLZ = 100.0 * cm;
+  G4double pBPVTRin = 0.0 * cm;   G4double pBPVTRout = 4.78 * cm;   G4double pBPVTHLZ = 100.0 * cm;
 
-  // // // // // // // // TARGET BPIPE // // // // // // // //
-  G4double pBPITRin = 0.0 * cm;   G4double pBPITRout = 5.08 * cm;   G4double pBPITHLZ = 100.0 * cm; 
-  G4double pBPVTRin = 0.0 * cm;   G4double pBPVTRout = 4.78 * cm;   G4double pBPVTHLZ = 100.0 * cm; 
-
-  G4double pBPITPos_X = 0.0 * cm;   G4double pBPITPos_Y = 0.0 * cm;   G4double pBPITPos_Z = 0.0 * cm; 
-  G4double pBPVTPos_X = 0.0 * cm;   G4double pBPVTPos_Y = 0.0 * cm;   G4double pBPVTPos_Z = 0.0 * cm; 
+  G4double pBPITPos_X = 0.0 * cm;   G4double pBPITPos_Y = 0.0 * cm;   G4double pBPITPos_Z = 0.0 * cm;
+  G4double pBPVTPos_X = 0.0 * cm;   G4double pBPVTPos_Y = 0.0 * cm;   G4double pBPVTPos_Z = 0.0 * cm;
 
   G4VSolid* BPITSolid = new G4Tubs( "BPITTube", pBPVTRout, pBPITRout, pBPITHLZ, 0.0, 360.0 * deg );
   G4VSolid* BPVTSolid = new G4Tubs( "BPVTTube", pBPVTRin , pBPVTRout, pBPITHLZ, 0.0, 360.0 * deg );
 
   G4LogicalVolume* BPITLogical = new G4LogicalVolume(BPITSolid, aluminum, "BPITLogical", 0, 0, 0);
   G4LogicalVolume* BPVTLogical = new G4LogicalVolume(BPVTSolid, Vacuum,   "BPVTLogical", 0, 0, 0);
-
   BPITLogical->SetVisAttributes(AlumVisAtt);
   BPVTLogical->SetVisAttributes(VacVisAtt);
 
-  /*
-  new G4PVPlacement(0,G4ThreeVector(0,0,pBPITPos_Z),BPITLogical, "BPITPhys", world_log, 0, 0, fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pBPVTPos_Z),BPVTLogical, "BPVTPhys", world_log, 0, 0, fCheckOverlaps);
-  */
+  //new G4PVPlacement(0,G4ThreeVector(0,0,pBPITPos_Z),BPITLogical, "BPITPhys", world_log, 0, 0, fCheckOverlaps);
+  //new G4PVPlacement(0,G4ThreeVector(0,0,pBPVTPos_Z),BPVTLogical, "BPVTPhys", world_log, 0, 0, fCheckOverlaps);
 
 
-  // // // // // // // // HELMHOLTZ COILS // // // // // // // //
-
-  //simple solenoid magnetic field
-  G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 38.1  * cm;  G4double pQ6Pos_z=   6.9 * cm; 
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // HELMHOLTZ COIL Magnetic Volume
+  G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 38.1  * cm;  G4double pQ6Pos_z=   6.9 * cm;
   G4VSolid* Q6MagSolid = new G4Tubs( "Q6MagTubs", pQ6Rin, pQ6Rout, pQ6HL, 0.0, 360.0 * deg);
-  G4LogicalVolume* Q6MagLogical = new G4LogicalVolume(Q6MagSolid, Vacuum, "Q6MagLogical", 0,0,0);
+  G4LogicalVolume* Q6MagLogical = new G4LogicalVolume(Q6MagSolid, Vacuum, "Q6Mag", 0,0,0);
   Q6MagLogical->SetFieldManager(Q6FieldManager, allLocal);
+	Q6MagLogical->SetVisAttributes(VacVisAtt);
+  new G4PVPlacement(0, G4ThreeVector(0, 0, pQ6Pos_z), Q6MagLogical, "Q6Mag", world_log, 0, 0, fCheckOverlaps);
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0, pQ6Pos_z), Q6MagLogical, "Q6MagPhys", world_log, 0, 0, fCheckOverlaps);
 
-  G4double pHLMZRin = 5.10 * cm;   G4double pHLMZRout = 15.0 * cm;   G4double pHLMZHLZ = 5.0 * cm; 
-  G4double pHLMZ1Pos_X = 0.0 * cm;   G4double pHLMZ1Pos_Y = 0.0 * cm;   G4double pHLMZ1Pos_Z = -5.7 * cm; 
-  G4double pHLMZ2Pos_X = 0.0 * cm;   G4double pHLMZ2Pos_Y = 0.0 * cm;   G4double pHLMZ2Pos_Z = 19.5 * cm; 
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // Helmholtz Coil 'Physical' Volume
+  G4double pHLMZRin = 5.10 * cm;   G4double pHLMZRout = 15.0 * cm;   G4double pHLMZHLZ = 5.0 * cm;
+  G4double pHLMZ1Pos_X = 0.0 * cm;   G4double pHLMZ1Pos_Y = 0.0 * cm;   G4double pHLMZ1Pos_Z = -5.7 * cm;
+  G4double pHLMZ2Pos_X = 0.0 * cm;   G4double pHLMZ2Pos_Y = 0.0 * cm;   G4double pHLMZ2Pos_Z = 19.5 * cm;
 
   G4VSolid* HLMZ1Solid = new G4Tubs( "HLMZ1Tube", pHLMZRin, pHLMZRout, pHLMZHLZ, 0.0, 360.0 * deg );
   G4VSolid* HLMZ2Solid = new G4Tubs( "HLMZ2Tube", pHLMZRin, pHLMZRout, pHLMZHLZ, 0.0, 360.0 * deg );
 
-  G4LogicalVolume* HLMZ1Logical = new G4LogicalVolume(HLMZ1Solid, Cu, "HLMZ1Logical", 0, 0, 0);
-  G4LogicalVolume* HLMZ2Logical = new G4LogicalVolume(HLMZ2Solid, Cu, "HLMZ2Logical", 0, 0, 0);
-
+  G4LogicalVolume* HLMZ1Logical = new G4LogicalVolume(HLMZ1Solid, Cu, "Helmholtz1", 0, 0, 0);
+  G4LogicalVolume* HLMZ2Logical = new G4LogicalVolume(HLMZ2Solid, Cu, "Helmholtz2", 0, 0, 0);
   HLMZ1Logical->SetVisAttributes(CuVisAtt);
   HLMZ2Logical->SetVisAttributes(CuVisAtt);
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ1Pos_Z), HLMZ1Logical, "HLMZ1Phys", world_log, 0, 0, fCheckOverlaps);
-  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ2Pos_Z), HLMZ2Logical, "HLMZ2Phys", world_log, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ1Pos_Z), HLMZ1Logical, "Helmholtz1", world_log, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ2Pos_Z), HLMZ2Logical, "Helmholtz2", world_log, 0, 0, fCheckOverlaps);
 
 
-  // // // // // // // //     BPIPE     // // // // // // // //
-
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+	// Beam pipe
   G4double pBPI1Rin = 0.0   * cm; G4double pBPI1Rout = 5.08  * cm; G4double pBPI1HL = 100.0 * cm;
   G4double pBPV1Rin = 0.0   * cm; G4double pBPV1Rout = 4.78  * cm; G4double pBPV1HL = 100.0 * cm;
   G4double pBPI2Rin = 0.0   * cm; G4double pBPI2Rout = 5.08  * cm; G4double pBPI2HL = 12.15 * cm;
@@ -256,7 +240,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4LogicalVolume* sub14Logical = new G4LogicalVolume( sub14, aluminum, "sub14Logical", 0, 0, 0);
   G4LogicalVolume* sub15Logical = new G4LogicalVolume( sub15, aluminum, "sub15Logical", 0, 0, 0);
   G4LogicalVolume* sub16Logical = new G4LogicalVolume( sub16, aluminum, "sub16Logical", 0, 0, 0);
-  //  G4LogicalVolume* sub17Logical = new G4LogicalVolume( sub17, siliconsteel, "sub17Logical", 0, 0, 0);
+  //G4LogicalVolume* sub17Logical = new G4LogicalVolume( sub17, siliconsteel, "sub17Logical", 0, 0, 0);
 
   G4LogicalVolume* BPV1Logical  = new G4LogicalVolume( BPV1Solid, Vacuum, "BPV1SolidLogical", 0, 0, 0);
   G4LogicalVolume* BPV2Logical  = new G4LogicalVolume( BPV2Solid, Vacuum, "BPV2SolidLogical", 0, 0, 0);
@@ -269,7 +253,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   sub14Logical->SetVisAttributes(AlumVisAtt);
   sub15Logical->SetVisAttributes(AlumVisAtt);
   sub16Logical->SetVisAttributes(AlumVisAtt);
-  //  sub17Logical->SetVisAttributes(LeadVisAtt);
+  //sub17Logical->SetVisAttributes(LeadVisAtt);
 
   BPV1Logical->SetVisAttributes(VacVisAtt);
   BPV2Logical->SetVisAttributes(VacVisAtt);
@@ -293,10 +277,24 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   new G4PVPlacement(0,G4ThreeVector(0,0,pBPI5Pos_Z), BPV5Logical, "BPV5Phys",world_log, 0, 0, fCheckOverlaps);
   */
 
-  // // // // // // // // DIPOLE BOX // // // // // // // //
 
+	//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+	// Dipole magnetic field volume
+	G4double pDMagHLX   =  8.0   * cm;  G4double pDMagHLY   = 30.0 * cm;  G4double pDMagHLZ   = 82.25 * cm;
+	G4double pDMagPos_X =  0.0   * cm;  G4double pDMagPos_Y =  0.0 * cm;  G4double pDMagPos_Z =  423.4 * cm;
+
+	G4VSolid* DMagSolid = new G4Box ( "DMagBox" , pDMagHLX , pDMagHLY , pDMagHLZ );
+	G4LogicalVolume* DLogical = new G4LogicalVolume ( DMagSolid, Vacuum, "DipoleMag", 0, 0, 0);
+	DLogical->SetFieldManager(DFieldManager,allLocal);
+	DLogical->SetVisAttributes(VacVisAtt);
+
+	new G4PVPlacement(0,G4ThreeVector(pDMagPos_X, pDMagPos_Y - 9*cm, pDMagPos_Z), DLogical,"DipoleMag",world_log,0,0,fCheckOverlaps);
+
+
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // DIPOLE BOX
   G4double pDBI1HLX =  6.0   * cm;  G4double pDBI1HLY = 16.5 * cm;  G4double pDBI1HLZ = 98.5  * cm;
-  G4double pDBV1HLX =  5.295 * cm;  G4double pDBV1HLY = 16.0 * cm;  G4double pDBV1HLZ = 98.5  * cm; 
+  G4double pDBV1HLX =  5.295 * cm;  G4double pDBV1HLY = 16.0 * cm;  G4double pDBV1HLZ = 98.5  * cm;
   G4double pDBW1HLX = 11.66  * cm;  G4double pDBW1HLY = 21.4 * cm;  G4double pDBW1HLZ =  0.64 * cm;
   G4double pDBW2Rin =  0.0   * cm;  G4double pDBW2Rout=  3.0 * cm;  G4double pDBW2HL  =  0.64 * cm;
   G4double pDBW3HLX =  1.18  * cm;  G4double pDBW3HLY =  8.0 * cm;  G4double pDBW3HLZ =  0.64 * cm;
@@ -331,82 +329,77 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* DMBHSolid = new G4Tubs( "DMBHTubs", pDMBHRin , pDMBHRout , pDMBHHL  , 0.0, 360.0 * deg );
   G4VSolid* DMFRSolid = new G4Tubs( "DMFRTubs", pDMFRRin , pDMFRRout , pDMFRHL  , 0.0, 360.0 * deg );
 
-  G4SubtractionSolid* sub1 = new G4SubtractionSolid("sub1", DBI1Solid, DBV1Solid, 0, G4ThreeVector(pDBV1Pos_X,
-												   pDBV1Pos_Y,
-												   pDBV1Pos_Z) );
-  
-  G4UnionSolid*       sub2 = new G4UnionSolid      ("sub2", sub1     , DMS1Solid, 0, G4ThreeVector(pDMS1Pos_X + pDBV1Pos_X,
-												   pDMS1Pos_Y + pDBV1Pos_Y,
-												   pDMS1Pos_Z + pDBV1Pos_Z) );
-  
-  G4SubtractionSolid* sub3 = new G4SubtractionSolid("sub3", sub2     , DMBHSolid, 0, G4ThreeVector(pDMBHPos_X + pDMS1Pos_X + pDBV1Pos_X,
+  G4SubtractionSolid* sub1 = new G4SubtractionSolid("sub1", DBI1Solid, DBV1Solid, 0,
+	                         G4ThreeVector(pDBV1Pos_X, pDBV1Pos_Y, pDBV1Pos_Z) );
+
+  G4UnionSolid*       sub2 = new G4UnionSolid("sub2", sub1 , DMS1Solid, 0,
+	                         G4ThreeVector(pDMS1Pos_X + pDBV1Pos_X,
+												   pDMS1Pos_Y + pDBV1Pos_Y, pDMS1Pos_Z + pDBV1Pos_Z) );
+
+  G4SubtractionSolid* sub3 = new G4SubtractionSolid("sub3", sub2 , DMBHSolid, 0,
+	                         G4ThreeVector(pDMBHPos_X + pDMS1Pos_X + pDBV1Pos_X,
 												   pDMBHPos_Y + pDMS1Pos_Y + pDBV1Pos_Y,
 												   pDMBHPos_Z + pDMS1Pos_Z + pDBV1Pos_Z) );
 
-  G4UnionSolid*       sub4 = new G4UnionSolid      ("sub4", sub3     , DMFRSolid, 0, G4ThreeVector(pDMFRPos_X + pDMBHPos_X + pDMS1Pos_X + pDBV1Pos_X,
+  G4UnionSolid*       sub4 = new G4UnionSolid      ("sub4", sub3 , DMFRSolid, 0,
+	                         G4ThreeVector(pDMFRPos_X + pDMBHPos_X + pDMS1Pos_X + pDBV1Pos_X,
 												   pDMFRPos_Y + pDMBHPos_Y + pDMS1Pos_Y + pDBV1Pos_Y,
 												   pDMFRPos_Z + pDMBHPos_Z + pDMS1Pos_Z + pDBV1Pos_Z) );
-  
-  G4LogicalVolume* sub4Logical = new G4LogicalVolume ( sub4, siliconsteel, "sub4Logical", 0, 0, 0);
+
+  G4LogicalVolume* sub4Logical = new G4LogicalVolume ( sub4, siliconsteel, "DipoleVacuumBox", 0, 0, 0);
+	sub4Logical ->SetVisAttributes(SteelVisAtt);
 
   G4SubtractionSolid* sub9 = new G4SubtractionSolid("sub9"  , DBW1Solid, DBW2Solid, 0, G4ThreeVector(pDBW2Pos_X, pDBW2Pos_Y, pDBW2Pos_Z) );
   G4SubtractionSolid* sub10= new G4SubtractionSolid("sub10" , sub9     , DBW3Solid, 0, G4ThreeVector(pDBW3Pos_X, pDBW3Pos_Y, pDBW3Pos_Z) );
   G4SubtractionSolid* sub11= new G4SubtractionSolid("sub11" , sub10    , DBW4Solid, 0, G4ThreeVector(pDBW4Pos_X, pDBW4Pos_Y, pDBW4Pos_Z) );
 
   G4LogicalVolume* sub11Logical = new G4LogicalVolume ( sub11, siliconsteel, "sub11Logical", 0, 0, 0);
-
-  // Dipole field volume
-  G4double pDMagHLX   =  8.0   * cm;  G4double pDMagHLY   = 30.0 * cm;  G4double pDMagHLZ   = 82.25 * cm;
-  G4double pDMagPos_X =  0.0   * cm;  G4double pDMagPos_Y =  0.0 * cm;  G4double pDMagPos_Z =  423.4 * cm; 
-
-  G4VSolid* DMagSolid = new G4Box ( "DMagBox" , pDMagHLX , pDMagHLY , pDMagHLZ );
-
-  G4LogicalVolume* DLogical = new G4LogicalVolume ( DMagSolid, Vacuum, "DLogical", 0, 0, 0);
-  DLogical->SetVisAttributes(G4VisAttributes::Invisible);
-  DLogical->SetFieldManager(DFieldManager,allLocal);
-
-  sub4Logical ->SetVisAttributes(LeadVisAtt);
   sub11Logical->SetVisAttributes(LeadVisAtt);
 
-  new G4PVPlacement(0,G4ThreeVector(pDMagPos_X, pDMagPos_Y, pDMagPos_Z), DLogical,"D",world_log,0,0,fCheckOverlaps);
+	new G4PVPlacement(0,G4ThreeVector(0.,0.,0.),sub4Logical,"DipoleVacuumBox",DLogical,0,0,fCheckOverlaps);
 
-  new G4PVPlacement(0,G4ThreeVector(0.,0.,0.),sub4Logical,"sub4",DLogical,0,0,fCheckOverlaps);
 
-  // // // // // // // // COLLIMATOR // // // // // // // //
-  //GPARVOL60  'DCOL' 213  'DBV1'   -4.0   9.  -92.   0  'BOX '  3   1.    4.00    3.0
-  //GPARVOL61  'DSLO' 221  'DCOL'    0.    0.    0.   0  'BOX '  3   1.    1.50    3.0
-  //GVOLPOS02  'DCOL'      'DBV1'    4.0   9.  -92.   0
-  
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // COLLIMATOR
   G4double pDCOLHLX = 1.00   * cm;  G4double pDCOLHLY = 4.00 * cm;  G4double pDCOLHLZ = 3.00  * cm;
   G4double pDSLOHLX = 1.00   * cm;  G4double pDSLOHLY = 1.50 * cm;  G4double pDSLOHLZ = 3.00  * cm;
   G4double pDCOLPos_X =-4.00   * cm;  G4double pDCOLPos_Y = 9.00 * cm;  G4double pDCOLPos_Z =-92.00  * cm;
   G4double pDSLOPos_X = 0.00   * cm;  G4double pDSLOPos_Y = 0.00 * cm;  G4double pDSLOPos_Z =  0.00  * cm;
-  
+
   G4VSolid* DCOLSolid = new G4Box ( "DCOLBox" , pDCOLHLX , pDCOLHLY  , pDCOLHLZ );
   G4VSolid* DSLOSolid = new G4Box ( "DSLOBox" , pDSLOHLX , pDSLOHLY  , pDSLOHLZ );
 
-  G4SubtractionSolid* subcol = new G4SubtractionSolid("subcol", DCOLSolid, DSLOSolid, 0, G4ThreeVector(pDSLOPos_X,
-												       pDSLOPos_Y,
-												       pDSLOPos_Z) );
+  G4SubtractionSolid* subcol = new G4SubtractionSolid("subcol", DCOLSolid, DSLOSolid, 0, G4ThreeVector(pDSLOPos_X,pDSLOPos_Y,pDSLOPos_Z) );
 
-  G4LogicalVolume* subcolLogical = new G4LogicalVolume ( subcol, lead, "subcolLogical", 0, 0, 0);
-  //  G4LogicalVolume* subcolLogical = new G4LogicalVolume ( subcol, Air, "subcolLogical", 0, 0, 0);
-  subcolLogical ->SetVisAttributes(IronVisAtt);
+  G4LogicalVolume* subcolLogical = new G4LogicalVolume ( subcol, lead, "Collimator", 0, 0, 0);
+  subcolLogical ->SetVisAttributes(LeadVisAtt);
 
-  new G4PVPlacement(0,G4ThreeVector( pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X, 
-				     pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y, 
-				     pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"subcol",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector( pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X,
+				     pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y,
+				     pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"Collimator1",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(-pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X,
 				    pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y,
-				    pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"subcol",world_log,0,0,fCheckOverlaps);
+				    pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"Collimator2",world_log,0,0,fCheckOverlaps);
 
-  // // // // // // // // MAGNETS // // // // // // // //
+
+	//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // Dipole Magnets Physical
+	G4double pDHLX   = 10.00 * cm;  G4double pDHLY   = 40.00 * cm;  G4double pDHLZ   = 76.00 * cm;
+	G4double pD1Pos_X=-16.00 * cm;  G4double pD2Pos_X= 16.00 * cm;  G4double pDPos_Y = -9.00 * cm;  G4double pDPos_Z =422.80 * cm;
+	G4VSolid* DSolid  = new G4Box ( "DBox"  , pDHLX , pDHLY  , pDHLZ );
+	G4LogicalVolume* DMagLogical  = new G4LogicalVolume(DSolid ,siliconsteel, "DMagLogical" ,0,0,0);
+	DMagLogical->SetVisAttributes(DipVisAtt);
+
+	new G4PVPlacement(0,G4ThreeVector(pD1Pos_X,pDPos_Y,pDPos_Z),DMagLogical,"Dipole1",world_log,0,0,0);
+  new G4PVPlacement(0,G4ThreeVector(pD2Pos_X,pDPos_Y,pDPos_Z),DMagLogical,"Dipole2",world_log,0,0,0);
+
+
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // MAGNETS
   G4double pQ1Rin  =  5.08 * cm;  G4double pQ1Rout = 20.00 * cm;  G4double pQ1HL   = 18.29 * cm;  G4double pQ1Pos_Z= 75.19 * cm;
   G4double pQ2Rin  =  5.08 * cm;  G4double pQ2Rout = 20.00 * cm;  G4double pQ2HL   = 22.30 * cm;  G4double pQ2Pos_Z=140.46 * cm;
   G4double pQ3Rin  =  5.08 * cm;  G4double pQ3Rout = 20.00 * cm;  G4double pQ3HL   = 18.37 * cm;  G4double pQ3Pos_Z=209.59 * cm;
   G4double pQ4Rin  =  5.08 * cm;  G4double pQ4Rout = 20.00 * cm;  G4double pQ4HL   = 18.37 * cm;  G4double pQ4Pos_Z=274.59 * cm;
-  G4double pDHLX   = 10.00 * cm;  G4double pDHLY   = 40.00 * cm;  G4double pDHLZ   = 76.00 * cm;
-  G4double pD1Pos_X=-16.00 * cm;  G4double pD2Pos_X= 16.00 * cm;  G4double pDPos_Y = -9.00 * cm;  G4double pDPos_Z =422.80 * cm;
 
   G4VSolid* Q1Solid = new G4Tubs( "Q1Tubs", pQ1Rin, pQ1Rout, pQ1HL, 0.0, 360.0 * deg );
   G4VSolid* Q2Solid = new G4Tubs( "Q2Tubs", pQ2Rin, pQ2Rout, pQ2HL, 0.0, 360.0 * deg );
@@ -416,27 +409,25 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* Q2MagSolid = new G4Tubs( "Q2MagTubs", 0., pQ2Rin, pQ2HL, 0.0, 360.0 * deg );
   G4VSolid* Q3MagSolid = new G4Tubs( "Q3MagTubs", 0., pQ3Rin, pQ3HL, 0.0, 360.0 * deg );
   G4VSolid* Q4MagSolid = new G4Tubs( "Q4MagTubs", 0., pQ4Rin, pQ4HL, 0.0, 360.0 * deg );
-  G4VSolid* DSolid  = new G4Box ( "DBox"  , pDHLX , pDHLY  , pDHLZ );
+
   G4LogicalVolume* Q1Logical = new G4LogicalVolume(Q1Solid,siliconsteel,"Q1Logical",0,0,0);
   G4LogicalVolume* Q2Logical = new G4LogicalVolume(Q2Solid,siliconsteel,"Q2Logical",0,0,0);
   G4LogicalVolume* Q3Logical = new G4LogicalVolume(Q3Solid,siliconsteel,"Q3Logical",0,0,0);
   G4LogicalVolume* Q4Logical = new G4LogicalVolume(Q4Solid,siliconsteel,"Q4Logical",0,0,0);
+
   G4LogicalVolume* Q1MagLogical = new G4LogicalVolume(Q1MagSolid,Vacuum,"Q1MagLogical",0,0,0);
   G4LogicalVolume* Q2MagLogical = new G4LogicalVolume(Q2MagSolid,Vacuum,"Q2MagLogical",0,0,0);
   G4LogicalVolume* Q3MagLogical = new G4LogicalVolume(Q3MagSolid,Vacuum,"Q3MagLogical",0,0,0);
   G4LogicalVolume* Q4MagLogical = new G4LogicalVolume(Q4MagSolid,Vacuum,"Q4MagLogical",0,0,0);
-  G4LogicalVolume* DMagLogical  = new G4LogicalVolume(DSolid ,siliconsteel, "DMagLogical" ,0,0,0);
 
-  /*
-  G4VisAttributes *Q1VisAtt(IronVisAtt);
+  /*G4VisAttributes *Q1VisAtt(SteelVisAtt);
   Q1VisAtt->SetForceWireframe(true);
-  Q1Logical->SetVisAttributes(Q1VisAtt);
-  */
+  Q1Logical->SetVisAttributes(Q1VisAtt);*/
 
-  Q1Logical->SetVisAttributes(IronVisAtt);
-  Q2Logical->SetVisAttributes(IronVisAtt);
-  Q3Logical->SetVisAttributes(IronVisAtt);
-  Q4Logical->SetVisAttributes(IronVisAtt);
+  Q1Logical->SetVisAttributes(SteelVisAtt);
+  Q2Logical->SetVisAttributes(SteelVisAtt);
+  Q3Logical->SetVisAttributes(SteelVisAtt);
+  Q4Logical->SetVisAttributes(SteelVisAtt);
 
   Q1MagLogical->SetVisAttributes(VacVisAtt);
   Q1MagLogical->SetFieldManager(Q1FieldManager,allLocal);
@@ -459,10 +450,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z),Q3MagLogical,"Q3MagPhys",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z),Q4MagLogical,"Q4MagPhys",world_log,0,0,fCheckOverlaps);
 
-  new G4PVPlacement(0,G4ThreeVector(pD1Pos_X,pDPos_Y,pDPos_Z),DMagLogical,"D1Phys",world_log,0,0,0);
-  new G4PVPlacement(0,G4ThreeVector(pD2Pos_X,pDPos_Y,pDPos_Z),DMagLogical,"D2Phys",world_log,0,0,0);
 
-  // // // // // // // // Virtual Boundary // // // // // // // //
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // Planes for Virtual Detectors
   G4VSolid*        VBSolid   = new G4Tubs("VBSolid",0,pQ1Rout, 0.00001 * mm ,0.0,360.0*deg);
   G4LogicalVolume* Q1ENLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q1ENLogical",0,0,0);
   G4LogicalVolume* Q1EXLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q1EXLogical",0,0,0);
@@ -473,11 +463,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4LogicalVolume* Q4ENLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q4ENLogical",0,0,0);
   G4LogicalVolume* Q4EXLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q4EXLogical",0,0,0);
 
-  /*
-  G4VisAttributes *Q1ENVisAtt(VacVisAtt);
+  /*G4VisAttributes *Q1ENVisAtt(VacVisAtt);
   Q1ENVisAtt->SetForceWireframe(true);
-  Q1ENLogical->SetVisAttributes(Q1ENVisAtt);
-  */
+  Q1ENLogical->SetVisAttributes(Q1ENVisAtt);*/
 
   Q1ENLogical->SetVisAttributes(VacVisAtt);
   Q1EXLogical->SetVisAttributes(VacVisAtt);
@@ -523,7 +511,6 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   SDman->AddNewDetector(DPIN  );
   SDman->AddNewDetector(DPOUT );
 
-
   Q1ENLogical->SetSensitiveDetector(Q1ENSD);
   Q1EXLogical->SetSensitiveDetector(Q1EXSD);
   Q2ENLogical->SetSensitiveDetector(Q2ENSD);
@@ -533,25 +520,25 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   Q4ENLogical->SetSensitiveDetector(Q4ENSD);
   Q4EXLogical->SetSensitiveDetector(Q4EXSD);
 
-
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z - pQ1HL ),
-		    Q1ENLogical,"virtualBoundaryPhys_q1en",world_log,0,0,fCheckOverlaps);
+		    Q1ENLogical,"VP.Q1.Entr",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z + pQ1HL ),
-		    Q1EXLogical,"virtualBoundaryPhys_q1ex",world_log,0,0,fCheckOverlaps);
+		    Q1EXLogical,"VP.Q1.Exit",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z - pQ2HL ),
-		    Q2ENLogical,"virtualBoundaryPhys_q2en",world_log,0,0,fCheckOverlaps);
+		    Q2ENLogical,"VP.Q2.Entr",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z + pQ2HL ),
-		    Q2EXLogical,"virtualBoundaryPhys_q2ex",world_log,0,0,fCheckOverlaps);
+		    Q2EXLogical,"VP.Q2.Exit",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z - pQ3HL ),
-		    Q3ENLogical,"virtualBoundaryPhys_q3en",world_log,0,0,fCheckOverlaps);
+		    Q3ENLogical,"VP.Q3.Entr",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z + pQ3HL ),
-		    Q3EXLogical,"virtualBoundaryPhys_q3ex",world_log,0,0,fCheckOverlaps);
+		    Q3EXLogical,"VP.Q3.Exit",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z - pQ4HL ),
-		    Q4ENLogical,"virtualBoundaryPhys_q4en",world_log,0,0,fCheckOverlaps);
+		    Q4ENLogical,"VP.Q4.Entr",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z + pQ4HL ),
-		    Q4EXLogical,"virtualBoundaryPhys_q4ex",world_log,0,0,fCheckOverlaps);
+		    Q4EXLogical,"VP.Q4.Exit",world_log,0,0,fCheckOverlaps);
 
-  // // // // // // // // DIPOLE Virtual Plane // // // // // // // //
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // DIPOLE Virtual Planes
   G4double pVP2HLX    = 6.00 * cm;   G4double pVP2HLY   = 20.00 * cm;  G4double pVP2HLZ   = 0.1   * cm;
   G4double pVP2Pos_X  = 0.00  * cm;  G4double pVP2Pos_Y = 0.00  * cm;  G4double pVP2Pos_Z = (422.8 - 98.5 - 1) * cm;
   G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = 0.00  * cm;  G4double pVP3Pos_Z = (422.8 + 98.5 + 1) * cm;
@@ -563,23 +550,28 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4LogicalVolume* VP3Logical = new G4LogicalVolume(VP3Solid, Vacuum, "VP3Logical", 0,0,0);
   VP2Logical->SetSensitiveDetector( DPIN );
   VP3Logical->SetSensitiveDetector( DPOUT );
+	VP2Logical->SetVisAttributes(VacVisAtt);
+	VP3Logical->SetVisAttributes(VacVisAtt);
 
-  new G4PVPlacement(0,G4ThreeVector(pVP2Pos_X, pVP2Pos_Y, pVP2Pos_Z), VP2Logical, "VP2", world_log, 0,0, fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(pVP3Pos_X, pVP3Pos_Y, pVP3Pos_Z), VP3Logical, "VP3", world_log, 0,0, fCheckOverlaps);
-  
+  new G4PVPlacement(0,G4ThreeVector(pVP2Pos_X, pVP2Pos_Y, pVP2Pos_Z), VP2Logical, "VP.Dipole.Entr", world_log, 0,0, fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(pVP3Pos_X, pVP3Pos_Y, pVP3Pos_Z), VP3Logical, "VP.Dipole.Exit", world_log, 0,0, fCheckOverlaps);
 
-  // // // // // // // // DETECTOR Virtual Plane // // // // // // // //
+
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // DETECTOR Virtual Plane
   G4double pVP1HLX    = 37.00 * cm;  G4double pVP1HLY   = 50.00 * cm;  G4double pVP1HLZ   = 0.1   * cm;
   G4double pVP1Pos_X  = 0.00  * cm;  G4double pVP1Pos_Y = -46.86* cm;  G4double pVP1Pos_Z = 660.0 * cm;
 
   G4VSolid* VP1Solid  = new G4Box( "VP1BOX",  pVP1HLX, pVP1HLY, pVP1HLZ );
-  G4LogicalVolume* VP1Logical = new G4LogicalVolume(VP1Solid, Vacuum, "VP1Logical", 0,0,0);
+  G4LogicalVolume* VP1Logical = new G4LogicalVolume(VP1Solid, Vacuum, "VPDetector", 0,0,0);
   VP1Logical->SetSensitiveDetector( DETVP );
+  VP1Logical->SetVisAttributes(VacVisAtt);
 
-  new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pVP1Pos_Z), VP1Logical, "VP1", world_log, 0,0, fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pVP1Pos_Z), VP1Logical, "VP.Detector.Entr", world_log, 0,0, fCheckOverlaps);
 
-  // // // // // // // // DETECTOR AND BOX // // // // // // // //
 
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // DETECTOR AND BOX
   G4double pMDBXHLX   = 37.00 * cm;  G4double pMDBXHLY   = 47.10 * cm;  G4double pMDBXHLZ   = 61.20 * cm;
   G4double pMDBAHLX   = 18.50 * cm;  G4double pMDBAHLY   = 29.80 * cm;  G4double pMDBAHLZ   = 40.00 * cm;
   G4double pMDBWHLX   = 13.70 * cm;  G4double pMDBWHLY   = 11.50 * cm;  G4double pMDBWHLZ   =  6.45 * cm;
@@ -620,9 +612,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4SubtractionSolid* sub8 = new G4SubtractionSolid("sub8", sub7     , MDETSolid, pRot7, G4ThreeVector(pMDETPos_X, pMDETPos_Y, pMDETPos_Z) );
 
   //  G4LogicalVolume* DETLogical = new G4LogicalVolume(DLGBSolid, aluminum, "DETLogical",0,0,0);
-  G4LogicalVolume* DETLogical = new G4LogicalVolume(DLGBSolid, Vacuum, "DETLogical",0,0,0);
   //  DETLogical->SetVisAttributes(AlumVisAtt);
-  DETLogical ->SetSensitiveDetector(DETSD );
+  G4LogicalVolume* DETLogical = new G4LogicalVolume(DLGBSolid, Vacuum, "DETLogical",0,0,0);
+  DETLogical->SetSensitiveDetector(DETSD);
 
   G4LogicalVolume* sub8Logical = new G4LogicalVolume ( sub8, Vacuum, "sub8Logical", 0, 0, 0);
   //  G4LogicalVolume* sub8Logical = new G4LogicalVolume ( sub8, siliconsteel, "sub8Logical", 0, 0, 0);
@@ -630,7 +622,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   sub8VisAtt->SetForceWireframe(true);
   sub8Logical->SetVisAttributes(sub8VisAtt);
   sub8Logical->SetSensitiveDetector(DETSD2 );
-  
+
   new G4PVPlacement(0,G4ThreeVector(pMDBXPos_X, pMDBXPos_Y, pMDBXPos_Z),sub8Logical,"sub8",world_log,0,0,fCheckOverlaps);
 
   new G4PVPlacement(pRot7,G4ThreeVector(pMDBXPos_X + pMDBAPos_X + pMDETPos_X + pDLGBPos_X,
@@ -649,15 +641,18 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
     C --  Syracuse hodoscope, SPACAL, auxill. artificial plane
     C
-    GPARVOL101 'HOD1'  15  'MDET'    0.    0.  -32.5  0  'BOX '  3   9.2  15.5     0.75   
-    GPARVOL102 'HOD2'   9  'MDET'    0.    0.  -16.0  0  'BOX '  3   9.2  16.5    15.2   
-    GPARVOL103 'HOD3'  15  'MDET'    0.    0.  -33.5  0  'BOX '  3   9.2  17.0     0.1   
+    GPARVOL101 'HOD1'  15  'MDET'    0.    0.  -32.5  0  'BOX '  3   9.2  15.5     0.75
+    GPARVOL102 'HOD2'   9  'MDET'    0.    0.  -16.0  0  'BOX '  3   9.2  16.5    15.2
+    GPARVOL103 'HOD3'  15  'MDET'    0.    0.  -33.5  0  'BOX '  3   9.2  17.0     0.1
   */
 
-  // // // // // // // // Hodoscope // // // // // // // //
-  G4double pHOD1HLX   = 9.2 * cm;   G4double pHOD1HLY   = 15.5 * cm;   G4double pHOD1HLZ   = 0.75 * cm; 
-  G4double pHOD2HLX   = 9.2 * cm;   G4double pHOD2HLY   = 16.5 * cm;   G4double pHOD2HLZ   = 15.2 * cm; 
-  G4double pHOD3HLX   = 9.2 * cm;   G4double pHOD3HLY   = 17.5 * cm;   G4double pHOD3HLZ   = 0.1  * cm; 
+
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // FIXME!!!!! This section of the geometry seems incomplete.
+  // Hodoscope
+  G4double pHOD1HLX   = 9.2 * cm;   G4double pHOD1HLY   = 15.5 * cm;   G4double pHOD1HLZ   = 0.75 * cm;
+  G4double pHOD2HLX   = 9.2 * cm;   G4double pHOD2HLY   = 16.5 * cm;   G4double pHOD2HLZ   = 15.2 * cm;
+  G4double pHOD3HLX   = 9.2 * cm;   G4double pHOD3HLY   = 17.5 * cm;   G4double pHOD3HLZ   = 0.1  * cm;
 
   G4double pHOD1Pos_X = 0.0 * cm;   G4double pHOD1Pos_Y = 0.0  * cm;   G4double pHOD1Pos_Z = -32.5* cm;
   G4double pHOD2Pos_X = 0.0 * cm;   G4double pHOD2Pos_Y = 0.0  * cm;   G4double pHOD2Pos_Z = -16.0* cm;
@@ -670,7 +665,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double offset = 3.5 * cm;
   // G4double offset = 0 * cm;
 
-  G4double pAPP1HLX   = 2.0 * cm;   G4double pAPP1HLY   = 15.5 * cm;    G4double pAPP1HLZ   = 0.75 * cm;  
+  G4double pAPP1HLX   = 2.0 * cm;   G4double pAPP1HLY   = 15.5 * cm;    G4double pAPP1HLZ   = 0.75 * cm;
   G4double pAPP1Pos_X = 4.4 * cm;   G4double pAPP1Pos_Y = 0.0 * cm + offset;    G4double pAPP1Pos_Z = 0.0 * cm;
 
   G4VSolid* APP1LSolid = new G4Box( "APP1LBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
@@ -697,8 +692,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 		    APP1RLogical, "APP1R", world_log, 0,0, fCheckOverlaps);
 
 
-  // // // // // Hodoscope VP // // // // //
-
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // HODOSCOPE Virtual Planes
   G4double pVPHODHLZ = 0.1 * cm;
   G4double pVPHODPos_Z = (0.0 - 0.85) * cm;
 
@@ -706,33 +701,32 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* VPHOD2Solid = new G4Box( "VPHOD2", pAPP1HLX, pAPP1HLY, pVPHODHLZ);
 
   G4LogicalVolume* VPHOD1Logical = new G4LogicalVolume(VPHOD1Solid, Vacuum, "VPHOD1Logical", 0,0,0);
-  G4LogicalVolume* VPHOD2Logical = new G4LogicalVolume(VPHOD2Solid, Vacuum, "VPHOD2Logical", 0,0,0);
-  //  G4LogicalVolume* VPHOD1Logical = new G4LogicalVolume(VPHOD1Solid, scint, "VPHOD1Logical", 0,0,0);
-  //  G4LogicalVolume* VPHOD2Logical = new G4LogicalVolume(VPHOD2Solid, scint, "VPHOD2Logical", 0,0,0);
-
   VPHOD1Logical->SetSensitiveDetector(APPSD1);
+  VPHOD1Logical->SetVisAttributes(VacVisAtt);
+  G4LogicalVolume* VPHOD2Logical = new G4LogicalVolume(VPHOD2Solid, Vacuum, "VPHOD2Logical", 0,0,0);
   VPHOD2Logical->SetSensitiveDetector(APPSD2);
+  VPHOD2Logical->SetVisAttributes(VacVisAtt);
 
   new G4PVPlacement(pRot7, G4ThreeVector(pMDBXPos_X + pMDBAPos_X + pMDETPos_X + pHOD1Pos_X + pAPP1Pos_X,
 				     pMDBXPos_Y + pMDBAPos_Y + pMDETPos_Y + pHOD1Pos_Y + pAPP1Pos_Y,
 				     pMDBXPos_Z + pMDBAPos_Z + pMDETPos_Z + pHOD1Pos_Z + pVPHODPos_Z),
-		    VPHOD1Logical, "VPHODL", world_log, 0,0, fCheckOverlaps);
+		    VPHOD1Logical, "VP.Hodo.Left", world_log, 0,0, fCheckOverlaps);
 
   new G4PVPlacement(pRot7, G4ThreeVector(pMDBXPos_X + pMDBAPos_X + pMDETPos_X + pHOD1Pos_X - pAPP1Pos_X,
 				     pMDBXPos_Y + pMDBAPos_Y + pMDETPos_Y + pHOD1Pos_Y + pAPP1Pos_Y,
 				     pMDBXPos_Z + pMDBAPos_Z + pMDETPos_Z + pHOD1Pos_Z + pVPHODPos_Z),
-		    VPHOD2Logical, "VPHODR", world_log, 0,0, fCheckOverlaps);
+		    VPHOD2Logical, "VP.Hodo.Right", world_log, 0,0, fCheckOverlaps);
 
 
   // // // // // // // // Sheilding // // // // // // // //
-  
+
   /*
-    GPARVOL120 'S1LD'  13  'HALL'    0.  -29.  537.   0  'BOX '  3  30.  25. 14.0   
+    GPARVOL120 'S1LD'  13  'HALL'    0.  -29.  537.   0  'BOX '  3  30.  25. 14.0
     GPARVOL121 'S1H1'  15  'S1LD'   -4.1   9.5   0.   9  'PARA'  6  10.5 14. 1.6 10. 0. 0.
     GPARVOL122 'S1H2'  15  'S1LD'    4.1   9.5   0.   9  'PARA'  6  10.5 14. 1.6 10. 0. 0.
     GPARVOL123 'S2LD'  13  'HALL'    0.   -7.5 610.   0  'BOX '  3  17.   3.5 50.0 !!!***
     GPARVOL124 'S21B'   9  'HALL'    0.  -13.3 620.   0  'BOX '  3  31.   1.9  3.8 !!!***
-    GPARVOL125 'S21H'  15  'S21B'    0.   -0.5   0.   0  'BOX '  3  31.   1.4  3.3   
+    GPARVOL125 'S21H'  15  'S21B'    0.   -0.5   0.   0  'BOX '  3  31.   1.4  3.3
     GPARVOL126 'S3LD'  13  'HALL'    0.   -7.5 723.   0  'BOX '  3  20.   2.0 57.0  !!!***
   */
 
@@ -763,34 +757,29 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* S3LDSolid  = new G4Box ( "S3LDBox"  , pS3LDHLX, pS3LDHLY,  pS3LDHLZ );
 
   G4SubtractionSolid* subSHL1 = new G4SubtractionSolid("subSHL1", S1LDSolid, S1H1Solid, pRot9, G4ThreeVector(pS1H1Pos_X, pS1H1Pos_Y, pS1H1Pos_Z) );
-  G4SubtractionSolid* subSHL2 = new G4SubtractionSolid("subSHL2", subSHL1, S1H2Solid, pRot9, G4ThreeVector(pS1H2Pos_X, pS1H2Pos_Y, pS1H2Pos_Z) ); 
+  G4SubtractionSolid* subSHL2 = new G4SubtractionSolid("subSHL2", subSHL1, S1H2Solid, pRot9, G4ThreeVector(pS1H2Pos_X, pS1H2Pos_Y, pS1H2Pos_Z) );
   G4SubtractionSolid* subSHL3 = new G4SubtractionSolid("subSHL3", S21BSolid, S21HSolid, 0, G4ThreeVector(pS21HPos_X, pS21HPos_Y, pS21HPos_Z) );
 
-  G4LogicalVolume* SHL1Logical = new G4LogicalVolume(subSHL2, lead, "SHL1Logical", 0,0,0);
-  G4LogicalVolume* SHL2Logical = new G4LogicalVolume(S2LDSolid, lead, "SHL2Logical", 0,0,0);
-  G4LogicalVolume* SHL3Logical = new G4LogicalVolume(subSHL3, aluminum, "SHL3Logical", 0,0,0);
-  G4LogicalVolume* SHL4Logical = new G4LogicalVolume(S3LDSolid, lead, "SHL3Logical", 0,0,0);
-
+  // FIXME!!!!!  Something here may require attention. Are materials correct? Does not match VisAttributes
+  G4LogicalVolume* SHL1Logical = new G4LogicalVolume(subSHL2, lead, "Shield1", 0,0,0);
+  G4LogicalVolume* SHL2Logical = new G4LogicalVolume(S2LDSolid, lead, "Shield2", 0,0,0);
+  G4LogicalVolume* SHL3Logical = new G4LogicalVolume(subSHL3, aluminum, "Shield3", 0,0,0);
+  G4LogicalVolume* SHL4Logical = new G4LogicalVolume(S3LDSolid, lead, "Shield4", 0,0,0);
+  // FIXME!!!!!  Something here may require attention. Are VisAttributes correct? Does not match materials.
   SHL1Logical->SetVisAttributes(LeadVisAtt);
   SHL2Logical->SetVisAttributes(AlumVisAtt);
   SHL3Logical->SetVisAttributes(LeadVisAtt);
   SHL4Logical->SetVisAttributes(LeadVisAtt);
 
-  new G4PVPlacement(0, G4ThreeVector(pS1LDPos_X, pS1LDPos_Y, pS1LDPos_Z), SHL1Logical, "SHL1", world_log, 0,0,fCheckOverlaps);
-  new G4PVPlacement(0, G4ThreeVector(pS2LDPos_X, pS2LDPos_Y, pS2LDPos_Z), SHL2Logical, "SHL2", world_log, 0,0,fCheckOverlaps);
-  new G4PVPlacement(0, G4ThreeVector(pS21BPos_X, pS21BPos_Y, pS21BPos_Z), SHL3Logical, "SHL3", world_log, 0,0,fCheckOverlaps);
-  new G4PVPlacement(0, G4ThreeVector(pS3LDPos_X, pS3LDPos_Y, pS3LDPos_Z), SHL4Logical, "SHL4", world_log, 0,0,fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(pS1LDPos_X, pS1LDPos_Y, pS1LDPos_Z), SHL1Logical, "Shield1", world_log, 0,0,fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(pS2LDPos_X, pS2LDPos_Y, pS2LDPos_Z), SHL2Logical, "Shield2", world_log, 0,0,fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(pS21BPos_X, pS21BPos_Y, pS21BPos_Z), SHL3Logical, "Shield3", world_log, 0,0,fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(pS3LDPos_X, pS3LDPos_Y, pS3LDPos_Z), SHL4Logical, "Shield4", world_log, 0,0,fCheckOverlaps);
 
-  
-  
+
+
   return world_phys;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-    
-    
-    
-    
-
-
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  //
