@@ -82,13 +82,6 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
   fDefaultEvent->Reset();
 
-  //Print check for macro values
-
-  G4cout << "           Levchuk Effect: " << fLevchukFlag << G4endl;
-  G4cout << "      Target Polarization: " << fTargPol << G4endl;
-  G4cout << "     Radiaton Corrections: " << fRadCorrFlag << G4endl;
-  G4cout << "  Remoll Multiple Scatter: " << fRemollMSFlag << G4endl;
-
   double xpos, ypos, zpos, thetaPos, phiPos;
   double pX, pY, pZ, eff_sigma, Azz;
 
