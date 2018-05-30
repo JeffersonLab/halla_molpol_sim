@@ -18,6 +18,7 @@ MolPolEMFieldMessenger::MolPolEMFieldMessenger(MolPolEMFieldSetup* fieldSetup)
   fMagSourceCmd = new G4UIcmdWithAnInteger("/field/MagSourceMode", this);
   fMagSourceCmd->SetGuidance("Set source mode for mag field setting");
   fMagSourceCmd->SetParameterName("magsource", false);
+  fMagSourceCmd->SetDefaultValue(1);
 
   fQ1ACmd = new G4UIcmdWithADouble("/field/setQ1A", this);
   fQ1ACmd->SetGuidance("Set Q1 current");
@@ -137,7 +138,8 @@ void MolPolEMFieldMessenger::SetNewValue( G4UIcommand* cmd, G4String newValue)
     G4double x = fQ6TCmd->GetNewDoubleValue(newValue);
     fEMfieldSetup->fQ6T = x;
   }else if( cmd == fUpdateCmd ){
-    //fEMfieldSetup->UpdateConfiguration();
+    G4cout << "Updating magnetic field configuration... " << G4endl;
+    fEMfieldSetup->UpdateConfiguration();
   }else{
     G4cout<<__PRETTY_FUNCTION__<<" at line "<<__LINE__<<G4endl;
     G4cerr <<"Don't know this command :"<<cmd<<G4endl;
