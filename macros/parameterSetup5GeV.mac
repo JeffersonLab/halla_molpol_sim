@@ -1,0 +1,42 @@
+/run/initialize
+
+/MolPol/gen               moller
+/MolPol/filename          MolPol_REMOLL.root
+/MolPol/calculateLevchuk  true
+/MolPol/targetPolPct      0.075
+/MolPol/radCorrections    true
+/MolPol/remollMS          true
+/MolPol/seed              50
+
+/MolPol/fz                6.9 cm
+
+/MolPol/thcommin          70 deg
+/MolPol/thcommax          110 deg
+/MolPol/phimin            -25 deg
+/MolPol/phimax            25  deg
+
+################################################
+# FIELD VALUES FOR 5.0 GeV BEAM                #
+################################################
+/MolPol/beamE             5.0 GeV
+/field/MagSourceMode      1
+/field/setQ1T             -0.171
+/field/setQ2T             0.131
+/field/setQ3T             0.096
+/field/setQ4T             0.206
+/field/setQ5T             0.700
+/field/setQ6T             0.0
+
+################################################
+# FIELD VALUES FOR 2.2 GeV BEAM fr. Bill Henry #
+################################################
+#/MolPol/beamE             2.2 GeV
+#/field/MagSourceMode      1
+#/field/setQ1T             0.03375
+#/field/setQ2T             0.15750
+#/field/setQ3T             0.0
+#/field/setQ4T             0.09690
+#/field/setQ5T             0.3
+#/field/setQ6T             3.
+
+/field/update
