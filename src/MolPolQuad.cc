@@ -44,10 +44,8 @@ MolPolQuad::MolPolQuad(G4double pGradient, G4ThreeVector pOrigin, G4RotationMatr
 
 /////////////////////////////////////////////////////////////////////////
 
-void MolPolQuad::UpdateQuad(G4double pGradient,
-			    G4ThreeVector pOrigin,
-			    G4RotationMatrix* pMatrix,
-			    G4double pRadius){
+void MolPolQuad::UpdateQuad(G4double pGradient, G4ThreeVector pOrigin, G4RotationMatrix* pMatrix, G4double pRadius)
+{
   fGradient    = pGradient ;
   fOrigin      = pOrigin ;
   fpMatrix     = pMatrix ;
@@ -63,8 +61,7 @@ MolPolQuad::~MolPolQuad()
 //  Allow displaced origin and rotation
 //  Extensions by Björn Riese (GSI)
 
-void MolPolQuad::GetFieldValue( const G4double y[4],
-                                G4double B[3]  ) const
+void MolPolQuad::GetFieldValue( const G4double y[4], G4double B[3]  ) const
 {
 
   B[0] = 0;
