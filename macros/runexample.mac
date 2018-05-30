@@ -3,17 +3,12 @@
 /MolPol/gen               moller
 /MolPol/filename          MolPol_REMOLL.root
 /MolPol/calculateLevchuk  true
-/MolPol/targetPolPct      0.1428
+/MolPol/targetPolPct      0.075
 /MolPol/radCorrections    true
 /MolPol/remollMS          true
 /MolPol/seed              50
 
 /MolPol/fz                6.9 cm
-
-#/MolPol/thcommin         89.99 deg
-#/MolPol/thcommax         90.0 deg
-#/MolPol/phimin           -0.001 deg
-#/MolPol/phimax           0.001  deg
 
 /MolPol/thcommin          70 deg
 /MolPol/thcommax          110 deg
@@ -21,11 +16,6 @@
 /MolPol/phimax            25  deg
 
 /field/MagSourceMode      1
-/field/setQ1A             0 
-/field/setQ2A             0
-/field/setQ3A             0
-/field/setQ4A             0
-/field/setQ5A             0
 
 /field/setQ1T             -0.171
 /field/setQ2T             0.131
@@ -43,4 +33,3 @@
 /gun/particle             e-
 
 /run/beamOn               50000
-
