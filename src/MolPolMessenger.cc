@@ -215,52 +215,6 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double x = fphiMaxCmd->GetNewDoubleValue(newValue);
     fprigen->fphiMax = x;
   }
-  /*
-  if( cmd == fMagSourceCmd ){
-    G4double x = fMagSourceCmd->GetNewIntValue(newValue);
-    fFieldSet->fMagSourceMode = x;
-  }
-  if( cmd == fQ1ACmd ){
-    G4double x = fQ1ACmd->GetNewDoubleValue(newValue);
-    fFieldSet->fQ1A = x;
-  }
-  if( cmd == fQ2ACmd ){
-    G4double x = fQ2ACmd->GetNewDoubleValue(newValue);
-    fFieldSet->fQ2A = x;
-  }
-  if( cmd == fQ3ACmd ){
-    G4double x = fQ3ACmd->GetNewDoubleValue(newValue);
-    fFieldSet->fQ3A = x;
-  }
-  if( cmd == fQ4ACmd ){
-    G4double x = fQ4ACmd->GetNewDoubleValue(newValue);
-    fFieldSet->fQ4A = x;
-  }
-  if( cmd == fQ5ACmd ){
-    G4double x = fQ5ACmd->GetNewDoubleValue(newValue);
-    fFieldSet->fQ5A = x;
-  }
-  if( cmd == fQ1ACmd ){
-    G4double x = fQ1ACmd->GetNewDoubleValue(newValue);
-    fFieldSet->fQ1T = x;
-  }
-  if( cmd == fQ2ACmd ){
-    G4double x = fQ2ACmd->GetNewDoubleValue(newValue);
-    fFieldSet->fQ2T = x;
-  }
-  if( cmd == fQ3ACmd ){
-    G4double x = fQ3ACmd->GetNewDoubleValue(newValue);
-    fFieldSet->fQ3T = x;
-  }
-  if( cmd == fQ4ACmd ){
-    G4double x = fQ4ACmd->GetNewDoubleValue(newValue);
-    fFieldSet->fQ4T = x;
-  }
-  if( cmd == fQ5ACmd ){
-    G4double x = fQ5ACmd->GetNewDoubleValue(newValue);
-    fFieldSet->fQ5T = x;
-  }
-  */
   if( cmd == fZCmd ){
     G4double x = fZCmd->GetNewDoubleValue(newValue);
     fprigen->fZ = x;
