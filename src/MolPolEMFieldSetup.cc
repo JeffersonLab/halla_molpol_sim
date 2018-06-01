@@ -99,14 +99,12 @@ void MolPolEMFieldSetup::InitialseAll()
       KAPPA3 = CalA2T(fQ3A, 3) / BORERADIUS;
       KAPPA4 = CalA2T(fQ4A, 4) / BORERADIUS;
       DIPOLE = CalA2T(fQ5A, 5);
-      G4cout << "In mag source mode 0" << G4endl;
   } else if( fMagSourceMode == 1){
       KAPPA1 = fQ1T * tesla / BORERADIUS;
       KAPPA2 = fQ2T * tesla / BORERADIUS;
       KAPPA3 = fQ3T * tesla / BORERADIUS;
       KAPPA4 = fQ4T * tesla / BORERADIUS;
       DIPOLE = fQ5T * tesla;
-      G4cout << "In mag source mode 1" << G4endl;
   }
 
   SOLENOID = fQ6T * tesla;
