@@ -50,7 +50,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 	//// Define Visual Attributes
 	G4double alphaVacuum = 0.15;
 	G4double alphaMatStd = 0.50;
-	G4VisAttributes* IronVisAtt = new G4VisAttributes( G4Colour( 10./255., 10./255., 10./255.,alphaMatStd) );
+  G4double alphaTarget = 0.85;
+	G4VisAttributes* IronVisAtt = new G4VisAttributes( G4Colour( 10./255., 10./255.,10./255.,alphaTarget) );
 	G4VisAttributes* LeadVisAtt = new G4VisAttributes( G4Colour(149./255.,149./255.,100./255.,alphaMatStd) );
 	G4VisAttributes* SteelVisAtt= new G4VisAttributes( G4Colour(  0./255., 80./255.,225./255.,alphaMatStd) );
 	G4VisAttributes* AlumVisAtt = new G4VisAttributes( G4Colour(  0./255.,237./255.,  0./255.,alphaMatStd) );
@@ -520,22 +521,22 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   Q4ENLogical->SetSensitiveDetector(Q4ENSD);
   Q4EXLogical->SetSensitiveDetector(Q4EXSD);
 
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z - pQ1HL ),
-		    Q1ENLogical,"VP.Q1.Entr",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z + pQ1HL ),
-		    Q1EXLogical,"VP.Q1.Exit",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z - pQ2HL ),
-		    Q2ENLogical,"VP.Q2.Entr",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z + pQ2HL ),
-		    Q2EXLogical,"VP.Q2.Exit",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z - pQ3HL ),
-		    Q3ENLogical,"VP.Q3.Entr",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z + pQ3HL ),
-		    Q3EXLogical,"VP.Q3.Exit",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z - pQ4HL ),
-		    Q4ENLogical,"VP.Q4.Entr",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z + pQ4HL ),
-		    Q4EXLogical,"VP.Q4.Exit",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z - pQ1HL ), Q1ENLogical,"VP.Q1.Entr",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z + pQ1HL ), Q1EXLogical,"VP.Q1.Exit",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z - pQ2HL ), Q2ENLogical,"VP.Q2.Entr",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z + pQ2HL ), Q2EXLogical,"VP.Q2.Exit",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z - pQ3HL ), Q3ENLogical,"VP.Q3.Entr",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z + pQ3HL ), Q3EXLogical,"VP.Q3.Exit",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z - pQ4HL ), Q4ENLogical,"VP.Q4.Entr",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z + pQ4HL ), Q4EXLogical,"VP.Q4.Exit",world_log,0,0,fCheckOverlaps);
+
+  // Virtual Plane immediately after target :: these six lines can safely be removed when no longer needed. -Eric King
+  G4LogicalVolume* TargVPLogical = new G4LogicalVolume(VBSolid, Vacuum, "TargVPLogical",0,0,0);
+  TargVPLogical->SetVisAttributes(VacVisAtt);
+  MolPolDetector* TARGVP = new MolPolDetector("targ",16);
+  SDman->AddNewDetector(TARGVP);
+  TargVPLogical->SetSensitiveDetector(TARGVP);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pMTATHLZ + 0.1 * mm ), TargVPLogical,"VP.Targ.Exit",Q6MagLogical,0,0,fCheckOverlaps);
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // DIPOLE Virtual Planes
