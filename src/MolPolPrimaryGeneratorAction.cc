@@ -164,10 +164,10 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //Levchuck effect
       if(fLevchukFlag) LevchukEffect();
 
-      G4double pBeam = beamE - electron_mass_c2;
+      G4double pBeam = sqrt(beamE * beamE - electron_mass_c2 * electron_mass_c2);
 
       //Internal initial state radiation
-      G4double s0 = 2 * electron_mass_c2 * pBeam * fLEcorFac;
+      G4double s0 = ( 2 * electron_mass_c2 * pBeam) * fLEcorFac;
       //~~The correct scale for the bremsstrahlung is the minimum of T and U
       G4double TUmin = 0.5 * s0 * ( 1 - fabs(cos(thcom)) );
       //~~The constant HBETA is 1/2 of the bremsstrahlung constant beta
@@ -187,12 +187,14 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         //~~correct distribution (U1,U2 are MUCH more important that X1,X2)
         do{
           G4double rand = G4UniformRand();
-          if( rand < rMin ) u1 = uMin;
-          else u1 = pow(rand, 1/hBeta);
-          rand = G4UniformRand();
-          if( rand < rMin ) u2 = uMin;
-          else u2 = pow(rand, 1/hBeta);
+          //if( rand < rMin ) u1 = uMin;
+          //else u1 = pow(rand, 1/hBeta);
+          //rand = G4UniformRand();
+          //if( rand < rMin ) u2 = uMin;
+          //else u2 = pow(rand, 1/hBeta);
           //~~Now convert them to X1,X2, and S
+          //u1 = 0.99;
+          //u2 = 0.;
           x1 = 1 - u1;
           x2 = 1 - u2;
           s = s0 * x1 * x2;
@@ -212,11 +214,13 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double x3(1), x4(1);
       if( fRadCorrFlag ){
         G4double rand = G4UniformRand();
-        if( rand < rMin ) u3 = uMin;
-        else u3 = pow(rand, 1/hBeta);
-        rand = G4UniformRand();
-        if( rand < rMin ) u4 = uMin;
-        else u4 = pow(rand, 1/hBeta);
+        //if( rand < rMin ) u3 = uMin;
+        //else u3 = pow(rand, 1/hBeta);
+        //rand = G4UniformRand();
+        //if( rand < rMin ) u4 = uMin;
+        //else u4 = pow(rand, 1/hBeta);
+        u3 = 0.5;
+        u4 = 0.5;
         x3 = 1 - u3;
         x4 = 1 - u4;
         p1 *= x3;
@@ -226,8 +230,6 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //CALCULATE THE M0LLER CROSS SECTION
       G4double cos2t = pow(cos(thcom),2);
       G4double sin2t = 1 - cos2t;
-
-      //
       G4double sigma = pow(fine_structure_const,2) / s * pow(hbarc,2) *
 	      pow(3 + cos2t,2)/pow(sin2t,2) / (2 * electron_mass_c2 * beamE);
 
@@ -247,7 +249,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         strFct = 1.;
       }
 
-      G4double dPhaseSpace = 1. * (cos(fthetaMax) - cos(fthetaMin));
+      G4double dPhaseSpace = 1. * fabs(cos(fthetaMax) - cos(fthetaMin));
       G4double zLum = msZ[0] * ironDensity * (zpos + fTargLen/2) * Avogadro / msA[0];
       G4double weight = 1. * zLum * dPhaseSpace * sigma * strFct;
       fDefaultEvent->fUnpolWght = weight;
