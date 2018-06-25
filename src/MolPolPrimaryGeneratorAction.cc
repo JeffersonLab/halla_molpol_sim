@@ -154,7 +154,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
           ref = value/env;
         } while (sample > ref);
         beamE = fBeamE - eloss;
-        assert( fSampE > electron_mass_c2 );
+        assert( beamE > electron_mass_c2 );
       } else {
         beamE = fBeamE;
       }
