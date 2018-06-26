@@ -32,4 +32,6 @@
 
 /gun/particle             e-
 
+/field/update
+
 /run/beamOn               50000
