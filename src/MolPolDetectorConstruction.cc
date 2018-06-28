@@ -384,8 +384,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // Flange in front of collimator
-  G4double pDUPFLRin = 0.5 * 10.16 * cm;  G4double pDUPFLRout = 0.5 * 17.145 * cm;  G4double pDUPFLHLZ = 2.1336 * cm;
+  // Upstream Flange attached to dipole box
+  G4double pDUPFLRin = 0.5 * 10.16 * cm;  G4double pDUPFLRout = 0.5 * 17.145 * cm;  G4double pDUPFLHLZ = 2.1336 * cm / 2.;
   // Scale factor used temporarily to get to eye up to actual photos.  Measurements will be needed.
   G4double scale = 1.; // 1.265 looks ideal at the moment.
   G4VSolid * DUpstreamFlange = new G4Tubs( "DUpstreamFlange", pDUPFLRin * scale , pDUPFLRout * scale , pDUPFLHLZ  , 0.0, 360.0 * deg );
