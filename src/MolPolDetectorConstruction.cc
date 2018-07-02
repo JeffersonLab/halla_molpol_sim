@@ -385,10 +385,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Upstream Flange attached to dipole box
-  G4double pDUPFLRin = 0.5 * 10.16 * cm;  G4double pDUPFLRout = 0.5 * 17.145 * cm;  G4double pDUPFLHLZ = 2.1336 * cm / 2.;
-  // Scale factor used temporarily to get to eye up to actual photos.  Measurements will be needed.
-  G4double scale = 1.; // 1.265 looks ideal at the moment.
-  G4VSolid * DUpstreamFlange = new G4Tubs( "DUpstreamFlange", pDUPFLRin * scale , pDUPFLRout * scale , pDUPFLHLZ  , 0.0, 360.0 * deg );
+  G4double pDUPFLRin = 0.5 * 10.16 * cm;  G4double pDUPFLRout = 0.5 * 17.145 * cm;  G4double pDUPFLHLZ = 0.5 * 2.1336 * cm;
+  G4VSolid * DUpstreamFlange = new G4Tubs( "DUpstreamFlange", pDUPFLRin , pDUPFLRout , pDUPFLHLZ  , 0.0, 360.0 * deg );
   G4LogicalVolume * DUpstreamFlangeLogical = new G4LogicalVolume(DUpstreamFlange,siliconsteel,"DUpstreamFlangeLogical",0,0,0);
   DUpstreamFlangeLogical->SetVisAttributes(LeadVisAtt);
   new G4PVPlacement(0,G4ThreeVector( 0 , 0 , 422.8 * cm - 98.0 * cm - pDUPFLHLZ ),DUpstreamFlangeLogical,"DipoleUpstreamFlange",world_log,0,0,0);
