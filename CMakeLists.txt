@@ -64,6 +64,10 @@ add_executable(MolPol MolPol.cc ${sources} ${headers})
 target_link_libraries(MolPol ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 #target_link_libraries(MolPolroot ${ROOT_LIBRARIES})
 
+#added by eric must be removed.
+add_executable(MolPolProbeBField MolPolProbeBField.cc ${sources} ${headers})
+target_link_libraries(MolPolProbeBField ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
+
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
 # build MolPol. This is so that we can run the executable directly because it
@@ -84,7 +88,7 @@ set(MOLPOL_SCRIPTS
     macros/batchrun.mac
     macros/runscript.sh
     macros/handler.sh
-	macros/merger.sh
+	  macros/merger.sh
 )
 
 foreach(_script ${MOLPOL_SCRIPTS})
@@ -105,5 +109,3 @@ endforeach()
 # Install the executable to 'bin' directory under CMAKE_INSTALL_PREFIX
 #
 install(TARGETS MolPol DESTINATION bin)
-
-
