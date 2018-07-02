@@ -74,6 +74,8 @@ public:
 
   G4int fMagSourceMode;
 
+  G4RotationMatrix* NOROT = new G4RotationMatrix;
+
   //external input current values
   G4double                    fQ1A;
   G4double                    fQ2A;
@@ -89,6 +91,26 @@ public:
   G4double                    fQ4T;
   G4double                    fQ5T;
   G4double                    fQ6T;
+
+  G4double                    KAPPA1;
+  G4double                    KAPPA2;
+  G4double                    KAPPA3;
+  G4double                    KAPPA4;
+  G4double                    DIPOLE;
+  G4double                    SOLENOID;
+
+  G4double                    ORIGINQ1;
+  G4double                    ORIGINQ2;
+  G4double                    ORIGINQ3;
+  G4double                    ORIGINQ4;
+  G4double                    ORIGIND;
+  G4double                    ORIGINQ6;
+
+  G4double BORERADIUS = 5.08 * cm;
+
+  std::vector<G4String> fileNames;
+  std::vector<G4double> fileScales;
+  std::vector<G4double> fileOffsets;
 
 private:
   MolPolEMField*              fEMfield;
