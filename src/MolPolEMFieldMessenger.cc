@@ -5,6 +5,9 @@
 #include "G4UIcmdWithADouble.hh"
 #include "G4UIcmdWithADoubleAndUnit.hh"
 #include "G4UIcmdWithoutParameter.hh"
+#include "G4UIcmdWithAString.hh"
+
+#include <stdio.h>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 MolPolEMFieldMessenger::MolPolEMFieldMessenger(MolPolEMFieldSetup* fieldSetup)
@@ -68,9 +71,35 @@ MolPolEMFieldMessenger::MolPolEMFieldMessenger(MolPolEMFieldSetup* fieldSetup)
   fQ6TCmd->SetGuidance("Set Holding field in Tesla");
   fQ6TCmd->SetParameterName("Q6T", false);
 
+  // This can probably be done with just a single command since the global field
+  // doesn't actually care about this...
+  fToscaQ1Cmd = new G4UIcmdWithAString("/field/setToscaQ1",this);
+  fToscaQ1Cmd->SetGuidance("Q1 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ1Cmd->SetParameterName("ToscaQ1",false);
+
+  fToscaQ2Cmd = new G4UIcmdWithAString("/field/setToscaQ2",this);
+  fToscaQ2Cmd->SetGuidance("Q2 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ2Cmd->SetParameterName("ToscaQ2",false);
+
+  fToscaQ3Cmd = new G4UIcmdWithAString("/field/setToscaQ3",this);
+  fToscaQ3Cmd->SetGuidance("Q3 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ3Cmd->SetParameterName("ToscaQ3",false);
+
+  fToscaQ4Cmd = new G4UIcmdWithAString("/field/setToscaQ4",this);
+  fToscaQ4Cmd->SetGuidance("Q4 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ4Cmd->SetParameterName("ToscaQ4",false);
+
+  fToscaQ5Cmd = new G4UIcmdWithAString("/field/setToscaQ5",this);
+  fToscaQ5Cmd->SetGuidance("Q5 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ5Cmd->SetParameterName("ToscaQ5",false);
+
+  fToscaQ6Cmd = new G4UIcmdWithAString("/field/setToscaQ6",this);
+  fToscaQ6Cmd->SetGuidance("Q6 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ6Cmd->SetParameterName("ToscaQ6",false);
+
+
   fUpdateCmd = new G4UIcmdWithoutParameter("/field/update",this);
   fUpdateCmd->SetGuidance("This command MUST be applied after setting field values ");
-
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -90,7 +119,12 @@ MolPolEMFieldMessenger::~MolPolEMFieldMessenger()
   delete fQ3TCmd;
   delete fQ4TCmd;
   delete fQ5TCmd;
-
+  delete fToscaQ1Cmd;
+  delete fToscaQ2Cmd;
+  delete fToscaQ3Cmd;
+  delete fToscaQ4Cmd;
+  delete fToscaQ5Cmd;
+  delete fToscaQ6Cmd;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -137,6 +171,98 @@ void MolPolEMFieldMessenger::SetNewValue( G4UIcommand* cmd, G4String newValue)
   }else if( cmd == fQ6TCmd ){
     G4double x = fQ6TCmd->GetNewDoubleValue(newValue);
     fEMfieldSetup->fQ6T = x;
+  }else if( cmd == fToscaQ1Cmd ){
+    //FIXME: This should just be moved to a function to which the newValue string
+    //is passed.
+    G4String fname;
+    G4double scale;
+    G4double offset;
+    if(std::istringstream(newValue) >> fname >> scale >> offset ){
+      G4cout << "TOSCA File Q1 name: " << fname << G4endl
+             << "Scale: " << scale << G4endl
+             << "Offset: " << offset << G4endl;
+    } else {
+      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
+      exit(1);
+    }
+    fEMfieldSetup->fileNames.push_back(fname);
+    fEMfieldSetup->fileScales.push_back(scale);
+    fEMfieldSetup->fileOffsets.push_back(offset * cm);
+  }else if( cmd == fToscaQ2Cmd ){
+    G4String fname;
+    G4double scale;
+    G4double offset;
+    if(std::istringstream(newValue) >> fname >> scale >> offset ){
+      G4cout << "TOSCA File Q2 name: " << fname << G4endl
+             << "Scale: " << scale << G4endl
+             << "Offset: " << offset << G4endl;
+    } else {
+      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
+      exit(1);
+    }
+    fEMfieldSetup->fileNames.push_back(fname);
+    fEMfieldSetup->fileScales.push_back(scale);
+    fEMfieldSetup->fileOffsets.push_back(offset * cm);
+  }else if( cmd == fToscaQ3Cmd ){
+    G4String fname;
+    G4double scale;
+    G4double offset;
+    if(std::istringstream(newValue) >> fname >> scale >> offset ){
+      G4cout << "TOSCA File Q3 name: " << fname << G4endl
+             << "Scale: " << scale << G4endl
+             << "Offset: " << offset << G4endl;
+    } else {
+      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
+      exit(1);
+    }
+    fEMfieldSetup->fileNames.push_back(fname);
+    fEMfieldSetup->fileScales.push_back(scale);
+    fEMfieldSetup->fileOffsets.push_back(offset * cm);
+  }else if( cmd == fToscaQ4Cmd ){
+    G4String fname;
+    G4double scale;
+    G4double offset;
+    if(std::istringstream(newValue) >> fname >> scale >> offset ){
+      G4cout << "TOSCA File Q4 name: " << fname << G4endl
+             << "Scale: " << scale << G4endl
+             << "Offset: " << offset << G4endl;
+    } else {
+      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
+      exit(1);
+    }
+    fEMfieldSetup->fileNames.push_back(fname);
+    fEMfieldSetup->fileScales.push_back(scale);
+    fEMfieldSetup->fileOffsets.push_back(offset * cm);
+  }else if( cmd == fToscaQ5Cmd ){
+    G4String fname;
+    G4double scale;
+    G4double offset;
+    if(std::istringstream(newValue) >> fname >> scale >> offset ){
+      G4cout << "TOSCA File Q5 name: " << fname << G4endl
+             << "Scale: " << scale << G4endl
+             << "Offset: " << offset << G4endl;
+    } else {
+      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
+      exit(1);
+    }
+    fEMfieldSetup->fileNames.push_back(fname);
+    fEMfieldSetup->fileScales.push_back(scale);
+    fEMfieldSetup->fileOffsets.push_back(offset * cm);
+  }else if( cmd == fToscaQ6Cmd ){
+    G4String fname;
+    G4double scale;
+    G4double offset;
+    if(std::istringstream(newValue) >> fname >> scale >> offset ){
+      G4cout << "TOSCA File Q6 name: " << fname << G4endl
+             << "Scale: " << scale << G4endl
+             << "Offset: " << offset << G4endl;
+    } else {
+      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
+      exit(1);
+    }
+    fEMfieldSetup->fileNames.push_back(fname);
+    fEMfieldSetup->fileScales.push_back(scale);
+    fEMfieldSetup->fileOffsets.push_back(offset * cm);
   }else if( cmd == fUpdateCmd ){
     G4cout << "Updating magnetic field configuration... " << G4endl;
     fEMfieldSetup->UpdateConfiguration();
