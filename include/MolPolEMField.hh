@@ -11,13 +11,15 @@
 #include "G4ThreeVector.hh"
 #include "G4ElectroMagneticField.hh"
 #include "G4SystemOfUnits.hh"
+#include "MolPolTOSCAField.hh"
 
 class MolPolEMField : public G4ElectroMagneticField
 {
 public:
 
-	MolPolEMField() ;                
-	~MolPolEMField() ;  
+	MolPolEMField() ;
+	MolPolEMField( std::vector<G4String> files , std::vector<G4double> scales , std::vector<G4double> beamlineOffsets);
+	~MolPolEMField() ;
 
 	inline void GetFieldValue(const G4double Point[4], G4double *Bfield ) const;
 	//  Point[4] x,y,z,time
@@ -41,10 +43,19 @@ public:
 	inline void SetBField3V(G4ThreeVector v) { BField3V = v; bUseUniformBField=true;}
 	inline G4ThreeVector GetBField3V() const { return BField3V; }
 
+	inline void clearToscaFields(){
+		fFields.clear();
+	}
+
 private:
+
+	std::vector<MolPolTOSCAField*> fFields;
+
+	void AddNewField(G4String& name,G4double scale,G4double zOffset);
 
 	bool bUseUniformEField;
 	bool bUseUniformBField;
+	bool bUseBFieldMaps;
 
 	G4double ErDC;
 	G4double ErInner;
