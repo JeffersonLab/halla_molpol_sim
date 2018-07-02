@@ -384,6 +384,17 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // Upstream Flange attached to dipole box
+  G4double pDUPFLRin = 0.5 * 10.16 * cm;  G4double pDUPFLRout = 0.5 * 17.145 * cm;  G4double pDUPFLHLZ = 2.1336 * cm / 2.;
+  // Scale factor used temporarily to get to eye up to actual photos.  Measurements will be needed.
+  G4double scale = 1.; // 1.265 looks ideal at the moment.
+  G4VSolid * DUpstreamFlange = new G4Tubs( "DUpstreamFlange", pDUPFLRin * scale , pDUPFLRout * scale , pDUPFLHLZ  , 0.0, 360.0 * deg );
+  G4LogicalVolume * DUpstreamFlangeLogical = new G4LogicalVolume(DUpstreamFlange,siliconsteel,"DUpstreamFlangeLogical",0,0,0);
+  DUpstreamFlangeLogical->SetVisAttributes(LeadVisAtt);
+  new G4PVPlacement(0,G4ThreeVector( 0 , 0 , 422.8 * cm - 98.0 * cm - pDUPFLHLZ ),DUpstreamFlangeLogical,"DipoleUpstreamFlange",world_log,0,0,0);
+
+
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Dipole Magnets Physical
   G4double pDHLX   = 10.00 * cm;  G4double pDHLY   = 40.00 * cm;  G4double pDHLZ   = 76.00 * cm;
   G4double pD1Pos_X=-16.00 * cm;  G4double pD2Pos_X= 16.00 * cm;  G4double pDPos_Y = -9.00 * cm;  G4double pDPos_Z =422.80 * cm;
@@ -538,12 +549,13 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   TargVPLogical->SetSensitiveDetector(TARGVP);
   new G4PVPlacement(0,G4ThreeVector(0,0,pMTATHLZ + 0.1 * mm ), TargVPLogical,"VP.Targ.Exit",Q6MagLogical,0,0,fCheckOverlaps);
 
+
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // DIPOLE Virtual Planes
   G4double pVP2HLX    = 6.00 * cm;   G4double pVP2HLY   = 20.00 * cm;  G4double pVP2HLZ   = 0.1   * cm;
-  //Note: Vertical positions adjusted by 9*cm.
-  G4double pVP2Pos_X  = 0.00  * cm;  G4double pVP2Pos_Y = -9.00  * cm;  G4double pVP2Pos_Z = (422.8 - 98.5 - 1) * cm;
-  G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = -9.00  * cm;  G4double pVP3Pos_Z = (422.8 + 98.5 + 1) * cm;
+  //Note: Vertical positions adjusted by 9*cm. Zoffset from dipole changed from 1*cm to 2*cm
+  G4double pVP2Pos_X  = 0.00  * cm;  G4double pVP2Pos_Y = -9.00  * cm;  G4double pVP2Pos_Z = (422.8 - 98.5 - 2) * cm;
+  G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = -9.00  * cm;  G4double pVP3Pos_Z = (422.8 + 98.5 + 2) * cm;
 
   G4VSolid* VP2Solid  = new G4Box( "VP2BOX",  pVP2HLX, pVP2HLY, pVP2HLZ );
   G4VSolid* VP3Solid  = new G4Box( "VP3BOX",  pVP2HLX, pVP2HLY, pVP2HLZ );
