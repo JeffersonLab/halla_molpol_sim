@@ -66,15 +66,38 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double a, z, density, pressure, temperature;
   G4int nelements, natoms;
 
-  G4Element* N  = new G4Element("Nitrogen", "N", z=7 , a=14.01*g/mole);
-  G4Element* O  = new G4Element("Oxygen"  , "O", z=8 , a=16.00*g/mole);
-  G4Element* H  = new G4Element("Hydrogen", "H", z=1 , a=1.01 *g/mole);
-  G4Element* C  = new G4Element("Carbon",   "C", z=6, a=12.01*g/mole);
+  G4Element* N  = new G4Element("Nitrogen"  , "N" , z=7 , a=14.01*g/mole);
+  G4Element* O  = new G4Element("Oxygen"    , "O" , z=8 , a=16.00*g/mole);
+  G4Element* H  = new G4Element("Hydrogen"  , "H" , z=1 , a=1.01 *g/mole);
+  G4Element* C  = new G4Element("Carbon"    , "C" , z=6 , a=12.01*g/mole);
 
-  G4Element* Al = new G4Element("Aluminum", "Al", z=13, a=26.98*g/mole);
-  G4Element* Fe = new G4Element("Iron"   , "Fe", z=26, a=55.845*g/mole);
-  G4Element* Si = new G4Element("Silicon", "Si", z=14, a=28.09 *g/mole);
-  G4Element* Pb = new G4Element("Lead", "Pb", z=82., a=207.19*g/mole);
+  // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
+  G4Element* P  = new G4Element("Phosphorus", "P" , z=15, a=30.974*g/mole);
+  G4Element* S  = new G4Element("Sulfur"    , "S" , z=16, a=32.06 *g/mole);
+
+  G4Element* Al = new G4Element("Aluminum"  , "Al", z=13, a=26.98 *g/mole);
+  G4Element* Fe = new G4Element("Iron"      , "Fe", z=26, a=55.845*g/mole);
+  G4Element* Si = new G4Element("Silicon"   , "Si", z=14, a=28.09 *g/mole);
+  G4Element* Pb = new G4Element("Lead"      , "Pb", z=82, a=207.19*g/mole);
+
+  // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
+  G4Element* Mn = new G4Element("Manganese" , "Mn", z=25, a=54.938*g/mole);
+  G4Element* Cr = new G4Element("Chromium"  , "Cr", z=24, a=51.966*g/mole);
+  G4Element* Ni = new G4Element("Nickel"    , "Ni", z=28, a=58.693*g/mole);
+  G4Element* Mo = new G4Element("Molybdenum", "Mo", z=42, a=95.95 *g/mole);
+
+  // INFORMATION FROM SANGHWA
+  density = 7.93 *g/cm3;
+  stainlesssteel304 = new G4Material(name="StainlessSteel304", density, nElem=9);
+  stainlesssteel304->AddElement(elFe, weightRatio=0.65);
+  stainlesssteel304->AddElement(elCr, weightRatio=0.19);
+  stainlesssteel304->AddElement(elNi, weightRatio=0.10);
+  stainlesssteel304->AddElement(elMn, weightRatio=0.02);
+  stainlesssteel304->AddElement(elSi, weightRatio=0.01);
+  stainlesssteel304->AddElement(elMo, weightRatio=0.0284);
+  stainlesssteel304->AddElement(elC,  weightRatio=0.0008);
+  stainlesssteel304->AddElement(elP,  weightRatio=0.0005);
+  stainlesssteel304->AddElement(elS,  weightRatio=0.0003);
 
   density = 0.787 * g/cm3;
   a = 55.85 * g /mole;
@@ -387,7 +410,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   // Upstream Flange attached to dipole box
   G4double pDUPFLRin = 0.5 * 10.16 * cm;  G4double pDUPFLRout = 0.5 * 17.145 * cm;  G4double pDUPFLHLZ = 0.5 * 2.1336 * cm;
   G4VSolid * DUpstreamFlange = new G4Tubs( "DUpstreamFlange", pDUPFLRin , pDUPFLRout , pDUPFLHLZ  , 0.0, 360.0 * deg );
-  G4LogicalVolume * DUpstreamFlangeLogical = new G4LogicalVolume(DUpstreamFlange,siliconsteel,"DUpstreamFlangeLogical",0,0,0);
+  G4LogicalVolume * DUpstreamFlangeLogical = new G4LogicalVolume(DUpstreamFlange,stainlesssteel304,"DUpstreamFlangeLogical",0,0,0);
   DUpstreamFlangeLogical->SetVisAttributes(LeadVisAtt);
   new G4PVPlacement(0,G4ThreeVector( 0 , 0 , 422.8 * cm - 98.0 * cm - pDUPFLHLZ ),DUpstreamFlangeLogical,"DipoleUpstreamFlange",world_log,0,0,0);
 
