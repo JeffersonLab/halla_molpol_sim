@@ -88,16 +88,17 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   // INFORMATION FROM SANGHWA
   density = 7.93 *g/cm3;
-  stainlesssteel304 = new G4Material(name="StainlessSteel304", density, nElem=9);
-  stainlesssteel304->AddElement(elFe, weightRatio=0.65);
-  stainlesssteel304->AddElement(elCr, weightRatio=0.19);
-  stainlesssteel304->AddElement(elNi, weightRatio=0.10);
-  stainlesssteel304->AddElement(elMn, weightRatio=0.02);
-  stainlesssteel304->AddElement(elSi, weightRatio=0.01);
-  stainlesssteel304->AddElement(elMo, weightRatio=0.0284);
-  stainlesssteel304->AddElement(elC,  weightRatio=0.0008);
-  stainlesssteel304->AddElement(elP,  weightRatio=0.0005);
-  stainlesssteel304->AddElement(elS,  weightRatio=0.0003);
+  G4Material* stainlesssteel304 = new G4Material("StainlessSteel304", density, 9);
+  // AddElement(elementPointer,weightedRatio)
+  stainlesssteel304->AddElement(Fe, 0.65);
+  stainlesssteel304->AddElement(Cr, 0.19);
+  stainlesssteel304->AddElement(Ni, 0.10);
+  stainlesssteel304->AddElement(Mn, 0.02);
+  stainlesssteel304->AddElement(Si, 0.01);
+  stainlesssteel304->AddElement(Mo, 0.0284);
+  stainlesssteel304->AddElement(C,  0.0008);
+  stainlesssteel304->AddElement(P,  0.0005);
+  stainlesssteel304->AddElement(S,  0.0003);
 
   density = 0.787 * g/cm3;
   a = 55.85 * g /mole;
@@ -107,6 +108,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4Material* siliconsteel = new G4Material("SiliconSteel", density, nelements=2);
   siliconsteel->AddElement(Fe, natoms=11);
   siliconsteel->AddElement(Si, natoms=1);
+
   density = 2.70 *g/cm3;
   G4Material* aluminum = new G4Material("aluminum", density, nelements=1);
   aluminum->AddElement(Al, natoms=1);
