@@ -1,11 +1,11 @@
 /run/initialize
 
 /MolPol/gen               moller
-/MolPol/filename          MolPol_REMOLL.root
-/MolPol/calculateLevchuk  true
+/MolPol/filename          MolPol_10pt6GeV_IdealFields.root
+/MolPol/calculateLevchuk  false
 /MolPol/targetPolPct      0.075
-/MolPol/radCorrections    true
-/MolPol/remollMS          true
+/MolPol/radCorrections    false
+/MolPol/remollMS          false
 /MolPol/seed              50
 
 /MolPol/fz                6.9 cm
@@ -16,7 +16,19 @@
 /MolPol/phimax            25  deg
 
 /MolPol/beamE             10.6 GeV
-/field/MagSourceMode      2
+/field/MagSourceMode      1
+
+################################################
+# FIELD VALUES FOR 10.6 GeV BEAM               #
+################################################
+/MolPol/beamE              10.6 GeV
+/field/MagSourceMode       1
+/field/setQ1T             -0.7260
+/field/setQ2T             -0.00207
+/field/setQ3T             0.2792
+/field/setQ4T             0.5696
+/field/setQ5T             1.18976
+/field/setQ6T             0.0
 
 ################################################
 # FIELD VALUES FOR 5.0 GeV BEAM                #
@@ -44,4 +56,4 @@
 
 #/field/update
 
-/run/beamOn                100
+/run/beamOn                50000
