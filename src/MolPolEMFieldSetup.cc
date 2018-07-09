@@ -72,15 +72,15 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
 
   //Did this quickly upon second try to integrate TOSCA fields properly
   //feed from messenger later.
-  fileNames.push_back("../TOSCA/q1_6.47kG.table");
-  fileNames.push_back("../TOSCA/q2_6.145kG.table");
-  fileNames.push_back("../TOSCA/q1_6.47kG.table");
-  fileNames.push_back("../TOSCA/q1_6.47kG.table");
-  fileNames.push_back("../TOSCA/lilly_119kG.table");
-  fileScales.push_back(-6.5/5.1);
-  fileScales.push_back(-6.0/5.1);
-  fileScales.push_back(2.50/5.1);
-  fileScales.push_back(1.);
+  fileNames.push_back("TOSCA/q1_6.47kG.table");
+  fileNames.push_back("TOSCA/q2_6.145kG.table");
+  fileNames.push_back("TOSCA/q1_6.47kG.table");
+  fileNames.push_back("TOSCA/q1_6.47kG.table");
+  fileNames.push_back("TOSCA/lilly_119kG.table");
+  fileScales.push_back(1.2745);
+  fileScales.push_back(1.1764);
+  fileScales.push_back(-0.4902);
+  fileScales.push_back(-1.);
   fileScales.push_back(-1.);
   fileOffsets.push_back( 75.19*cm);
   fileOffsets.push_back(140.46*cm);
