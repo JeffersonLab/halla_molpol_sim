@@ -1,4 +1,4 @@
-/run/initialize
+#/run/initialize
 
 /MolPol/gen               moller
 /MolPol/filename          MolPol_10pt6GeV_IdealFields.root
@@ -16,10 +16,22 @@
 /MolPol/phimax            25  deg
 
 /MolPol/beamE             10.6 GeV
-/field/MagSourceMode      1
+#/field/MagSourceMode      2
 
 ################################################
-# FIELD VALUES FOR 10.6 GeV BEAM               #
+# FIELD VALUES FOR 10.6 GeV USING TOSCA MAPS   #
+################################################
+/MolPol/beamE             10.6 GeV
+/field/MagSourceMode      2
+/field/setToscaQ1  TOSCA/q1_6.47kG.table        1.2745    75.19
+/field/setToscaQ2  TOSCA/q2_6.145kG.table       1.1765   104.46
+/field/setToscaQ3  TOSCA/q1_6.47kG.table       -0.4902   209.59
+/field/setToscaQ4  TOSCA/q1_6.47kG.table       -1.       274.59
+/field/setToscaQ5  TOSCA/lilly_119kG.table     -1.       422.80
+/field/update
+
+################################################
+# FIELD VALUES FOR 10.6 GeV BEAM | IDEAL FIELD #
 ################################################
 /MolPol/beamE              10.6 GeV
 /field/MagSourceMode       1
@@ -55,5 +67,7 @@
 #/field/setQ6T             3.
 
 #/field/update
+
+/run/initialize
 
 /run/beamOn                50000
