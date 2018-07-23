@@ -23,6 +23,9 @@
 #include <boost/iostreams/device/file.hpp>
 #endif
 
+
+//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+// TOSCA Field Constructor
 MolPolTOSCAField::MolPolTOSCAField( G4String filename, G4double scale, G4double offset ){
   fZoffset = offset;
   fFilename = filename;
@@ -34,26 +37,9 @@ MolPolTOSCAField::MolPolTOSCAField( G4String filename, G4double scale, G4double 
 MolPolTOSCAField::~MolPolTOSCAField(){
 }
 
-G4String MolPolTOSCAField::GetName(){
-  if( !fInit ){
-    G4cerr << "WARNING " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ": access uninitialized field." << G4endl;
-    return G4String("");
-  }
-  return fFilename;
-}
 
-void MolPolTOSCAField::SetFieldScale(G4double s){
-  fFieldScale = s;
-  G4cout << fFilename << " scale set to " << s << G4endl;
-  return;
-}
-
-void MolPolTOSCAField::SetMagnetCurrent(G4double s){
-  if( fMagCurrent0 > 0.0 ) SetFieldScale(s/fMagCurrent0);
-  else G4cerr << "Warning:  " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ": Field current not specified in map " << fFilename << " - Ignoring and proceeding " << G4endl;
-  return;
-}
-
+//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+// Initialize Grid -- Set up size of vector for field data
 void MolPolTOSCAField::InitializeGrid() {
 
   if( NX <= 0 || NY <= 0 || NZ <= 0 ){
@@ -72,11 +58,10 @@ void MolPolTOSCAField::InitializeGrid() {
     		fBFieldData[i][x][y].resize(NZ);
     		for( int z = 0; z < NZ; z++) {
     	    fBFieldData[i][x][y][z] = 0.0;
-          //G4cout << "Setting fBFieldData[" << i << "][" << x << "][" << y << "][" << z << "] to 0.0" << G4endl;
-        } // end of z
-      } // end of y
-    } // end of x
-  } // end B-vector directions
+        }
+      }
+    }
+  }
 
   G4cout << "Map grid for " << fFilename << " initialized" << G4endl;
   G4cout << "With scale: " << fFieldScale << " set" << G4endl;
@@ -88,32 +73,41 @@ void MolPolTOSCAField::InitializeGrid() {
 
 void MolPolTOSCAField::ReadFieldMap(){
   G4cout << __PRETTY_FUNCTION__ << " : " << fFilename << G4endl;
+  G4int nX = 0, nY = 0, nZ = 0;
+  G4int nlines = 0;
+  G4String DUMMY;
+  G4double raw_xpos;
+  G4double raw_ypos;
+  G4double raw_zpos;
+  G4double raw_B;
+  G4double raw_Bx;
+  G4double raw_By;
+  G4double raw_Bz;
 
-  G4int nX = 0, nY = 0, nZ = 0; //Grid point counters
-  G4int nlines = 0; // # of lines
-
-// Used in remoll for boost.
-#ifdef __USE_BOOST_IOSTREAMS
-  // Create Boost istream
-  boost::iostreams::filtering_istream inputfile;
-  // If the filename has .gz somewhere (hopefully the end)
-  if (fFilename.find(".gz") != std::string::npos) {
-    // Add gzip decompressor to stream
-    inputfile.push(boost::iostreams::gzip_decompressor());
-  }
-  // Set file as source
-  inputfile.push(boost::iostreams::file_source(fFilename));
-#else
-  // Create STL ifstream
-  std::ifstream inputfile;
-  // If the filename has .gz somewhere, fail ungracefully
-  if (fFilename.find(".gz") != std::string::npos) {
-    G4cerr << "Compressed input files not supported!" << G4endl;
-    exit(1);
-  }
-  // Set file as source
-  inputfile.open(fFilename.data());
-#endif
+  // From REMOLL for usaage with BOOST classes and compressed field maps.
+  // Perhaps will use later.
+  #ifdef __USE_BOOST_IOSTREAMS
+    // Create Boost istream
+    boost::iostreams::filtering_istream inputfile;
+    // If the filename has .gz somewhere (hopefully the end)
+    if (fFilename.find(".gz") != std::string::npos) {
+      // Add gzip decompressor to stream
+      inputfile.push(boost::iostreams::gzip_decompressor());
+    }
+    // Set file as source
+    inputfile.push(boost::iostreams::file_source(fFilename));
+  #else
+    // Create STL ifstream
+    std::ifstream inputfile;
+    // If the filename has .gz somewhere, fail ungracefully
+    if (fFilename.find(".gz") != std::string::npos) {
+      G4cerr << "Compressed input files not supported!" << G4endl;
+      exit(1);
+    }
+    // Set file as source
+    inputfile.open(fFilename.data());
+  #endif
+  // End REMOLL code for compressed field maps.
 
   if (!inputfile.good() ){
     G4cerr << "Error " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ") File " << fFilename << " could not open.  Aborting" << G4endl;
@@ -138,8 +132,6 @@ void MolPolTOSCAField::ReadFieldMap(){
     getline(inputfile,inputline);
   }
 
-  //////////////////////////////////////////////////////////////////////////////
-
   InitializeGrid();
 
   std::vector<G4double> xpos;
@@ -150,7 +142,6 @@ void MolPolTOSCAField::ReadFieldMap(){
       for(nZ = 0; nZ < NZ; nZ++){
         getline(inputfile,inputline);
 
-        // Read in field values and assign units
         if (std::istringstream(inputline) >> raw_xpos >> raw_ypos >> raw_zpos >> raw_B >> raw_Bx >> raw_By >> raw_Bz) {
           nlines++;
         } else {
@@ -161,17 +152,9 @@ void MolPolTOSCAField::ReadFieldMap(){
         ypos.push_back(raw_ypos*cm);
         zpos.push_back(raw_zpos*cm);
 
-        //G4cout << "Raw read in for field " << raw_Bz << G4endl;
-
-    		// Set the grid values to the values which have been read-in
     		fBFieldData[0][nX][nY][nZ] = raw_Bx * gauss;
     		fBFieldData[1][nX][nY][nZ] = raw_By * gauss;
     		fBFieldData[2][nX][nY][nZ] = raw_Bz * gauss;
-
-        //FIXME: Delete me after bug checking... just sampling read in values.
-        //if( nX%20==0 && nY%20==0 && nZ%20 == 0 ) G4cout << " Read-in B-Field(" << fBFieldData[0][nX][nY][nZ] / tesla << "," << fBFieldData[1][nX][nY][nZ] / tesla << "," << fBFieldData[2][nX][nY][nZ] / tesla << ")" << G4endl;
-
-        //G4cout << "Read in for field " << raw_Bz / tesla << " T" << G4endl << G4endl;
       }
     }
   }
@@ -183,27 +166,16 @@ void MolPolTOSCAField::ReadFieldMap(){
   YMAX = *std::max_element(ypos.begin(),ypos.end());
   ZMAX = *std::max_element(zpos.begin(),zpos.end());
 
-  //FIXME: CAN DELETE AFTER BUG CHECKING
-  //G4cout << "ReadFieldMap() ... " << G4endl;
-  //G4cout << "  NX: " << NX << G4endl;
-  //G4cout << "  NY: " << NY << G4endl;
-  //G4cout << "  NZ: " << NZ << G4endl;
-  //G4cout << "FILE: " << fFilename << G4endl;
-  //G4cout << "XMIN: " << XMIN / cm << G4endl;
-  //G4cout << "XMAX: " << XMAX / cm << G4endl;
-  //G4cout << "YMIN: " << YMIN / cm << G4endl;
-  //G4cout << "YMAX: " << YMAX / cm << G4endl;
-  //G4cout << "ZMIN: " << ZMIN / cm << G4endl;
-  //G4cout << "ZMAX: " << ZMAX / cm << G4endl; // Looks like these produce just fine.
-
   fInit = true;
   G4cout << "... read " << nlines << " lines." << G4endl;
 
   // The Ultimate Style Guide :)
   // https://twitter.com/ThePracticalDev/status/710156980535558144
-
 }
 
+
+//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+// GetFieldValue -- Prerequisite member function for any G4MagneticField
 void MolPolTOSCAField::GetFieldValue(const G4double Point[4], G4double *Bfield ) const {
   G4double    x, y, z;
   G4double    fracVal[3], intVal[3];
