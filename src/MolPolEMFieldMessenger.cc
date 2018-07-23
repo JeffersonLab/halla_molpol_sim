@@ -172,97 +172,101 @@ void MolPolEMFieldMessenger::SetNewValue( G4UIcommand* cmd, G4String newValue)
     G4double x = fQ6TCmd->GetNewDoubleValue(newValue);
     fEMfieldSetup->fQ6T = x;
   }else if( cmd == fToscaQ1Cmd ){
-    //FIXME: This should just be moved to a function to which the newValue string
-    //is passed.
     G4String fname;
     G4double scale;
     G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset ){
-      G4cout << "TOSCA File Q1 name: " << fname << G4endl
-             << "Scale: " << scale << G4endl
-             << "Offset: " << offset << G4endl;
+    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+      if(newValue == "none"){
+        G4cout << "No TOSCA File for Q1." << G4endl;
+      } else {
+        G4cout << "TOSCA File Q1 name: " << fname << G4endl
+               << "Scale: " << scale << G4endl
+               << "Offset: " << offset << G4endl;
+      }
+      fEMfieldSetup->fToscaFields[0] = newValue;
     } else {
-      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
-      exit(1);
+      G4cout << "Incorrect macro entry for ToscaQ1." << G4endl;
     }
-    fEMfieldSetup->fileNames.push_back(fname);
-    fEMfieldSetup->fileScales.push_back(scale);
-    fEMfieldSetup->fileOffsets.push_back(offset * cm);
   }else if( cmd == fToscaQ2Cmd ){
     G4String fname;
     G4double scale;
     G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset ){
-      G4cout << "TOSCA File Q2 name: " << fname << G4endl
-             << "Scale: " << scale << G4endl
-             << "Offset: " << offset << G4endl;
+    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+      if(newValue == "none"){
+        G4cout << "No TOSCA File for Q2." << G4endl;
+      } else {
+        G4cout << "TOSCA File Q2 name: " << fname << G4endl
+               << "Scale: " << scale << G4endl
+               << "Offset: " << offset << G4endl;
+      }
+      fEMfieldSetup->fToscaFields[1] = newValue;
     } else {
-      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
-      exit(1);
+      G4cout << "Incorrect macro entry for ToscaQ2y." << G4endl;
     }
-    fEMfieldSetup->fileNames.push_back(fname);
-    fEMfieldSetup->fileScales.push_back(scale);
-    fEMfieldSetup->fileOffsets.push_back(offset * cm);
   }else if( cmd == fToscaQ3Cmd ){
     G4String fname;
     G4double scale;
     G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset ){
-      G4cout << "TOSCA File Q3 name: " << fname << G4endl
-             << "Scale: " << scale << G4endl
-             << "Offset: " << offset << G4endl;
+    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+      if(newValue == "none"){
+        G4cout << "No TOSCA File for Q3." << G4endl;
+      } else {
+        G4cout << "TOSCA File Q3 name: " << fname << G4endl
+               << "Scale: " << scale << G4endl
+               << "Offset: " << offset << G4endl;
+      }
+      fEMfieldSetup->fToscaFields[2] = newValue;
     } else {
-      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
-      exit(1);
+      G4cout << "Incorrect macro entry for ToscaQ3." << G4endl;
     }
-    fEMfieldSetup->fileNames.push_back(fname);
-    fEMfieldSetup->fileScales.push_back(scale);
-    fEMfieldSetup->fileOffsets.push_back(offset * cm);
   }else if( cmd == fToscaQ4Cmd ){
     G4String fname;
     G4double scale;
     G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset ){
-      G4cout << "TOSCA File Q4 name: " << fname << G4endl
-             << "Scale: " << scale << G4endl
-             << "Offset: " << offset << G4endl;
+    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+      if(newValue == "none"){
+        G4cout << "No TOSCA File for Q4." << G4endl;
+      } else {
+        G4cout << "TOSCA File Q4 name: " << fname << G4endl
+               << "Scale: " << scale << G4endl
+               << "Offset: " << offset << G4endl;
+      }
+      fEMfieldSetup->fToscaFields[3] = newValue;
     } else {
-      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
-      exit(1);
+      G4cout << "Incorrect macro entry for ToscaQ4." << G4endl;
     }
-    fEMfieldSetup->fileNames.push_back(fname);
-    fEMfieldSetup->fileScales.push_back(scale);
-    fEMfieldSetup->fileOffsets.push_back(offset * cm);
   }else if( cmd == fToscaQ5Cmd ){
     G4String fname;
     G4double scale;
     G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset ){
-      G4cout << "TOSCA File Q5 name: " << fname << G4endl
-             << "Scale: " << scale << G4endl
-             << "Offset: " << offset << G4endl;
+    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+      if(newValue == "none"){
+        G4cout << "No TOSCA File for Q5." << G4endl;
+      } else {
+        G4cout << "TOSCA File Q5 name: " << fname << G4endl
+               << "Scale: " << scale << G4endl
+               << "Offset: " << offset << G4endl;
+      }
+      fEMfieldSetup->fToscaFields[4] = newValue;
     } else {
-      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
-      exit(1);
+      G4cout << "Incorrect macro entry for ToscaQ5." << G4endl;
     }
-    fEMfieldSetup->fileNames.push_back(fname);
-    fEMfieldSetup->fileScales.push_back(scale);
-    fEMfieldSetup->fileOffsets.push_back(offset * cm);
   }else if( cmd == fToscaQ6Cmd ){
     G4String fname;
     G4double scale;
     G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset ){
-      G4cout << "TOSCA File Q6 name: " << fname << G4endl
-             << "Scale: " << scale << G4endl
-             << "Offset: " << offset << G4endl;
+    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+      if(newValue == "none"){
+        G4cout << "No TOSCA File for Q6." << G4endl;
+      } else {
+        G4cout << "TOSCA File Q6 name: " << fname << G4endl
+               << "Scale: " << scale << G4endl
+               << "Offset: " << offset << G4endl;
+      }
+      fEMfieldSetup->fToscaFields[5] = newValue;
     } else {
-      G4cerr << "Error: setToscaQ1 improperly formatted." << G4endl;
-      exit(1);
+      G4cout << "Incorrect macro entry for ToscaQ6." << G4endl;
     }
-    fEMfieldSetup->fileNames.push_back(fname);
-    fEMfieldSetup->fileScales.push_back(scale);
-    fEMfieldSetup->fileOffsets.push_back(offset * cm);
   }else if( cmd == fUpdateCmd ){
     G4cout << "Updating magnetic field configuration... " << G4endl;
     fEMfieldSetup->UpdateConfiguration();
