@@ -54,39 +54,7 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
   fQ5T = 0;
   fQ6T = 0;
 
-  KAPPA1 = 0.;
-  KAPPA2 = 0.;
-  KAPPA3 = 0.;
-  KAPPA4 = 0.;
-  DIPOLE = 0.;
-  SOLENOID = 0.;
-
-  ORIGINQ1 =  75.19 * cm;
-  ORIGINQ2 = 140.46 * cm;
-  ORIGINQ3 = 209.08 * cm;
-  ORIGINQ4 = 274.59 * cm;
-  ORIGIND  = 423.4  * cm;
-  ORIGINQ6 = 6.9    * cm;
-
-  BORERADIUS = 5.08 * cm;
-
-  //Did this quickly upon second try to integrate TOSCA fields properly
-  //feed from messenger later.
-  fileNames.push_back("TOSCA/q1_6.47kG.table");
-  fileNames.push_back("TOSCA/q2_6.145kG.table");
-  fileNames.push_back("TOSCA/q1_6.47kG.table");
-  fileNames.push_back("TOSCA/q1_6.47kG.table");
-  fileNames.push_back("TOSCA/lilly_119kG.table");
-  fileScales.push_back(1.2745);
-  fileScales.push_back(1.1764);
-  fileScales.push_back(-0.4902);
-  fileScales.push_back(-1.);
-  fileScales.push_back(-1.);
-  fileOffsets.push_back( 75.19*cm);
-  fileOffsets.push_back(140.46*cm);
-  fileOffsets.push_back(209.59*cm);
-  fileOffsets.push_back(274.59*cm);
-  fileOffsets.push_back(422.80*cm);
+  for(G4int i = 0; i < 6; i++) fToscaFields[i] = "none";
 
   InitialseAll();
 
@@ -94,92 +62,63 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
 
 void MolPolEMFieldSetup::InitialseAll()
 {
-
   fFieldMessenger = new MolPolEMFieldMessenger(this);
-  //fEMfield = new MolPolEMField();
-  //fEquation = new G4EqMagElectricField(fEMfield);
-  //fFieldManager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
-  //fChordFinder = 0;   //will be set in UpdateField()
-  //UpdateField();
+  fEMfield = new MolPolEMField();
+  fEMfield->SetTOSCAFields(fileNames,fileScales,fileOffsets);
+  fEquation = new G4EqMagElectricField(fEMfield);
+  fFieldManager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+  UpdateField();
 
-  fMagSourceMode = 2;
+  /*
+  G4double KAPPA1 = 0.;
+  G4double KAPPA2 = 0.;
+  G4double KAPPA3 = 0.;
+  G4double KAPPA4 = 0.;
+  G4double DIPOLE = 0.;
+  G4double SOLENOID = 0.;  
 
-  if( fMagSourceMode == 0 ){
-      KAPPA1 = CalA2T(fQ1A, 1) / BORERADIUS;
-      KAPPA2 = CalA2T(fQ2A, 2) / BORERADIUS;
-      KAPPA3 = CalA2T(fQ3A, 3) / BORERADIUS;
-      KAPPA4 = CalA2T(fQ4A, 4) / BORERADIUS;
-      DIPOLE = CalA2T(fQ5A, 5);
-      SOLENOID = fQ6T * tesla;
-  } else if( fMagSourceMode == 1){
-      KAPPA1 = fQ1T * tesla / BORERADIUS;
-      KAPPA2 = fQ2T * tesla / BORERADIUS;
-      KAPPA3 = fQ3T * tesla / BORERADIUS;
-      KAPPA4 = fQ4T * tesla / BORERADIUS;
-      DIPOLE = fQ5T * tesla;
-      SOLENOID = fQ6T * tesla;
-  }
+  fMagFieldFZB1 = new MolPolQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, BORERADIUS);
+  fEquationFZB1 = new G4Mag_UsualEqRhs(fMagFieldFZB1);
+  fStepperFZB1  = new G4ClassicalRK4(fEquationFZB1);
+  fLocalFieldManagerFZB1 = new G4FieldManager();
+  fChordFinderFZB1 = 0;
+  UpdateFieldFZB1();
 
-  if( fMagSourceMode == 1 || fMagSourceMode == 0 ){
+  fMagFieldFZB2 = new MolPolQuad(KAPPA2, G4ThreeVector(0.0, 0.0, ORIGINQ2), NOROT, BORERADIUS);
+  fEquationFZB2 = new G4Mag_UsualEqRhs(fMagFieldFZB2);
+  fStepperFZB2  = new G4ClassicalRK4(fEquationFZB2);
+  fLocalFieldManagerFZB2 = new G4FieldManager();
+  fChordFinderFZB2 = 0;
+  UpdateFieldFZB2();
 
-    //MolPolQuad(G4double pGradient, G4ThreeVector pOrigin, G4RotationMatrix* pMatrix, G4double pRadius)
-    fMagFieldFZB1 = new MolPolQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, BORERADIUS);
-    fEquationFZB1 = new G4Mag_UsualEqRhs(fMagFieldFZB1);
-    fStepperFZB1  = new G4ClassicalRK4(fEquationFZB1);
-    fLocalFieldManagerFZB1 = new G4FieldManager();
-    fChordFinderFZB1 = 0;
-    UpdateFieldFZB1();
+  fMagFieldFZB3 = new MolPolQuad(KAPPA3, G4ThreeVector(0.0, 0.0, ORIGINQ3), NOROT, BORERADIUS);
+  fEquationFZB3 = new G4Mag_UsualEqRhs(fMagFieldFZB3);
+  fStepperFZB3  = new G4ClassicalRK4(fEquationFZB3);
+  fLocalFieldManagerFZB3 = new G4FieldManager();
+  fChordFinderFZB3 = 0;
+  UpdateFieldFZB3();
 
-    fMagFieldFZB2 = new MolPolQuad(KAPPA2, G4ThreeVector(0.0, 0.0, ORIGINQ2), NOROT, BORERADIUS);
-    fEquationFZB2 = new G4Mag_UsualEqRhs(fMagFieldFZB2);
-    fStepperFZB2  = new G4ClassicalRK4(fEquationFZB2);
-    fLocalFieldManagerFZB2 = new G4FieldManager();
-    fChordFinderFZB2 = 0;
-    UpdateFieldFZB2();
+  fMagFieldFZB4 = new MolPolQuad(KAPPA4, G4ThreeVector(0.0, 0.0, ORIGINQ4), NOROT, BORERADIUS);
+  fEquationFZB4 = new G4Mag_UsualEqRhs(fMagFieldFZB4);
+  fStepperFZB4  = new G4ClassicalRK4(fEquationFZB4);
+  fLocalFieldManagerFZB4 = new G4FieldManager();
+  fChordFinderFZB4 = 0;
+  UpdateFieldFZB4();
 
-    fMagFieldFZB3 = new MolPolQuad(KAPPA3, G4ThreeVector(0.0, 0.0, ORIGINQ3), NOROT, BORERADIUS);
-    fEquationFZB3 = new G4Mag_UsualEqRhs(fMagFieldFZB3);
-    fStepperFZB3  = new G4ClassicalRK4(fEquationFZB3);
-    fLocalFieldManagerFZB3 = new G4FieldManager();
-    fChordFinderFZB3 = 0;
-    UpdateFieldFZB3();
+  fMagFieldFZB5 = new MolPolDipole(DIPOLE, G4ThreeVector(0.0, 0.0, ORIGIND), NOROT);
+  fEquationFZB5 = new G4Mag_UsualEqRhs(fMagFieldFZB5);
+  fStepperFZB5  = new G4ClassicalRK4(fEquationFZB5);
+  fLocalFieldManagerFZB5 = new G4FieldManager();
+  fChordFinderFZB5 = 0;
+  UpdateFieldFZB5();
 
-    fMagFieldFZB4 = new MolPolQuad(KAPPA4, G4ThreeVector(0.0, 0.0, ORIGINQ4), NOROT, BORERADIUS);
-    fEquationFZB4 = new G4Mag_UsualEqRhs(fMagFieldFZB4);
-    fStepperFZB4  = new G4ClassicalRK4(fEquationFZB4);
-    fLocalFieldManagerFZB4 = new G4FieldManager();
-    fChordFinderFZB4 = 0;
-    UpdateFieldFZB4();
-
-    fMagFieldFZB5 = new MolPolDipole(DIPOLE, G4ThreeVector(0.0, 0.0, ORIGIND), NOROT);
-    fEquationFZB5 = new G4Mag_UsualEqRhs(fMagFieldFZB5);
-    fStepperFZB5  = new G4ClassicalRK4(fEquationFZB5);
-    fLocalFieldManagerFZB5 = new G4FieldManager();
-    fChordFinderFZB5 = 0;
-    UpdateFieldFZB5();
-
-    fMagFieldFZB6 = new MolPolSolenoid(SOLENOID, 0, G4ThreeVector(0.0, 0.0, ORIGINQ6));
-    fEquationFZB6 = new G4Mag_UsualEqRhs(fMagFieldFZB6);
-    fStepperFZB6  = new G4ClassicalRK4(fEquationFZB6);
-    fLocalFieldManagerFZB6 = new G4FieldManager();
-    fChordFinderFZB6 = 0;
-    UpdateFieldFZB6();
-
-  } if( fMagSourceMode == 2) {
-    G4cout << "MolPolEMFieldSetup::InitalizeAll()" << G4endl;
-    for(G4int i = 0; i < abs(fileNames.size()); i++ ){
-      G4cout      << "Filenames[" << i << "]: " << fileNames[i] << G4endl
-             << "Scale[" << i << "]: " << fileScales[i] << G4endl
-             << "Offset[" << i << "]: " << fileOffsets[i] << G4endl << G4endl;
-    }
-
-    fEMfield = new MolPolEMField( fileNames , fileScales , fileOffsets );
-    fEquation = new G4EqMagElectricField(fEMfield);
-    fFieldManager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
-    fChordFinder = 0;   //will be set in UpdateField()
-    UpdateField();
-
-  }
+  fMagFieldFZB6 = new MolPolSolenoid(SOLENOID, 0, G4ThreeVector(0.0, 0.0, ORIGINQ6));
+  fEquationFZB6 = new G4Mag_UsualEqRhs(fMagFieldFZB6);
+  fStepperFZB6  = new G4ClassicalRK4(fEquationFZB6);
+  fLocalFieldManagerFZB6 = new G4FieldManager();
+  fChordFinderFZB6 = 0;
+  UpdateFieldFZB6();
+  */
 
 }
 
@@ -198,20 +137,6 @@ MolPolEMFieldSetup::~MolPolEMFieldSetup()
 //
 
 void MolPolEMFieldSetup::UpdateConfiguration(){
-
-  G4cout << "UPDATE CONFIGURATION fMagSourceMode value: " << fMagSourceMode << G4endl;
-
-  G4RotationMatrix* NOROT = new G4RotationMatrix;
-
-  G4double ORIGINQ1 =  75.19 * cm;
-  G4double ORIGINQ2 = 140.46 * cm;
-  G4double ORIGINQ3 = 209.08 * cm;
-  G4double ORIGINQ4 = 274.59 * cm;
-  G4double ORIGIND  = 423.4  * cm;
-  G4double ORIGINQ6 = 6.9    * cm;
-
-  G4double BORERADIUS = 5.08 * cm;
-
   G4double KAPPA1 = 0.;
   G4double KAPPA2 = 0.;
   G4double KAPPA3 = 0.;
@@ -220,7 +145,8 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
   G4double SOLENOID = 0.;
 
   if( fMagSourceMode == 0 || fMagSourceMode == 1 ){
-
+    G4cout << "Updating magnetic field configuration to source mode " << fMagSourceMode << ". Deleting ToscaFields." << G4endl;
+    fEMfield->clearToscaFields();
     if( fMagSourceMode == 0 ){
         KAPPA1 = CalA2T(fQ1A, 1) / BORERADIUS;
         KAPPA2 = CalA2T(fQ2A, 2) / BORERADIUS;
@@ -234,25 +160,7 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
         KAPPA4 = fQ4T * tesla / BORERADIUS;
         DIPOLE = fQ5T * tesla;
     }
-
     SOLENOID = fQ6T * tesla;
-
-    G4cout << "Received values from macro: " << G4endl;
-    G4cout << "fQ1T: " << fQ1T << G4endl;
-    G4cout << "fQ2T: " << fQ2T << G4endl;
-    G4cout << "fQ3T: " << fQ3T << G4endl;
-    G4cout << "fQ4T: " << fQ4T << G4endl;
-    G4cout << "fQ5T: " << fQ5T << G4endl;
-    G4cout << "fQ6T: " << fQ6T << G4endl;
-
-    G4cout << __PRETTY_FUNCTION__ <<"\t at line: "<<__LINE__<<G4endl;
-    G4cout << "\tfMagSourceMode: "<<fMagSourceMode<<G4endl
-  	 << "\tKAPPA1: "<<KAPPA1/(tesla / m)<< " tesla/m"<<G4endl
-  	 << "\tKAPPA1: "<<KAPPA2/(tesla / m)<< " tesla/m"<<G4endl
-  	 << "\tKAPPA1: "<<KAPPA3/(tesla / m)<< " tesla/m"<<G4endl
-  	 << "\tKAPPA1: "<<KAPPA4/(tesla / m)<< " tesla/m"<<G4endl
-  	 << "\tDIPOLE: "<<DIPOLE/tesla<< " tesla"<<G4endl
-     << "\tSOLEND: "<<SOLENOID/tesla<< " tesla"<<G4endl;
 
     fMagFieldFZB1->UpdateQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, BORERADIUS);
     fMagFieldFZB2->UpdateQuad(KAPPA2, G4ThreeVector(0.0, 0.0, ORIGINQ2), NOROT, BORERADIUS);
@@ -261,33 +169,51 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
     fMagFieldFZB5->UpdateDipole(DIPOLE, G4ThreeVector(0.0, 0.0, ORIGIND), NOROT);
     fMagFieldFZB6->UpdateSolenoid(SOLENOID, 0, G4ThreeVector(0.0, 0.0, ORIGINQ6));
 
+    //FIXME: Can move this to it's own function. However, I'd like to leave it
+    G4cout << "Received values from macro: " << G4endl;
+    G4cout << "\tfQ1T: " << fQ1T << G4endl;
+    G4cout << "\tfQ2T: " << fQ2T << G4endl;
+    G4cout << "\tfQ3T: " << fQ3T << G4endl;
+    G4cout << "\tfQ5T: " << fQ5T << G4endl;
+    G4cout << "\tfQ4T: " << fQ4T << G4endl;
+    G4cout << "\tfQ6T: " << fQ6T << G4endl;
+    G4cout << __PRETTY_FUNCTION__ <<"\t at line: "<<__LINE__<<G4endl;
+    G4cout << "\tfMagSourceMode: "<<fMagSourceMode<<G4endl
+  	 << "\tKAPPA1: "<<KAPPA1/(tesla / m)<< " tesla/m"<<G4endl
+  	 << "\tKAPPA1: "<<KAPPA2/(tesla / m)<< " tesla/m"<<G4endl
+  	 << "\tKAPPA1: "<<KAPPA3/(tesla / m)<< " tesla/m"<<G4endl
+  	 << "\tKAPPA1: "<<KAPPA4/(tesla / m)<< " tesla/m"<<G4endl
+  	 << "\tDIPOLE: "<<DIPOLE/tesla<< " tesla"<<G4endl
+     << "\tSOLEND: "<<SOLENOID/tesla<< " tesla"<<G4endl;
   }
 
   if (fMagSourceMode == 2){
-
-    // NOTE: Updating the fields should be as simple as passing along the new set of
-    //       fields, deleting the old ones fFields, and reading in the new ones.
-    // NOTE: We can include a macro to update the scaling for each field map
-    //       without deleting the old field map.  This could be handy for turning
-    //       fields on and off.
-
-    // clear the old fields
+    // clear the old fields from vector object in EMField that contains TOSCA maps
     fEMfield->clearToscaFields();
-
-    for(G4int i = 0; i < abs(fileNames.size()); i++ ){
-      G4cout << "MolPolEMFieldSetup::UpdateConfiguration()" << G4endl
-             << "Filenames[" << i << "]: " << fileNames[i] << G4endl
-             << "Scale[" << i << "]: " << fileScales[i] << G4endl
-             << "Offset[" << i << "]: " << fileOffsets[i] << G4endl << G4endl;
+    // clear the holding vectors
+    fileNames.clear();
+    fileScales.clear();
+    fileOffsets.clear();
+    // populate the vectors to be sent to EM field to repopulate fFields
+    for(G4int i = 0; i < 6; i++){
+      if( strstr(fToscaFields[i],"none") == NULL ){
+        G4String fname;
+        G4double scale;
+        G4double offset;
+        if(std::istringstream( fToscaFields[i] ) >> fname >> scale >> offset ){
+          fileNames.push_back(fname);
+          fileScales.push_back(scale);
+          fileOffsets.push_back(offset * cm);
+        }
+        G4cout << "Added Q" << i+1 << " to fields list." << G4endl;
+      } else {
+        G4cout << "Found Q" << i+1 << " to be 'none'." << G4endl;
+      }
     }
-
-    //fEMfield = new MolPolEMField( fileNames , fileScales , fileOffsets );
-    //fFieldManager->SetDetectorField(fEMfield);
-    //if(fChordFinder) delete fChordFinder;
-    //fIntgrDriver = new G4MagInt_Driver(fMinStep,fStepper,fStepper->GetNumberOfVariables());
-    //fChordFinder = new G4ChordFinder(fIntgrDriver);
-    //fFieldManager->SetChordFinder( fChordFinder );
+    fEMfield->SetTOSCAFields(fileNames,fileScales,fileOffsets);
   }
+
+  UpdateField();
 
 }
 
