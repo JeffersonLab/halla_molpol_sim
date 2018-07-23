@@ -15,32 +15,30 @@
 /MolPol/phimin            -25 deg
 /MolPol/phimax            25  deg
 
-/MolPol/beamE             10.6 GeV
-#/field/MagSourceMode      2
-
 ################################################
 # FIELD VALUES FOR 10.6 GeV USING TOSCA MAPS   #
 ################################################
 /MolPol/beamE             10.6 GeV
 /field/MagSourceMode      2
-/field/setToscaQ1  TOSCA/q1_6.47kG.table        1.2745    75.19
-/field/setToscaQ2  TOSCA/q2_6.145kG.table       1.1765   104.46
-/field/setToscaQ3  TOSCA/q1_6.47kG.table       -0.4902   209.59
-/field/setToscaQ4  TOSCA/q1_6.47kG.table       -1.       274.59
-/field/setToscaQ5  TOSCA/lilly_119kG.table     -1.       422.80
+/field/setToscaQ1         TOSCA/Q1_map_1011G.table       -6.4293      75.19
+/field/setToscaQ2         TOSCA/Q2_map_6146G.table       -0.9762      140.46
+/field/setToscaQ3         TOSCA/Q1_map_1011G.table       2.4728       209.59
+/field/setToscaQ4         TOSCA/Q1_map_1011G.table       5.0445       274.59
+/field/setToscaQ5         TOSCA/lilly_map_3.0kG.table    3.9667       422.80
 /field/update
 
 ################################################
 # FIELD VALUES FOR 10.6 GeV BEAM | IDEAL FIELD #
 ################################################
-/MolPol/beamE              10.6 GeV
-/field/MagSourceMode       1
-/field/setQ1T             -0.7260
-/field/setQ2T             -0.00207
-/field/setQ3T             0.2792
-/field/setQ4T             0.5696
-/field/setQ5T             1.18976
-/field/setQ6T             0.0
+#/MolPol/beamE              10.6 GeV
+#/field/MagSourceMode       1
+#/field/setQ1T             -0.7260
+#/field/setQ2T             -0.00207
+#/field/setQ3T             0.2792
+#/field/setQ4T             0.5696
+#/field/setQ5T             1.18976
+#/field/setQ6T             0.0
+#/field/update
 
 ################################################
 # FIELD VALUES FOR 5.0 GeV BEAM                #
@@ -53,6 +51,7 @@
 #/field/setQ4T             0.206
 #/field/setQ5T             0.700
 #/field/setQ6T             0.0
+#/field/update
 
 ################################################
 # FIELD VALUES FOR 2.2 GeV BEAM fr. Bill Henry #
@@ -65,7 +64,6 @@
 #/field/setQ4T             0.09690
 #/field/setQ5T             0.3
 #/field/setQ6T             3.
-
 #/field/update
 
 /run/initialize
