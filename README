@@ -52,6 +52,12 @@ To see the geometry:
 
 Usage of TOSCA fields specified by MagSourceMode '2'
 
+NOTE: Currently the TOSCA version runs only in mode '2'. In order for to accommodate
+      ideal field volumes and field maps the geometry needs to be rebuilt. This doesn't
+      seem to be a problem other than potential danglers with the geometry.  However, this
+      does mean that the MagSourceMode type would have to be sent to the FieldSetup via it's
+      construction inside DetectorConstruction.
+
 Macros are set as such:
 
 /field/setToscaQ1         TOSCA/q1_6.47kG.table        1.2745    75.19
