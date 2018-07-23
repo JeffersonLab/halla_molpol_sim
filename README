@@ -31,7 +31,7 @@ To run in batch mode, execute with a macro such as:
 ./MolPol runexample.mac
 
 Ensure that all macros include a /run/initialization command or else they will
-not work. 
+not work.
 
 ==== Visualization ===============
 
@@ -47,3 +47,30 @@ To see the geometry:
 
 /control/execute macros/vis.mac
 
+
+==== Using TOSCA Field Maps =======
+
+Usage of TOSCA fields specified by MagSourceMode '2'
+
+Macros are set as such:
+
+/field/setToscaQ1         TOSCA/q1_6.47kG.table        1.2745    75.19
+/field/setToscaQ2         TOSCA/q2_6.145kG.table       1.1765   104.46
+/field/setToscaQ3         TOSCA/q1_6.47kG.table       -0.4902   209.59
+/field/setToscaQ4         TOSCA/q1_6.47kG.table       -1.       274.59
+/field/setToscaQ5         TOSCA/lilly_119kG.table     -1.       422.80
+/field/setToscaQ6         none
+/field/Update
+
+To set fields the macro must be structured as:
+
+/field/setTOSCAQx         <relative file location>    <scaling for file>    <z-offset of file>
+
+And, to deactivate a field you can use the 'none' option.
+
+/field/setTOSCAQx         none
+
+NOTE: The command /field/update MUST BE RUN in order to activate field
+
+NOTE: Previous fields macro entries are saved.  So, if you want to update one field
+that's all you have to do.
