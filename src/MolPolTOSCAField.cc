@@ -163,16 +163,10 @@ void MolPolTOSCAField::ReadFieldMap(){
 
         //G4cout << "Raw read in for field " << raw_Bz << G4endl;
 
-        // FIXME: Double check this.
-        // Convert Oersted to Teslas: Oe * 1e-4 ~ T
-        raw_Bx *= 0.0001;
-        raw_By *= 0.0001;
-        raw_Bz *= 0.0001;
-
     		// Set the grid values to the values which have been read-in
-    		fBFieldData[0][nX][nY][nZ] = raw_Bx * tesla;
-    		fBFieldData[1][nX][nY][nZ] = raw_By * tesla;
-    		fBFieldData[2][nX][nY][nZ] = raw_Bz * tesla;
+    		fBFieldData[0][nX][nY][nZ] = raw_Bx * gauss;
+    		fBFieldData[1][nX][nY][nZ] = raw_By * gauss;
+    		fBFieldData[2][nX][nY][nZ] = raw_Bz * gauss;
 
         //FIXME: Delete me after bug checking... just sampling read in values.
         //if( nX%20==0 && nY%20==0 && nZ%20 == 0 ) G4cout << " Read-in B-Field(" << fBFieldData[0][nX][nY][nZ] / tesla << "," << fBFieldData[1][nX][nY][nZ] / tesla << "," << fBFieldData[2][nX][nY][nZ] / tesla << ")" << G4endl;
@@ -202,24 +196,15 @@ void MolPolTOSCAField::ReadFieldMap(){
   //G4cout << "ZMIN: " << ZMIN / cm << G4endl;
   //G4cout << "ZMAX: " << ZMAX / cm << G4endl; // Looks like these produce just fine.
 
-
   fInit = true;
-  G4cout << "... done reading " << nlines << " lines." << G4endl<< G4endl;
+  G4cout << "... read " << nlines << " lines." << G4endl;
 
-  // The Ultimate Style Guide
+  // The Ultimate Style Guide :)
   // https://twitter.com/ThePracticalDev/status/710156980535558144
 
 }
 
 void MolPolTOSCAField::GetFieldValue(const G4double Point[4], G4double *Bfield ) const {
-
-  //G4cout << G4endl << "Map received global point: (" << Point[0] / cm << "," << Point[1] / cm << "," << Point[2] / cm << "," << Point[3] / cm << ")." << G4endl;
-
-  //FIXME: Detlet after debugging
-  //G4cout << "TOSCA Received Point(" <<Point[0] / cm <<","<<Point[1] / cm <<","<<Point[2] / cm <<")"<<G4endl;
-
-  //G4cout << "zOffset for this map is: " << fZoffset / cm << " cm " << G4endl;
-
   G4double    x, y, z;
   G4double    fracVal[3], intVal[3];
   G4int       gridIndex[3]; // THESE ARE THE GRID LOCATIONS
@@ -233,44 +218,22 @@ void MolPolTOSCAField::GetFieldValue(const G4double Point[4], G4double *Bfield )
     Bfield[0] = 0.0;
     Bfield[1] = 0.0;
     Bfield[2] = 0.0;
-    //FIXME: Delete after buh checking
-    //G4cout << "Sending field: (" << Bfield[0] << "," << Bfield[1] << "," << Bfield[2] << ")" << G4endl;
     return;
-  } else {
-    //G4cout << ">>>>>>>>>>>>>>> point exists in TOSCA field map..." << G4endl;
   }
 
-  //G4cout << "Which is map local point: (" << Point[0] / cm << "," << Point[1] / cm << "," << Point[2] / cm << "," << Point[3] / cm << ")." << G4endl;
-
-  // Ensure we're going to get our grid indices correct
+  // Ensures we're going to get our grid indices correct
   assert( XMIN <= x && x < XMAX );
-  //G4cout << "Checking that local point x = " << x / cm << " falls between " << XMIN / cm << " and " << XMAX / cm << G4endl;
   assert( YMIN <= y && y < YMAX );
-  //G4cout << "Checking that local point y = " << y / cm << " falls between " << YMIN / cm << " and " << YMAX / cm << G4endl;;
   assert( ZMIN <= z && z < ZMAX );
-  //G4cout << "Checking that local point z = " << z / cm << " falls between " << ZMIN / cm << " and " << ZMAX / cm << G4endl;;
 
-  // Get interpolation variables; modf finds integer and fractional parts of input.
-  // Also: the Nx-1 here is fencepost problem as noted in remoll code.
   fracVal[0] = modf( ( x - XMIN )*(NX-1)/( XMAX - XMIN ), &(intVal[0]) );
-  //G4cout << "modf( ( " << x / cm << " - " << XMIN / cm << " )*(" << NX << "-1)/( " << XMAX / cm << " - " << XMIN / cm << " ), &(intval[0]) );" << G4endl;
-  //G4cout << "Point x has fracVal: " << fracVal[0] << " , and intVal: " << intVal[0] << G4endl;
   fracVal[1] = modf( ( y - YMIN )*(NY-1)/( YMAX - YMIN ), &(intVal[1]) );
-  //G4cout << "modf( ( " << y / cm << " - " << YMIN / cm << " )*(" << NY << "-1)/( " << YMAX / cm << " - " << YMIN / cm << " ), &(intval[1]) );" << G4endl;
-  //G4cout << "Point y has fracVal: " << fracVal[1] << " , and intVal: " << intVal[1] << G4endl;
   fracVal[2] = modf( ( z - ZMIN )*(NZ-1)/( ZMAX - ZMIN ), &(intVal[2]) );
-  //G4cout << "modf( ( " << z / cm << " - " << ZMIN nX/ cm << " )*(" << NZ << "-1)/( " << ZMAX / cm << " - " << ZMIN / cm << " ), &(intval[2]) );" << G4endl;
-  //G4cout << "Point z has fracVal: " << fracVal[2] << " , and intVal: " << intVal[2] << G4endl;
 
-  // Cast these to integers for indexing and check
   for( G4int i = 0; i < 3; i++ ) gridIndex[i] = (G4int) intVal[i];
-
   assert( 0 <= gridIndex[0] && gridIndex[0] < NX );
   assert( 0 <= gridIndex[1] && gridIndex[1] < NY );
   assert( 0 <= gridIndex[2] && gridIndex[2] < NZ );
-
-  // NOTE: THIS IS IN THE REMOLL CODE BUT I AM UNSURE WHY IT IS REPEATED ...
-  // Interpolate
   for( G4int i = 0; i < 3; i++ ) gridIndex[i] = (G4int) intVal[i];
 
   G4double Bint[3] = {0,0,0};
@@ -287,15 +250,9 @@ void MolPolTOSCAField::GetFieldValue(const G4double Point[4], G4double *Bfield )
     c0  = c00 * (1.0-fracVal[1]) + c10 * fracVal[1];
     c1  = c01 * (1.0-fracVal[1]) + c11 * fracVal[1];
     Bint[i] = c0 * (1.0-fracVal[2]) + c1 * fracVal[2];
-    //FIXME: DELETE AFTER BUG CHECKING
-    //G4cout << "TOSCA Point[" << i << "]:" << Point[i] << G4endl;
-    //G4cout << " TOCSA Bint[" << i << "]:" << Bint[i] << G4endl;
   }
 
   Bfield[0] = Bint[0] * fFieldScale;
   Bfield[1] = Bint[1] * fFieldScale;
   Bfield[2] = Bint[2] * fFieldScale;
-  //FIXME: Delete after bug checking
-  //G4cout << std::setprecision(6) << std::scientific << "TOSCA Sending B-field: ( " << Bfield[0] /tesla << " , " << Bfield[1] / tesla << " , " << Bfield[2] / tesla << " ) Tesla"
-  //       << std::setprecision(6) << std::fixed << " at Point (" << Point[0] / cm << "," << Point[1] /cm << "," << Point[2] / cm << ") cm" << G4endl;
 }
