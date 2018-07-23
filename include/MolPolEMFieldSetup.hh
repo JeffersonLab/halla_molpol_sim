@@ -74,8 +74,6 @@ public:
 
   G4int fMagSourceMode;
 
-  G4RotationMatrix* NOROT = new G4RotationMatrix;
-
   //external input current values
   G4double                    fQ1A;
   G4double                    fQ2A;
@@ -83,7 +81,6 @@ public:
   G4double                    fQ4A;
   G4double                    fQ5A;
   G4double                    fQ6A;
-
   //external input field (pole tip) values
   G4double                    fQ1T;
   G4double                    fQ2T;
@@ -91,26 +88,18 @@ public:
   G4double                    fQ4T;
   G4double                    fQ5T;
   G4double                    fQ6T;
+  
+  G4double                    ORIGINQ1 =  75.19 * cm;;
+  G4double                    ORIGINQ2 = 140.46 * cm;;
+  G4double                    ORIGINQ3 = 209.08 * cm;;
+  G4double                    ORIGINQ4 = 274.59 * cm;;
+  G4double                    ORIGIND  = 423.4  * cm;;
+  G4double                    ORIGINQ6 = 6.9    * cm;;
+  G4double                    BORERADIUS = 5.08 * cm;
 
-  G4double                    KAPPA1;
-  G4double                    KAPPA2;
-  G4double                    KAPPA3;
-  G4double                    KAPPA4;
-  G4double                    DIPOLE;
-  G4double                    SOLENOID;
+  G4RotationMatrix*           NOROT = new G4RotationMatrix;
 
-  G4double                    ORIGINQ1;
-  G4double                    ORIGINQ2;
-  G4double                    ORIGINQ3;
-  G4double                    ORIGINQ4;
-  G4double                    ORIGIND;
-  G4double                    ORIGINQ6;
-
-  G4double BORERADIUS = 5.08 * cm;
-
-  std::vector<G4String> fileNames;
-  std::vector<G4double> fileScales;
-  std::vector<G4double> fileOffsets;
+  G4String                    fToscaFields[6];
 
 private:
   MolPolEMField*              fEMfield;
@@ -131,28 +120,32 @@ private:
   G4int                       fStepperType ;
   G4double                    fMinStep ;
 
+  std::vector<G4String>       fileNames;
+  std::vector<G4double>       fileScales;
+  std::vector<G4double>       fileOffsets;
+
   //for local field at FZB1 and FZB2
-  MolPolQuad*                fMagFieldFZB1 ;
+  MolPolQuad*                 fMagFieldFZB1 ;
   G4Mag_UsualEqRhs*           fEquationFZB1 ;
   G4ChordFinder*              fChordFinderFZB1 ;
   G4MagIntegratorStepper*     fStepperFZB1 ;
   G4FieldManager*             fLocalFieldManagerFZB1;
-  MolPolQuad*                fMagFieldFZB2 ;
+  MolPolQuad*                 fMagFieldFZB2 ;
   G4Mag_UsualEqRhs*           fEquationFZB2 ;
   G4ChordFinder*              fChordFinderFZB2 ;
   G4MagIntegratorStepper*     fStepperFZB2 ;
   G4FieldManager*             fLocalFieldManagerFZB2;
-  MolPolQuad*                fMagFieldFZB3 ;
+  MolPolQuad*                 fMagFieldFZB3 ;
   G4Mag_UsualEqRhs*           fEquationFZB3 ;
   G4ChordFinder*              fChordFinderFZB3 ;
   G4MagIntegratorStepper*     fStepperFZB3 ;
   G4FieldManager*             fLocalFieldManagerFZB3;
-  MolPolQuad*                fMagFieldFZB4 ;
+  MolPolQuad*                 fMagFieldFZB4 ;
   G4Mag_UsualEqRhs*           fEquationFZB4 ;
   G4ChordFinder*              fChordFinderFZB4 ;
   G4MagIntegratorStepper*     fStepperFZB4 ;
   G4FieldManager*             fLocalFieldManagerFZB4;
-  MolPolDipole*                fMagFieldFZB5 ;
+  MolPolDipole*               fMagFieldFZB5 ;
   G4Mag_UsualEqRhs*           fEquationFZB5 ;
   G4ChordFinder*              fChordFinderFZB5 ;
   G4MagIntegratorStepper*     fStepperFZB5 ;
