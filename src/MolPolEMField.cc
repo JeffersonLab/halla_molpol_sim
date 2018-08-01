@@ -46,13 +46,8 @@ inline void MolPolEMField::GetFieldValue(const G4double Point[4],G4double *Bfiel
   Bfield[0]=BField3V.x();
   Bfield[1]=BField3V.y();
   Bfield[2]=BField3V.z();
-
-  //G4cout << "bUseBFieldMaps value: " << bUseBFieldMaps << G4endl;
-
   if(this->bUseBFieldMaps){
-    //G4cout << "fFields size: " << fFields.size() << G4endl;
     for (G4int i = 0; i < abs(fFields.size()); i++ ){
-      //G4cout << "Looking at fFields[" << i << "]" << G4endl;
       fFields[i]->GetFieldValue(Point, thisB);
       for (G4int j = 0; j < 3; j++) Bsum[j] += thisB[j];
     }
