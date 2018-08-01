@@ -100,7 +100,7 @@ public:
   G4RotationMatrix*           NOROT = new G4RotationMatrix;
 
   G4String                    fToscaFields[6];
-  G4double                    fToscaOffset[6] = {75.19 * cm, 140.46 *cm, 209.08 * cm, 274.59 * cm, 423.4 * cm, 6.9 * cm};
+  G4double                    fToscaOffset[6] = {75.19 * cm, 140.46 *cm, 209.08 * cm, 274.59 * cm, 423.4 * cm, 6.9 * cm}; 
 
 private:
   MolPolEMField*              fEMfield;
