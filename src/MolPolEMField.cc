@@ -11,7 +11,6 @@ MolPolEMField::MolPolEMField()
 {
   EField3V.set(0,0,0);
   BField3V.set(0,0,0);
-
   bUseBFieldMaps = false;
 }
 
@@ -21,10 +20,7 @@ MolPolEMField::MolPolEMField( std::vector<G4String> files , std::vector<G4double
 {
   EField3V.set(0,0,0);
   BField3V.set(0,0,0);
-
 	bUseBFieldMaps = true;
-  G4cout << "FIELD MAPS ON!" << G4endl;
-
   for(G4int i = 0; i < abs(files.size()); i++){
     AddNewField(files[i],scales[i],beamlineOffsets[i]);
   }
@@ -34,7 +30,6 @@ MolPolEMField::MolPolEMField( std::vector<G4String> files , std::vector<G4double
 // EMField Destructor
 MolPolEMField::~MolPolEMField()
 {
-
 }
 
 
@@ -80,11 +75,8 @@ inline void MolPolEMField::GetFieldValue(const G4double Point[4],G4double *Bfiel
 //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
 // Clear TOSCA field vector
 void MolPolEMField::clearToscaFields(){
-  G4cout << "Number of TOSCA field maps is " << fFields.size() << G4endl;
   fFields.clear();
-  G4cout << "Tosca field maps deleted. Current number is " << fFields.size() << G4endl;
   bUseBFieldMaps = false;
-  G4cout << "FIELD MAPS OFF!" << G4endl;
 }
 
 
@@ -93,10 +85,8 @@ void MolPolEMField::clearToscaFields(){
 void MolPolEMField::SetTOSCAFields( std::vector<G4String> files , std::vector<G4double> scales , std::vector<G4double> beamlineOffsets ){
   clearToscaFields();
   bUseBFieldMaps = true;
-  G4cout << "FIELD MAPS ON!" << G4endl;
   for(G4int i = 0; i < abs(files.size()); i++){
     AddNewField(files[i],scales[i],beamlineOffsets[i]);
-    G4cout << "fFields size now is " << fFields.size() << G4endl;
   }
 }
 
@@ -109,6 +99,6 @@ void MolPolEMField::AddNewField(G4String& name,G4double scale,G4double zOffset)
     MolPolTOSCAField *newToscaField = new MolPolTOSCAField(name,scale,zOffset);
     if (newToscaField->IsInit()) {
         fFields.push_back(newToscaField);
-        G4cout << __FUNCTION__ << ": field " << name << " was added." << G4endl << G4endl;
+        G4cout << __FUNCTION__ << ": TOSCA field " << name << " was added." << G4endl << G4endl;
     }
 }

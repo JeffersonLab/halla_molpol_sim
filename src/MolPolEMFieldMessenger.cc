@@ -74,27 +74,27 @@ MolPolEMFieldMessenger::MolPolEMFieldMessenger(MolPolEMFieldSetup* fieldSetup)
   // This can probably be done with just a single command since the global field
   // doesn't actually care about this...
   fToscaQ1Cmd = new G4UIcmdWithAString("/field/setToscaQ1",this);
-  fToscaQ1Cmd->SetGuidance("Q1 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ1Cmd->SetGuidance("Q1 TOSCA Map [relative file location] [map pole tip strength] [desired pole tip strength]");
   fToscaQ1Cmd->SetParameterName("ToscaQ1",false);
 
   fToscaQ2Cmd = new G4UIcmdWithAString("/field/setToscaQ2",this);
-  fToscaQ2Cmd->SetGuidance("Q2 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ2Cmd->SetGuidance("Q2 TOSCA Map [relative file location] [map pole tip strength] [desired pole tip strength]");
   fToscaQ2Cmd->SetParameterName("ToscaQ2",false);
 
   fToscaQ3Cmd = new G4UIcmdWithAString("/field/setToscaQ3",this);
-  fToscaQ3Cmd->SetGuidance("Q3 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ3Cmd->SetGuidance("Q3 TOSCA Map [relative file location] [map pole tip strength] [desired pole tip strength]");
   fToscaQ3Cmd->SetParameterName("ToscaQ3",false);
 
   fToscaQ4Cmd = new G4UIcmdWithAString("/field/setToscaQ4",this);
-  fToscaQ4Cmd->SetGuidance("Q4 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ4Cmd->SetGuidance("Q4 TOSCA Map [relative file location] [map pole tip strength] [desired pole tip strength]");
   fToscaQ4Cmd->SetParameterName("ToscaQ4",false);
 
   fToscaQ5Cmd = new G4UIcmdWithAString("/field/setToscaQ5",this);
-  fToscaQ5Cmd->SetGuidance("Q5 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ5Cmd->SetGuidance("Q5 TOSCA Map [relative file location] [map pole tip strength] [desired pole tip strength]");
   fToscaQ5Cmd->SetParameterName("ToscaQ5",false);
 
   fToscaQ6Cmd = new G4UIcmdWithAString("/field/setToscaQ6",this);
-  fToscaQ6Cmd->SetGuidance("Q6 TOSCA Map [relative file location] [field scale] [beamline offset of field in centimeters]");
+  fToscaQ6Cmd->SetGuidance("Q6 TOSCA Map [relative file location] [map pole tip strength] [desired pole tip strength]");
   fToscaQ6Cmd->SetParameterName("ToscaQ6",false);
 
 
@@ -173,15 +173,15 @@ void MolPolEMFieldMessenger::SetNewValue( G4UIcommand* cmd, G4String newValue)
     fEMfieldSetup->fQ6T = x;
   }else if( cmd == fToscaQ1Cmd ){
     G4String fname;
-    G4double scale;
-    G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+    G4double mapPoleTipStr;
+    G4double desPolTipStr;
+    if(std::istringstream(newValue) >> fname >> mapPoleTipStr >> desPolTipStr || newValue == "none" ){
       if(newValue == "none"){
         G4cout << "No TOSCA File for Q1." << G4endl;
       } else {
-        G4cout << "TOSCA File Q1 name: " << fname << G4endl
-               << "Scale: " << scale << G4endl
-               << "Offset: " << offset << G4endl;
+        G4cout << "  TOSCA File Q1 name: " << fname << G4endl
+               << "    Map Pole Tip (G): " <<  mapPoleTipStr << G4endl
+               << "Desired Pole Tip (G): " << desPolTipStr << G4endl;
       }
       fEMfieldSetup->fToscaFields[0] = newValue;
     } else {
@@ -189,31 +189,31 @@ void MolPolEMFieldMessenger::SetNewValue( G4UIcommand* cmd, G4String newValue)
     }
   }else if( cmd == fToscaQ2Cmd ){
     G4String fname;
-    G4double scale;
-    G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+    G4double mapPoleTipStr;
+    G4double desPolTipStr;
+    if(std::istringstream(newValue) >> fname >> mapPoleTipStr >> desPolTipStr || newValue == "none" ){
       if(newValue == "none"){
         G4cout << "No TOSCA File for Q2." << G4endl;
       } else {
-        G4cout << "TOSCA File Q2 name: " << fname << G4endl
-               << "Scale: " << scale << G4endl
-               << "Offset: " << offset << G4endl;
+        G4cout << "  TOSCA File Q2 name: " << fname << G4endl
+               << "    Map Pole Tip (G): " <<  mapPoleTipStr << G4endl
+               << "Desired Pole Tip (G): " << desPolTipStr << G4endl;
       }
       fEMfieldSetup->fToscaFields[1] = newValue;
     } else {
-      G4cout << "Incorrect macro entry for ToscaQ2y." << G4endl;
+      G4cout << "Incorrect macro entry for ToscaQ2." << G4endl;
     }
   }else if( cmd == fToscaQ3Cmd ){
     G4String fname;
-    G4double scale;
-    G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+    G4double mapPoleTipStr;
+    G4double desPolTipStr;
+    if(std::istringstream(newValue) >> fname >> mapPoleTipStr >> desPolTipStr || newValue == "none" ){
       if(newValue == "none"){
         G4cout << "No TOSCA File for Q3." << G4endl;
       } else {
         G4cout << "TOSCA File Q3 name: " << fname << G4endl
-               << "Scale: " << scale << G4endl
-               << "Offset: " << offset << G4endl;
+               << "    Map Pole Tip (G): " <<  mapPoleTipStr << G4endl
+               << "Desired Pole Tip (G): " << desPolTipStr << G4endl;
       }
       fEMfieldSetup->fToscaFields[2] = newValue;
     } else {
@@ -221,15 +221,15 @@ void MolPolEMFieldMessenger::SetNewValue( G4UIcommand* cmd, G4String newValue)
     }
   }else if( cmd == fToscaQ4Cmd ){
     G4String fname;
-    G4double scale;
-    G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+    G4double mapPoleTipStr;
+    G4double desPolTipStr;
+    if(std::istringstream(newValue) >> fname >> mapPoleTipStr >> desPolTipStr || newValue == "none" ){
       if(newValue == "none"){
         G4cout << "No TOSCA File for Q4." << G4endl;
       } else {
         G4cout << "TOSCA File Q4 name: " << fname << G4endl
-               << "Scale: " << scale << G4endl
-               << "Offset: " << offset << G4endl;
+               << "    Map Pole Tip (G): " <<  mapPoleTipStr << G4endl
+               << "Desired Pole Tip (G): " << desPolTipStr << G4endl;
       }
       fEMfieldSetup->fToscaFields[3] = newValue;
     } else {
@@ -237,15 +237,15 @@ void MolPolEMFieldMessenger::SetNewValue( G4UIcommand* cmd, G4String newValue)
     }
   }else if( cmd == fToscaQ5Cmd ){
     G4String fname;
-    G4double scale;
-    G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+    G4double mapPoleTipStr;
+    G4double desPolTipStr;
+    if(std::istringstream(newValue) >> fname >> mapPoleTipStr >> desPolTipStr || newValue == "none" ){
       if(newValue == "none"){
         G4cout << "No TOSCA File for Q5." << G4endl;
       } else {
         G4cout << "TOSCA File Q5 name: " << fname << G4endl
-               << "Scale: " << scale << G4endl
-               << "Offset: " << offset << G4endl;
+               << "    Map Pole Tip (G): " <<  mapPoleTipStr << G4endl
+               << "Desired Pole Tip (G): " << desPolTipStr << G4endl;
       }
       fEMfieldSetup->fToscaFields[4] = newValue;
     } else {
@@ -253,15 +253,15 @@ void MolPolEMFieldMessenger::SetNewValue( G4UIcommand* cmd, G4String newValue)
     }
   }else if( cmd == fToscaQ6Cmd ){
     G4String fname;
-    G4double scale;
-    G4double offset;
-    if(std::istringstream(newValue) >> fname >> scale >> offset || newValue == "none" ){
+    G4double mapPoleTipStr;
+    G4double desPolTipStr;
+    if(std::istringstream(newValue) >> fname >> mapPoleTipStr >> desPolTipStr || newValue == "none" ){
       if(newValue == "none"){
         G4cout << "No TOSCA File for Q6." << G4endl;
       } else {
         G4cout << "TOSCA File Q6 name: " << fname << G4endl
-               << "Scale: " << scale << G4endl
-               << "Offset: " << offset << G4endl;
+               << "    Map Pole Tip (G): " <<  mapPoleTipStr << G4endl
+               << "Desired Pole Tip (G): " << desPolTipStr << G4endl;
       }
       fEMfieldSetup->fToscaFields[5] = newValue;
     } else {

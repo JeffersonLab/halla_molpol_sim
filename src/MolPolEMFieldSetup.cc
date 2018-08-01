@@ -75,7 +75,7 @@ void MolPolEMFieldSetup::InitialseAll()
   G4double KAPPA3 = 0.;
   G4double KAPPA4 = 0.;
   G4double DIPOLE = 0.;
-  G4double SOLENOID = 0.;  
+  G4double SOLENOID = 0.;
 
   fMagFieldFZB1 = new MolPolQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, BORERADIUS);
   fEquationFZB1 = new G4Mag_UsualEqRhs(fMagFieldFZB1);
@@ -198,12 +198,12 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
     for(G4int i = 0; i < 6; i++){
       if( strstr(fToscaFields[i],"none") == NULL ){
         G4String fname;
-        G4double scale;
-        G4double offset;
-        if(std::istringstream( fToscaFields[i] ) >> fname >> scale >> offset ){
+        G4double mapFieldValue;
+        G4double desiredFieldValue;
+        if(std::istringstream( fToscaFields[i] ) >> fname >> mapFieldValue >> desiredFieldValue ){
           fileNames.push_back(fname);
-          fileScales.push_back(scale);
-          fileOffsets.push_back(offset * cm);
+          fileScales.push_back( desiredFieldValue / mapFieldValue );
+          fileOffsets.push_back( fToscaOffset[i] );
         }
         G4cout << "Added Q" << i+1 << " to fields list." << G4endl;
       } else {

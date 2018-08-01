@@ -60,17 +60,18 @@ NOTE: Currently the TOSCA version runs only in mode '2'. In order for to accommo
 
 Macros are set as such:
 
-/field/setToscaQ1         TOSCA/q1_6.47kG.table        1.2745    75.19
-/field/setToscaQ2         TOSCA/q2_6.145kG.table       1.1765   104.46
-/field/setToscaQ3         TOSCA/q1_6.47kG.table       -0.4902   209.59
-/field/setToscaQ4         TOSCA/q1_6.47kG.table       -1.       274.59
-/field/setToscaQ5         TOSCA/lilly_119kG.table     -1.       422.80
+/field/MagSourceMode      2
+/field/setToscaQ1         TOSCA/Q1_map_1011G.table         1.011       -6.5
+/field/setToscaQ2         TOSCA/Q2_map_6146G.table         6.146       -6.0
+/field/setToscaQ3         TOSCA/Q1_map_1011G.table         1.011       2.5
+/field/setToscaQ4         TOSCA/Q1_map_1011G.table         1.011       5.1
+/field/setToscaQ5         TOSCA/lilly_map_3.0kG.table      3.0         11.9
 /field/setToscaQ6         none
-/field/Update
+/field/update
 
 To set fields the macro must be structured as:
 
-/field/setTOSCAQx         <relative file location>    <scaling for file>    <z-offset of file>
+/field/setTOSCAQx    <relative file loc> <field tip strength of tosca file> <desired field tip strength for sim>
 
 And, to deactivate a field you can use the 'none' option.
 

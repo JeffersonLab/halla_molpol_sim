@@ -88,7 +88,7 @@ public:
   G4double                    fQ4T;
   G4double                    fQ5T;
   G4double                    fQ6T;
-  
+
   G4double                    ORIGINQ1 =  75.19 * cm;;
   G4double                    ORIGINQ2 = 140.46 * cm;;
   G4double                    ORIGINQ3 = 209.08 * cm;;
@@ -100,6 +100,7 @@ public:
   G4RotationMatrix*           NOROT = new G4RotationMatrix;
 
   G4String                    fToscaFields[6];
+  G4double                    fToscaOffset[6] = {75.19 * cm, 140.46 *cm, 209.08 * cm, 274.59 * cm, 423.4 * cm, 6.9 * cm};
 
 private:
   MolPolEMField*              fEMfield;
