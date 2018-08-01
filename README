@@ -71,7 +71,7 @@ Macros are set as such:
 
 To set fields the macro must be structured as:
 
-/field/setTOSCAQx    <relative file loc> <field tip strength of tosca file> <desired field tip strength for sim>
+/field/setTOSCAQx    <relative file loc> <field tip strength of TOSCA file> <desired field tip strength for simulation>
 
 And, to deactivate a field you can use the 'none' option.
 
