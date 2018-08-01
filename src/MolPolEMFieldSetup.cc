@@ -188,13 +188,10 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
   }
 
   if (fMagSourceMode == 2){
-    // clear the old fields from vector object in EMField that contains TOSCA maps
     fEMfield->clearToscaFields();
-    // clear the holding vectors
     fileNames.clear();
     fileScales.clear();
     fileOffsets.clear();
-    // populate the vectors to be sent to EM field to repopulate fFields
     for(G4int i = 0; i < 6; i++){
       if( strstr(fToscaFields[i],"none") == NULL ){
         G4String fname;
