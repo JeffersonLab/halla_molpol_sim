@@ -432,7 +432,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   // MAGNETS
   G4double pQ1Rin  =  5.08 * cm;  G4double pQ1Rout = 20.00 * cm;  G4double pQ1HL   = 18.29 * cm;  G4double pQ1Pos_Z= 75.19 * cm;
   G4double pQ2Rin  =  5.08 * cm;  G4double pQ2Rout = 20.00 * cm;  G4double pQ2HL   = 22.30 * cm;  G4double pQ2Pos_Z=140.46 * cm;
-  G4double pQ3Rin  =  5.08 * cm;  G4double pQ3Rout = 20.00 * cm;  G4double pQ3HL   = 18.37 * cm;  G4double pQ3Pos_Z=209.59 * cm;
+  G4double pQ3Rin  =  5.08 * cm;  G4double pQ3Rout = 20.00 * cm;  G4double pQ3HL   = 18.37 * cm;  G4double pQ3Pos_Z=209.08 * cm;
   G4double pQ4Rin  =  5.08 * cm;  G4double pQ4Rout = 20.00 * cm;  G4double pQ4HL   = 18.37 * cm;  G4double pQ4Pos_Z=274.59 * cm;
 
   G4VSolid* Q1Solid = new G4Tubs( "Q1Tubs", pQ1Rin, pQ1Rout, pQ1HL, 0.0, 360.0 * deg );
