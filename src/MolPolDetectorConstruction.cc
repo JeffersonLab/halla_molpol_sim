@@ -578,7 +578,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // DIPOLE Virtual Planes
-  G4double pVP2HLX    = 6.00 * cm;   G4double pVP2HLY   = 20.00 * cm;  G4double pVP2HLZ   = 0.1   * cm;
+  G4double pVP2HLX    = 6.00 * cm;   G4double pVP2HLY   = 20.00 * cm;  G4double pVP2HLZ   = 0.001   * cm;
   //Note: Vertical positions adjusted by 9*cm. Zoffset from dipole changed from 1*cm to 2*cm
   G4double pVP2Pos_X  = 0.00  * cm;  G4double pVP2Pos_Y = -9.00  * cm;  G4double pVP2Pos_Z = (422.8 - 98.5 - 2) * cm;
   G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = -9.00  * cm;  G4double pVP3Pos_Z = (422.8 + 98.5 + 2) * cm;
@@ -594,7 +594,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   VP3Logical->SetVisAttributes(VacVisAtt);
 
   new G4PVPlacement(0,G4ThreeVector(pVP2Pos_X, pVP2Pos_Y, pVP2Pos_Z), VP2Logical, "VP.Dipole.Entr", world_log, 0,0, fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(pVP3Pos_X, pVP3Pos_Y, pVP3Pos_Z), VP3Logical, "VP.Dipole.Exit", world_log, 0,0, fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(pVP3Pos_X, pVP3Pos_Y, pVP3Pos_Z -), VP3Logical, "VP.Dipole.Exit", world_log, 0,0, fCheckOverlaps);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -705,8 +705,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double offset = 3.5 * cm;
   // G4double offset = 0 * cm;
 
-  G4double pAPP1HLX   = 2.0 * cm;   G4double pAPP1HLY   = 15.5 * cm;    G4double pAPP1HLZ   = 0.75 * cm;
-  G4double pAPP1Pos_X = 4.4 * cm;   G4double pAPP1Pos_Y = 0.0 * cm + offset;    G4double pAPP1Pos_Z = 0.0 * cm;
+  G4double pAPP1HLX   = 2.0 * cm;   G4double pAPP1HLY   = 15.5 * cm;          G4double pAPP1HLZ   = 0.75 * cm;
+  G4double pAPP1Pos_X = 4.4 * cm;   G4double pAPP1Pos_Y = 0.0 * cm + offset;  G4double pAPP1Pos_Z = 0.0 * cm;
 
   G4VSolid* APP1LSolid = new G4Box( "APP1LBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
   G4VSolid* APP1RSolid = new G4Box( "APP1RBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
@@ -734,8 +734,12 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // HODOSCOPE Virtual Planes
-  G4double pVPHODHLZ = 0.1 * cm;
-  G4double pVPHODPos_Z = (0.0 - 0.85) * cm;
+  G4double pVPHODHLZ = 0.0001 * cm;
+  G4double pVPHODPos_Z = -1 * pAPP1HLZ;
+  // VP needs to be rotated to line up in front of HODOSCOPE properly so calculate rotated adjustment centered on APP1* to position.
+  // This now perfectly lines up -- Eric.
+  G4double VPHODPos_Zr = (pVPHODPos_Z - pVPHODHLZ) * cos(7.3*deg);
+  G4double VPHodPos_Yr = -1 * (pVPHODPos_Z - pVPHODHLZ) * sin(7.3*deg);
 
   G4VSolid* VPHOD1Solid = new G4Box( "VPHOD1", pAPP1HLX, pAPP1HLY, pVPHODHLZ);
   G4VSolid* VPHOD2Solid = new G4Box( "VPHOD2", pAPP1HLX, pAPP1HLY, pVPHODHLZ);
@@ -748,14 +752,14 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   VPHOD2Logical->SetVisAttributes(VacVisAtt);
 
   new G4PVPlacement(pRot7, G4ThreeVector(pMDBXPos_X + pMDBAPos_X + pMDETPos_X + pHOD1Pos_X + pAPP1Pos_X,
-             pMDBXPos_Y + pMDBAPos_Y + pMDETPos_Y + pHOD1Pos_Y + pAPP1Pos_Y,
-             pMDBXPos_Z + pMDBAPos_Z + pMDETPos_Z + pHOD1Pos_Z + pVPHODPos_Z),
-        VPHOD1Logical, "VP.Hodo.Left", world_log, 0,0, fCheckOverlaps);
+             pMDBXPos_Y + pMDBAPos_Y + pMDETPos_Y + pHOD1Pos_Y + pAPP1Pos_Y + VPHodPos_Yr,
+             pMDBXPos_Z + pMDBAPos_Z + pMDETPos_Z + pHOD1Pos_Z + pAPP1Pos_Z + VPHODPos_Zr),
+             VPHOD1Logical, "VP.Hodo.Left", world_log, 0,0, fCheckOverlaps);
 
   new G4PVPlacement(pRot7, G4ThreeVector(pMDBXPos_X + pMDBAPos_X + pMDETPos_X + pHOD1Pos_X - pAPP1Pos_X,
-             pMDBXPos_Y + pMDBAPos_Y + pMDETPos_Y + pHOD1Pos_Y + pAPP1Pos_Y,
-             pMDBXPos_Z + pMDBAPos_Z + pMDETPos_Z + pHOD1Pos_Z + pVPHODPos_Z),
-        VPHOD2Logical, "VP.Hodo.Right", world_log, 0,0, fCheckOverlaps);
+             pMDBXPos_Y + pMDBAPos_Y + pMDETPos_Y + pHOD1Pos_Y + pAPP1Pos_Y + VPHodPos_Yr,
+             pMDBXPos_Z + pMDBAPos_Z + pMDETPos_Z + pHOD1Pos_Z + pAPP1Pos_Z + VPHODPos_Zr),
+             VPHOD2Logical, "VP.Hodo.Right", world_log, 0,0, fCheckOverlaps);
 
 
   // // // // // // // // Sheilding // // // // // // // //
