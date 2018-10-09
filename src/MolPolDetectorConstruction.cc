@@ -598,19 +598,6 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // DETECTOR Virtual Plane
-  G4double pVP1HLX    = 37.00 * cm;  G4double pVP1HLY   = 50.00 * cm;  G4double pVP1HLZ   = 0.1   * cm;
-  G4double pVP1Pos_X  = 0.00  * cm;  G4double pVP1Pos_Y = -46.86* cm;  G4double pVP1Pos_Z = 660.0 * cm;
-
-  G4VSolid* VP1Solid  = new G4Box( "VP1BOX",  pVP1HLX, pVP1HLY, pVP1HLZ );
-  G4LogicalVolume* VP1Logical = new G4LogicalVolume(VP1Solid, Vacuum, "VPDetector", 0,0,0);
-  VP1Logical->SetSensitiveDetector( DETVP );
-  VP1Logical->SetVisAttributes(VacVisAtt);
-
-  new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pVP1Pos_Z), VP1Logical, "VP.Detector.Entr", world_log, 0,0, fCheckOverlaps);
-
-
-  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // DETECTOR AND BOX
   G4double pMDBXHLX   = 37.00 * cm;  G4double pMDBXHLY   = 47.10 * cm;  G4double pMDBXHLZ   = 61.20 * cm;
   G4double pMDBAHLX   = 18.50 * cm;  G4double pMDBAHLY   = 29.80 * cm;  G4double pMDBAHLZ   = 40.00 * cm;
@@ -685,6 +672,20 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
     GPARVOL102 'HOD2'   9  'MDET'    0.    0.  -16.0  0  'BOX '  3   9.2  16.5    15.2
     GPARVOL103 'HOD3'  15  'MDET'    0.    0.  -33.5  0  'BOX '  3   9.2  17.0     0.1
   */
+
+
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // DETECTOR Virtual Plane
+  G4double pVP1HLX    = 37.00 * cm;  G4double pVP1HLY   = 50.00 * cm;  G4double pVP1HLZ   = 0.0001   * cm;
+  G4double pVP1Pos_X  = 0.00  * cm;  G4double pVP1Pos_Y = -46.86* cm;  G4double pVP1Pos_Z = 660.0 * cm;
+
+  G4VSolid* VP1Solid  = new G4Box( "VP1BOX",  pVP1HLX, pVP1HLY, pVP1HLZ );
+  G4LogicalVolume* VP1Logical = new G4LogicalVolume(VP1Solid, Vacuum, "VPDetector", 0,0,0);
+  VP1Logical->SetSensitiveDetector( DETVP );
+  VP1Logical->SetVisAttributes(VacVisAtt);
+
+  //new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pVP1Pos_Z), VP1Logical, "VP.Detector.Entr", world_log, 0,0, fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pMDBXPos_Z - pMDBXHLZ - pVP1HLZ ), VP1Logical, "VP.Detector.Entr", world_log, 0,0, fCheckOverlaps);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
