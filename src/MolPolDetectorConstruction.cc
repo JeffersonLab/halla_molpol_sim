@@ -489,7 +489,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Planes for Virtual Detectors
-  G4VSolid*        VBSolid   = new G4Tubs("VBSolid",0,pQ1Rout, 0.00001 * mm ,0.0,360.0*deg);
+  G4double         VBSolidHLZ = 0.00001*mm;
+  G4double         VBSolidRad = 20.*cm;
+  G4VSolid*        VBSolid   = new G4Tubs("VBSolid",0,VBSolidRad, VBSolidHLZ ,0.0,360.0*deg);
   G4LogicalVolume* Q1ENLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q1ENLogical",0,0,0);
   G4LogicalVolume* Q1EXLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q1EXLogical",0,0,0);
   G4LogicalVolume* Q2ENLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q2ENLogical",0,0,0);
@@ -556,14 +558,14 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   Q4ENLogical->SetSensitiveDetector(Q4ENSD);
   Q4EXLogical->SetSensitiveDetector(Q4EXSD);
 
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z - pQ1HL ), Q1ENLogical,"VP.Q1.Entr",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z + pQ1HL ), Q1EXLogical,"VP.Q1.Exit",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z - pQ2HL ), Q2ENLogical,"VP.Q2.Entr",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z + pQ2HL ), Q2EXLogical,"VP.Q2.Exit",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z - pQ3HL ), Q3ENLogical,"VP.Q3.Entr",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z + pQ3HL ), Q3EXLogical,"VP.Q3.Exit",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z - pQ4HL ), Q4ENLogical,"VP.Q4.Entr",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z + pQ4HL ), Q4EXLogical,"VP.Q4.Exit",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z - pQ1HL - VBSolidHLZ ), Q1ENLogical,"VP.Q1.Entr",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z + pQ1HL + VBSolidHLZ ), Q1EXLogical,"VP.Q1.Exit",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z - pQ2HL - VBSolidHLZ ), Q2ENLogical,"VP.Q2.Entr",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z + pQ2HL + VBSolidHLZ ), Q2EXLogical,"VP.Q2.Exit",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z - pQ3HL - VBSolidHLZ ), Q3ENLogical,"VP.Q3.Entr",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ3Pos_Z + pQ3HL + VBSolidHLZ ), Q3EXLogical,"VP.Q3.Exit",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z - pQ4HL - VBSolidHLZ ), Q4ENLogical,"VP.Q4.Entr",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(0,0,pQ4Pos_Z + pQ4HL + VBSolidHLZ ), Q4EXLogical,"VP.Q4.Exit",world_log,0,0,fCheckOverlaps);
 
   // Virtual Plane immediately after target :: these six lines can safely be removed when no longer needed. -Eric King
   G4LogicalVolume* TargVPLogical = new G4LogicalVolume(VBSolid, Vacuum, "TargVPLogical",0,0,0);
