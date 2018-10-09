@@ -35,7 +35,7 @@ void MolPolDetectorConstruction::StandModeSet(G4int standMode = 0) {
 
 
 MolPolDetectorConstruction::MolPolDetectorConstruction():
-  fCheckOverlaps(false)
+  fCheckOverlaps(true)
 {
   mEMFieldSetup = 0;
 }
@@ -154,6 +154,17 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4FieldManager* Q6FieldManager = mEMFieldSetup->GetFieldManagerFZB6();
   G4bool allLocal = true;
 
+
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // HELMHOLTZ COIL Magnetic Volume
+  G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 38.1  * cm;  G4double pQ6Pos_z=   6.9 * cm;
+  G4VSolid* Q6MagSolid = new G4Tubs( "Q6MagTubs", pQ6Rin, pQ6Rout, pQ6HL, 0.0, 360.0 * deg);
+  G4LogicalVolume* Q6MagLogical = new G4LogicalVolume(Q6MagSolid, Vacuum, "Q6Mag", 0,0,0);
+  Q6MagLogical->SetFieldManager(Q6FieldManager, allLocal);
+  Q6MagLogical->SetVisAttributes(VacVisAtt);
+  new G4PVPlacement(0, G4ThreeVector(0, 0, pQ6Pos_z), Q6MagLogical, "Q6Mag", world_log, 0, 0, fCheckOverlaps);
+
+
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Target
   G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm;   G4double pMTATHLZ = 0.0062 * cm;
@@ -161,7 +172,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* MTATSolid = new G4Tubs( "MTATTube", pMTATRin, pMTATRout, pMTATHLZ, 0.0, 360.0 * deg );
   G4LogicalVolume* MTATLogical = new G4LogicalVolume(MTATSolid, iron, "Target", 0, 0, 0);
   MTATLogical->SetVisAttributes(IronVisAtt);
-  new G4PVPlacement(0, G4ThreeVector(0,0,pMTATPos_Z), MTATLogical, "Target", world_log, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(0,0,pMTATPos_Z), MTATLogical, "Target", Q6MagLogical, 0, 0, fCheckOverlaps);
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Target BPIPE
@@ -184,16 +195,6 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // HELMHOLTZ COIL Magnetic Volume
-  G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 38.1  * cm;  G4double pQ6Pos_z=   6.9 * cm;
-  G4VSolid* Q6MagSolid = new G4Tubs( "Q6MagTubs", pQ6Rin, pQ6Rout, pQ6HL, 0.0, 360.0 * deg);
-  G4LogicalVolume* Q6MagLogical = new G4LogicalVolume(Q6MagSolid, Vacuum, "Q6Mag", 0,0,0);
-  Q6MagLogical->SetFieldManager(Q6FieldManager, allLocal);
-  Q6MagLogical->SetVisAttributes(VacVisAtt);
-  new G4PVPlacement(0, G4ThreeVector(0, 0, pQ6Pos_z), Q6MagLogical, "Q6Mag", world_log, 0, 0, fCheckOverlaps);
-
-
-  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Helmholtz Coil 'Physical' Volume
   G4double pHLMZRin = 5.10 * cm;   G4double pHLMZRout = 15.0 * cm;   G4double pHLMZHLZ = 5.0 * cm;
   G4double pHLMZ1Pos_X = 0.0 * cm;   G4double pHLMZ1Pos_Y = 0.0 * cm;   G4double pHLMZ1Pos_Z = -5.7 * cm;
@@ -207,8 +208,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   HLMZ1Logical->SetVisAttributes(CuVisAtt);
   HLMZ2Logical->SetVisAttributes(CuVisAtt);
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ1Pos_Z), HLMZ1Logical, "Helmholtz1", world_log, 0, 0, fCheckOverlaps);
-  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ2Pos_Z), HLMZ2Logical, "Helmholtz2", world_log, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ1Pos_Z), HLMZ1Logical, "Helmholtz1", Q6MagLogical, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ2Pos_Z), HLMZ2Logical, "Helmholtz2", Q6MagLogical, 0, 0, fCheckOverlaps);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
