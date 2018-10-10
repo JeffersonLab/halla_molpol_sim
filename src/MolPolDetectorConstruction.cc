@@ -172,7 +172,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* MTATSolid = new G4Tubs( "MTATTube", pMTATRin, pMTATRout, pMTATHLZ, 0.0, 360.0 * deg );
   G4LogicalVolume* MTATLogical = new G4LogicalVolume(MTATSolid, iron, "Target", 0, 0, 0);
   MTATLogical->SetVisAttributes(IronVisAtt);
-  new G4PVPlacement(0, G4ThreeVector(0,0,pMTATPos_Z), MTATLogical, "Target", Q6MagLogical, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(0,0,pMTATPos_Z - pQ6Pos_z), MTATLogical, "Target", Q6MagLogical, 0, 0, fCheckOverlaps);
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Target BPIPE
@@ -208,8 +208,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   HLMZ1Logical->SetVisAttributes(CuVisAtt);
   HLMZ2Logical->SetVisAttributes(CuVisAtt);
 
-  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ1Pos_Z), HLMZ1Logical, "Helmholtz1", Q6MagLogical, 0, 0, fCheckOverlaps);
-  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ2Pos_Z), HLMZ2Logical, "Helmholtz2", Q6MagLogical, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ1Pos_Z - pQ6Pos_z), HLMZ1Logical, "Helmholtz1", Q6MagLogical, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(0, 0, pHLMZ2Pos_Z - pQ6Pos_z), HLMZ2Logical, "Helmholtz2", Q6MagLogical, 0, 0, fCheckOverlaps);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
