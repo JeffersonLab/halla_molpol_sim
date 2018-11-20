@@ -9,6 +9,7 @@ class G4UIcmdWithAnInteger;
 class G4UIcmdWithADouble;
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWithoutParameter;
+class G4UIcmdWithAString;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -26,20 +27,25 @@ class MolPolEMFieldMessenger: public G4UImessenger
 
     G4UIdirectory*             fFieldDir;
 
-    G4UIcmdWithAnInteger*      fMagSourceCmd;
     G4UIcmdWithADouble*        fQ1ACmd;
     G4UIcmdWithADouble*        fQ2ACmd;
     G4UIcmdWithADouble*        fQ3ACmd;
     G4UIcmdWithADouble*        fQ4ACmd;
-    G4UIcmdWithADouble*        fQ5ACmd;
-    G4UIcmdWithADouble*        fQ6ACmd;
+    G4UIcmdWithADouble*        fDipACmd;
+
+    G4UIcmdWithADouble*        fSetSolenoidCmd;
 
     G4UIcmdWithADouble*        fQ1TCmd;
     G4UIcmdWithADouble*        fQ2TCmd;
     G4UIcmdWithADouble*        fQ3TCmd;
     G4UIcmdWithADouble*        fQ4TCmd;
-    G4UIcmdWithADouble*        fQ5TCmd;
-    G4UIcmdWithADouble*        fQ6TCmd;
+    G4UIcmdWithADouble*        fDipTCmd;
+
+    G4UIcmdWithAString*        fQ1MCmd;
+    G4UIcmdWithAString*        fQ2MCmd;
+    G4UIcmdWithAString*        fQ3MCmd;
+    G4UIcmdWithAString*        fQ4MCmd;
+    G4UIcmdWithAString*        fDipMCmd;
 
     G4UIcmdWithoutParameter*   fUpdateCmd;
 
