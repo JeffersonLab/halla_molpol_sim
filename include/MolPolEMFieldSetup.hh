@@ -44,51 +44,7 @@ public:
 
   G4FieldManager* GetFieldManager(){return fFieldManager;}
 
-  //Local field  FZB1
-  void UpdateFieldFZB1();
-  void SetBField3VFZB1(G4double fieldGradient);
-  G4FieldManager* GetFieldManagerFZB1(){return fLocalFieldManagerFZB1;}
-  //Local field  FZB2
-  void UpdateFieldFZB2();
-  void SetBField3VFZB2(G4double fieldGradient);
-  G4FieldManager* GetFieldManagerFZB2(){return fLocalFieldManagerFZB2;}
-  //Local field  FZB3
-  void UpdateFieldFZB3();
-  void SetBField3VFZB3(G4double fieldGradient);
-  G4FieldManager* GetFieldManagerFZB3(){return fLocalFieldManagerFZB3;}
-  //Local field  FZB4
-  void UpdateFieldFZB4();
-  void SetBField3VFZB4(G4double fieldGradient);
-  G4FieldManager* GetFieldManagerFZB4(){return fLocalFieldManagerFZB4;}
-  //Local field  FZB5
-  void UpdateFieldFZB5();
-  void SetBField3VFZB5(G4double fieldGradient);
-  G4FieldManager* GetFieldManagerFZB5(){return fLocalFieldManagerFZB5;}
-
-  //Local field  FZB6
-  void UpdateFieldFZB6();
-  void SetBField3VFZB6(G4double fieldGradient);
-  G4FieldManager* GetFieldManagerFZB6(){return fLocalFieldManagerFZB6;}
-
   void UpdateConfiguration();
-
-  G4int fMagSourceMode;
-
-  //external input current values
-  G4double                    fQ1A;
-  G4double                    fQ2A;
-  G4double                    fQ3A;
-  G4double                    fQ4A;
-  G4double                    fQ5A;
-  G4double                    fQ6A;
-
-  //external input field (pole tip) values
-  G4double                    fQ1T;
-  G4double                    fQ2T;
-  G4double                    fQ3T;
-  G4double                    fQ4T;
-  G4double                    fQ5T;
-  G4double                    fQ6T;
 
 private:
   MolPolEMField*              fEMfield;
@@ -97,49 +53,56 @@ private:
   G4EqMagElectricField*       fEquation ;
   G4MagIntegratorStepper*     fStepper ;
   G4MagInt_Driver*            fIntgrDriver;
-  G4MagInt_Driver*            fIntgrDriverFZB1;
-  G4MagInt_Driver*            fIntgrDriverFZB2;
-  G4MagInt_Driver*            fIntgrDriverFZB3;
-  G4MagInt_Driver*            fIntgrDriverFZB4;
-  G4MagInt_Driver*            fIntgrDriverFZB5;
-  G4MagInt_Driver*            fIntgrDriverFZB6;
 
   MolPolEMFieldMessenger*     fFieldMessenger;
 
   G4int                       fStepperType ;
-  G4double                    fMinStep ;
+  G4double                    fMinStep;
 
-  //for local field at FZB1 and FZB2
-  MolPolQuad*                fMagFieldFZB1 ;
-  G4Mag_UsualEqRhs*           fEquationFZB1 ;
-  G4ChordFinder*              fChordFinderFZB1 ;
-  G4MagIntegratorStepper*     fStepperFZB1 ;
-  G4FieldManager*             fLocalFieldManagerFZB1;
-  MolPolQuad*                fMagFieldFZB2 ;
-  G4Mag_UsualEqRhs*           fEquationFZB2 ;
-  G4ChordFinder*              fChordFinderFZB2 ;
-  G4MagIntegratorStepper*     fStepperFZB2 ;
-  G4FieldManager*             fLocalFieldManagerFZB2;
-  MolPolQuad*                fMagFieldFZB3 ;
-  G4Mag_UsualEqRhs*           fEquationFZB3 ;
-  G4ChordFinder*              fChordFinderFZB3 ;
-  G4MagIntegratorStepper*     fStepperFZB3 ;
-  G4FieldManager*             fLocalFieldManagerFZB3;
-  MolPolQuad*                fMagFieldFZB4 ;
-  G4Mag_UsualEqRhs*           fEquationFZB4 ;
-  G4ChordFinder*              fChordFinderFZB4 ;
-  G4MagIntegratorStepper*     fStepperFZB4 ;
-  G4FieldManager*             fLocalFieldManagerFZB4;
-  MolPolDipole*                fMagFieldFZB5 ;
-  G4Mag_UsualEqRhs*           fEquationFZB5 ;
-  G4ChordFinder*              fChordFinderFZB5 ;
-  G4MagIntegratorStepper*     fStepperFZB5 ;
-  G4FieldManager*             fLocalFieldManagerFZB5;
-  MolPolSolenoid*             fMagFieldFZB6 ;
-  G4Mag_UsualEqRhs*           fEquationFZB6 ;
-  G4ChordFinder*              fChordFinderFZB6 ;
-  G4MagIntegratorStepper*     fStepperFZB6 ;
-  G4FieldManager*             fLocalFieldManagerFZB6;
+  // These don't change. I hate to add class variables. But I think they're better here
+  G4double                    ORIGINQ1   =  75.19 * cm;
+  G4double                    ORIGINQ2   = 140.46 * cm;
+  G4double                    ORIGINQ3   = 209.08 * cm;
+  G4double                    ORIGINQ4   = 274.59 * cm;
+  G4double                    ORIGIND    = 423.4  * cm;
+  G4double                    ORIGINQ6   = 6.9    * cm;
+  G4double                    BORERADIUS = 5.08 * cm;
+
+  G4RotationMatrix*           NOROT = new G4RotationMatrix;
+
+public:
+  // Types same as before 0: Ideal by amps, 1: Ideal by teslas, 2: TOSCA Map
+  G4int                       iDipoleType = 1;
+  G4int                       iQuad1Type  = 1;
+  G4int                       iQuad2Type  = 1;
+  G4int                       iQuad3Type  = 1;
+  G4int                       iQuad4Type  = 1;
+
+public:
+  ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // Values which come from the macro. Must be public unless you want to write functions to fill.... :/
+  //Dipole
+  G4double                    dDipRelevantStr = 0.0;
+  G4double                    dDipToscaMapStr = 1.0;
+  G4String                    strDipoleMapLoc = " ";
+  //Q4
+  G4double                    dQuad4RelevantStr = 0.0;
+  G4double                    dQuad4ToscaMapStr = 1.0;
+  G4String                    strQuad4MapLoc = " ";
+  //Q3
+  G4double                    dQuad3RelevantStr = 0.0;
+  G4double                    dQuad3ToscaMapStr = 1.0;
+  G4String                    strQuad3MapLoc = " ";
+  //Q2
+  G4double                    dQuad2RelevantStr = 0.0;
+  G4double                    dQuad2ToscaMapStr = 1.0;
+  G4String                    strQuad2MapLoc = " ";
+  //Q1
+  G4double                    dQuad1RelevantStr = 0.0;
+  G4double                    dQuad1ToscaMapStr = 1.0;
+  G4String                    strQuad1MapLoc = " ";
+  //SOLENOID
+  G4double                    dSolRelevantStr = 0.0;
 
   G4double CalA2T(G4double current, G4int magnet);
 
