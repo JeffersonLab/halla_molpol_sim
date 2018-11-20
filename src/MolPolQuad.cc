@@ -33,28 +33,32 @@
 
 static G4RotationMatrix IdentityMatrix;
 
-MolPolQuad::MolPolQuad(G4double pGradient, G4ThreeVector pOrigin, G4RotationMatrix* pMatrix, G4double pRadius)
+MolPolQuad::MolPolQuad(G4double pGradient, G4ThreeVector pOrigin, G4RotationMatrix* pMatrix, G4double pRadius, G4double pZeff)
 {
   fGradient    = pGradient ;
   fOrigin      = pOrigin ;
-  fpMatrix     = pMatrix ;
+  fMatrix      = pMatrix ;
   fRadius      = pRadius;
+  fZeff        = pZeff;
 }
 
 
 /////////////////////////////////////////////////////////////////////////
 
-void MolPolQuad::UpdateQuad(G4double pGradient, G4ThreeVector pOrigin, G4RotationMatrix* pMatrix, G4double pRadius)
-{
+void MolPolQuad::updateQuad(G4double pGradient, G4ThreeVector pOrigin, G4RotationMatrix* pMatrix, G4double pRadius, G4double pZeff){
   fGradient    = pGradient ;
   fOrigin      = pOrigin ;
-  fpMatrix     = pMatrix ;
+  fMatrix      = pMatrix ;
   fRadius      = pRadius;
+  fZeff        = pZeff;
+}
+
+void MolPolQuad::updateQuad(G4double pGradient){
+  fGradient    = pGradient;
 }
 
 /////////////////////////////////////////////////////////////////////////
-MolPolQuad::~MolPolQuad()
-{
+MolPolQuad::~MolPolQuad(){
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -63,36 +67,44 @@ MolPolQuad::~MolPolQuad()
 
 void MolPolQuad::GetFieldValue( const G4double y[4], G4double B[3]  ) const
 {
+  // note: now that the Quads are part of global field rather than being calculated
+  // by local field manager in logical volume y[] are alread in global coordinates
+  // so the calculation of local is unnecessary.
 
+  //initialize B array to zero.
   B[0] = 0;
   B[1] = 0;
   B[2] = 0;
 
-  G4ThreeVector r_global= G4ThreeVector
-    (y[0] - fOrigin.x(),
-     y[1] - fOrigin.y(),
-     y[2] - fOrigin.z());
+  G4ThreeVector position = G4ThreeVector(y[0],y[1],y[2]);
+  //  G4cout << "  Quad @ P(" << y[0]/10 << "," << y[1]/10 << "," << y[2]/10 << ") cm" << G4endl;
+  //  G4cout << "  Quad Boundary Z(" << (fOrigin.z() - 0.5 * fZeff)/10 << "," << (fOrigin.z() + 0.5 * fZeff)/10 << ") cm" << G4endl;
 
-  G4ThreeVector r_local = G4ThreeVector
-    (fpMatrix->colX() * r_global,
-     fpMatrix->colY() * r_global,
-     fpMatrix->colZ() * r_global);
 
-  G4ThreeVector B_local = G4ThreeVector
-    (fGradient * r_local.y(),
-     fGradient * r_local.x(),
-     0);
+  // what is rsquared
+  G4double rsquared = (position.x() * position.x() + position.y() * position.y());
 
-  G4ThreeVector B_global = G4ThreeVector
-    (fpMatrix->rowX() * B_local,
-     fpMatrix->rowY() * B_local,
-     fpMatrix->rowZ() * B_local);
+  // first, check the least likely thing that z is within allowed space for idealized quad field
+  // then, check rsquared
+  // then calculate and return field
 
-  G4double rquad = (r_global.x() * r_global.x() + r_global.y() * r_global.y());
-  if(rquad < (fRadius * fRadius))
-    {
-      B[0] = -1.0 * B_global.x() ;
-      B[1] = -1.0 * B_global.y() ;
-      B[2] = B_global.z() ;
+  if( (position.z() > (fOrigin.z() - 0.5 * fZeff)) && (position.z() < (fOrigin.z() + 0.5 * fZeff)) ){
+    if(rsquared < (fRadius * fRadius)){
+
+      // idealized quad field Bx = kappa * y, By = kappa * x
+      G4ThreeVector idealizedField = G4ThreeVector(fGradient * position.y(),
+                                                   fGradient * position.x(),
+                                                   0.0);
+      // do we want quad field misaligned (leaving as option for Don)
+      G4ThreeVector rotatedField = G4ThreeVector(fMatrix->rowX() * idealizedField,
+                                                 fMatrix->rowY() * idealizedField,
+                                                 fMatrix->rowZ() * idealizedField);
+      B[0] = -1.0 * rotatedField.x() ;
+      B[1] = -1.0 * rotatedField.y() ;
+      B[2] = rotatedField.z() ;
     }
+  } else {
+    //G4cout << "  OUT OF QUAD BOUNDARY!" << G4endl;
+  }
+
 }
