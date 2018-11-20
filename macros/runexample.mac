@@ -1,37 +1,29 @@
 /run/initialize
 
 /MolPol/gen               moller
-/MolPol/filename          MolPol_REMOLL.root
-/MolPol/calculateLevchuk  true
+/MolPol/filename          testNewEMFieldClass.root
+/MolPol/calculateLevchuk  false
 /MolPol/targetPolPct      0.075
-/MolPol/radCorrections    true
-/MolPol/remollMS          true
-/MolPol/seed              50
+/MolPol/radCorrections    false
+/MolPol/remollMS          false
+/MolPol/seed              8675309
 
-/MolPol/fz                6.9 cm
+/MolPol/beamE             2.05642 GeV
 
-/MolPol/thcommin          70 deg
-/MolPol/thcommax          110 deg
-/MolPol/phimin            -25 deg
-/MolPol/phimax            25  deg
+#####     NARROW TEST RANGE     #####
+/MolPol/thcommin          80 deg
+/MolPol/thcommax          100 deg
+/MolPol/phimin            -5 deg
+/MolPol/phimax            5  deg
 
-/field/MagSourceMode      1
-
-/field/setQ1T             -0.171
-/field/setQ2T             0.131
-/field/setQ3T             0.096
-/field/setQ4T             0.206
-/field/setQ5T             0.700
-
-#/MolPol/emin             1.063 GeV
-#/MolPol/emax             1.063 GeV
-#/MolPol/beamE            10.6 GeV
-/MolPol/beamE             5.0 GeV
-#/MolPol/beamE            8.5 GeV
-#/MolPol/beamE            4.5 GeV
-
-/gun/particle             e-
-
+/field/setSolenoid        3.0
+#/field/setQ1T            0.038
+/field/setQ1M             ../Q1_map_1011G_precisionReduced.table   1011   380
+/field/setQ2T             0.17
+/field/setQ3T             0.0
+/field/setQ4T             0.056
+#/field/setDipT            0.303
+/field/setDipM            ../lilly_map_3.0kG_precisionReduced.table   3.0   3.03
 /field/update
 
-/run/beamOn               50000
+/run/beamOn               50
