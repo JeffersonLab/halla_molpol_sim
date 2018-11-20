@@ -11,6 +11,8 @@
 //  Objects in MolPolEMfield() are managed through MolPolEMfieldSetup(). this
 //  class should STRICTLY serve as the field object.
 //
+//  thisB[] is reset after probing each field region.
+//
 //  ***There are probably ways to slightly speed up this portion of the simulation.
 //  (1) Fields now have on-off boolean assigned.
 //  (2) Perhaps limit boundaries for field checking by Zeff? Logical checks probably
@@ -49,31 +51,37 @@ inline void MolPolEMField::GetFieldValue(const G4double Point[4],G4double *Bfiel
   //G4cout << "CALCULATE THE FIELD VALUE......................................................................................." << G4endl;
   // Get solenoid field
   if(bBfieldInUse[0] == true){
+    for(G4int i = 0; i < 3; i++) thisB[i] = 0.0;
     cSolenoidField->GetFieldValue(Point,thisB);
     //G4cout << "\nVolume Summary Solenoid @ P(" << Point[0]/cm << "," << Point[1]/cm << "," << Point[2]/cm << ") and B(" << thisB[0]/tesla << "," << thisB[1]/tesla << "," << thisB[2]/tesla << ")" << G4endl;
     for (G4int i = 0; i < 3; i++) Bsum[i] += thisB[i];
   }
   if(bBfieldInUse[1] == true){
+    for(G4int i = 0; i < 3; i++) thisB[i] = 0.0;
     cQuad1Field->GetFieldValue(Point,thisB);
     //G4cout << "Volume Summary Quad1 @ P(" << Point[0]/cm << "," << Point[1]/cm << "," << Point[2]/cm << ") and B(" << thisB[0]/tesla << "," << thisB[1]/tesla << "," << thisB[2]/tesla << ")" << G4endl;
     for (G4int i = 0; i < 3; i++) Bsum[i] += thisB[i];
   }
   if(bBfieldInUse[2] == true){
+    for(G4int i = 0; i < 3; i++) thisB[i] = 0.0;
     cQuad2Field->GetFieldValue(Point,thisB);
     //G4cout << "Volume Summary Quad2 @ P(" << Point[0]/cm << "," << Point[1]/cm << "," << Point[2]/cm << ") and B(" << thisB[0]/tesla << "," << thisB[1]/tesla << "," << thisB[2]/tesla << ")" << G4endl;
     for (G4int i = 0; i < 3; i++) Bsum[i] += thisB[i];
   }
   if(bBfieldInUse[3] == true){
+    for(G4int i = 0; i < 3; i++) thisB[i] = 0.0;
     cQuad3Field->GetFieldValue(Point,thisB);
     //G4cout << "Volume Summary Quad3 @ P(" << Point[0]/cm << "," << Point[1]/cm << "," << Point[2]/cm << ") and B(" << thisB[0]/tesla << "," << thisB[1]/tesla << "," << thisB[2]/tesla << ")" << G4endl;
     for (G4int i = 0; i < 3; i++) Bsum[i] += thisB[i];
   }
   if(bBfieldInUse[4] == true){
+    for(G4int i = 0; i < 3; i++) thisB[i] = 0.0;
     cQuad4Field->GetFieldValue(Point,thisB);
     //G4cout << "Volume Summary Quad4 @ P(" << Point[0]/cm << "," << Point[1]/cm << "," << Point[2]/cm << ") and B(" << thisB[0]/tesla << "," << thisB[1]/tesla << "," << thisB[2]/tesla << ")" << G4endl;
     for (G4int i = 0; i < 3; i++) Bsum[i] += thisB[i];
   }
   if(bBfieldInUse[5] == true){
+    for(G4int i = 0; i < 3; i++) thisB[i] = 0.0;
     cDipoleField->GetFieldValue(Point,thisB);
     //G4cout << "Volume Summary Dipole @ P(" << Point[0]/cm << "," << Point[1]/cm << "," << Point[2]/cm << ") and B(" << thisB[0]/tesla << "," << thisB[1]/tesla << "," << thisB[2]/tesla << ")" << G4endl;
     for (G4int i = 0; i < 3; i++) Bsum[i] += thisB[i];
