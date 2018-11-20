@@ -21,7 +21,7 @@ MolPolRunAction::~MolPolRunAction()
 void MolPolRunAction::BeginOfRunAction(const G4Run* aRun)
 {
   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl;
-  //  timer->Start();
+  timer->Start();
   fIO->InitializeTree();
 
 }
@@ -29,9 +29,8 @@ void MolPolRunAction::BeginOfRunAction(const G4Run* aRun)
 void MolPolRunAction::EndOfRunAction(const G4Run* aRun)
 {
   timer->Stop();
-  G4cout << "number of event = " << aRun->GetNumberOfEvent() << G4endl;
-  //       << " " << *timer << G4endl;
+  G4cout << "Number of events run: " << aRun->GetNumberOfEvent() << G4endl;
+  G4cout << "        Geant4 timer: " << *timer << G4endl;
 
   fIO->WriteTree();
 }
-
