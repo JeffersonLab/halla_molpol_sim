@@ -1,40 +1,47 @@
-// ********************************************************************
+// *************************************************************** (╯°□°）╯︵ ┻━┻
 //
-// $Id: MolPolEMField.hh,v 1.0, 2010/12/26   MolPol Exp $
-// GEANT4 tag $Name: geant4-09-04 $
+//	MolPolEMfield.cc
 //
-//   User Field class Setup implementation.
+//  This class serves, in the integrated field version of G4MolPol as the global
+//  field manager which manages all G4MagneticField derived class objects in the
+//  simulation. These fields ARE DECOUPLED from the geometry.
 //
+//  Bfield and Efield initialize in constructors as (0,0,0) everywhere.
 //
+//  Objects in MolPolEMfield() are managed through MolPolEMfieldSetup(). this
+//  class should STRICTLY serve as the field object.
+//
+//  ***There are probably ways to slightly speed up this portion of the simulation.
+//  (1) Fields now have on-off boolean assigned.
+//  (2) Perhaps limit boundaries for field checking by Zeff? Logical checks probably
+//      longer than calculation of field.
+//
+//	Eric King - 2018-11-19
+//
+// *****************************************************************************
 #include "MolPolEMField.hh"
 
-//////////////////////////////////////////////////////////////////////////
-//
-//  Constructors:
-
+//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+// Constructors
 MolPolEMField::MolPolEMField()
 {
   EField3V.set(0,0,0);
   BField3V.set(0,0,0);
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-//  Deconstructors:
 MolPolEMField::~MolPolEMField()
 {
 
 }
 
-
 //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-// Get Field Value
+// Obligatory GetFieldValue() method for any G4MagneticField derived class.
 inline void MolPolEMField::GetFieldValue(const G4double Point[4],G4double *Bfield) const
 {
   // Member func is 'const' so everything used within must be declared within.
   G4double Bsum[3]  = {0.,0.,0.};
   G4double thisB[3] = {0.,0.,0.};
-  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  ////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // B-Field
   Bfield[0]=BField3V.x();
   Bfield[1]=BField3V.y();
