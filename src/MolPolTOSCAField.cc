@@ -1,21 +1,34 @@
-#include "MolPolTOSCAField.hh"
-//#include "G4UImanager.hh"
+// *************************************************************** (╯°□°）╯︵ ┻━┻
+//
+//	MolPolTOSCAField.cc
+//
+//  Modeled after code from REMOLL field management.
+//
+//  Takes field map filename, a scaling factor and Zoffset to create a
+//  G4MagneticField derived class object which will be part of global MolPolEMField.
+//
+//  I feel that this is straight forward. I tidied up code and added some
+//  guiding commentary.
+//
+//  Note: The use of BOOST streams has not been tested but only copied over from
+//        REMOLL working example. Must compile Geant4 with the option
+//        "-D __USE_BOOST_IOSTREAMS"
+//
+//	Eric King - 2018-11-19
+//
+// *****************************************************************************
 
+#include "MolPolTOSCAField.hh"
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4ThreeVector.hh"
-
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-
 #include <assert.h>
 #include <math.h>
 
-// Boost headers
 #ifdef __USE_BOOST_IOSTREAMS
-// This supports gzipped iostreams as magnetic field maps.
-// Compile with -D __USE_BOOST_IOSTREAMS to use.
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/copy.hpp>
@@ -47,13 +60,9 @@ MolPolTOSCAField::~MolPolTOSCAField(){
 // Initialize Grid -- Set up size of vector for field data
 void MolPolTOSCAField::InitializeGrid() {
 
-  if( NX <= 0 || NY <= 0 || NZ <= 0 ){
-    G4cerr << "Error " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ": grid size invalid.  Aborting" << G4endl;
-    exit(1);
-  }
+  if( NX <= 0 || NY <= 0 || NZ <= 0 ){G4cerr << "Error " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ": grid size invalid.  Aborting" << G4endl; exit(1);}
 
   G4cout << "Initializing field map grid for " << fFilename << G4endl;
-
   for( int i = 0; i < 3; i++ ){
     fBFieldData[i].clear();
     fBFieldData[i].resize(NX);
@@ -68,12 +77,10 @@ void MolPolTOSCAField::InitializeGrid() {
     }
   }
 
-  G4cout << "Map grid for " << fFilename << " initialized" << G4endl;
-  G4cout << "With scale: " << fFieldScale << " set" << G4endl;
-  G4cout << "With Offset: " << fZoffset / cm << " cm" << G4endl;
-
+  G4cout << "    Map grid for " << fFilename << " initialized" << G4endl;
+  G4cout << "     With scale: " << fFieldScale << " set" << G4endl;
+  G4cout << "    With Offset: " << fZoffset / cm << " cm" << G4endl;
   return;
-
 }
 
 void MolPolTOSCAField::ReadFieldMap(){
@@ -105,40 +112,26 @@ void MolPolTOSCAField::ReadFieldMap(){
     // Create STL ifstream
     std::ifstream inputfile;
     // If the filename has .gz somewhere, fail ungracefully
-    if (fFilename.find(".gz") != std::string::npos) {
+    if (fFilename.find(".gz") != std::string::npos){
       G4cerr << "Compressed input files not supported!" << G4endl;
       exit(1);
     }
     // Set file as source
     inputfile.open(fFilename.data());
   #endif
-  // End REMOLL code for compressed field maps.
+  // End REMOLL code for reading compressed field maps.
 
-  if (!inputfile.good() ){
-    G4cerr << "Error " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ") File " << fFilename << " could not open.  Aborting" << G4endl;
-    exit(1);
-  }
+  if(!inputfile.good()){G4cerr << "Error MolPolTOSCAField.cc line " << __LINE__ << " File " << fFilename << " could not open. Exiting..." << G4endl;exit(1);}
 
-  // Variable that will contain single lines
   std::string inputline;
-
-  // Read in data about grid
   getline(inputfile,inputline);
-  if (std::istringstream(inputline) >> NZ >> NY >> NX >> DUMMY) {
-    G4cout << "GridSize[" << NX << "," << NY << "," << NZ << "]" << G4endl;
-  } else {
-    G4cerr << "(" << __PRETTY_FUNCTION__ << " line " << __LINE__ << ") Error! File "
-           << fFilename << " contains unreadable header information. Aborting field mapping." << G4endl;
-    exit(1);
-  }
-
-  // CURRENTLY SKIP THE REMAINING LINES OF THE HEADER
-  for(int i = 0; i < 8; i++){
-    getline(inputfile,inputline);
-  }
-
+  // Read first line of TOSCA table that contains grid size information NZ NY NX DUMMY
+  if (std::istringstream(inputline) >> NZ >> NY >> NX >> DUMMY){G4cout << "GridSize[" << NX << "," << NY << "," << NZ << "]" << G4endl;}
+  else {G4cerr << "(" << __PRETTY_FUNCTION__ << " line " << __LINE__ << ") Error! File " << fFilename << " contains bad header. Exiting..." << G4endl;exit(1);}
+  // Skip the remaining lines of the header for the table
+  for(int i = 0; i < 8; i++){getline(inputfile,inputline);}
+  // Read the values into a 4x3 array B X Y Z, Initializes a grid based on read-in dimensions
   InitializeGrid();
-
   std::vector<G4double> xpos;
   std::vector<G4double> ypos;
   std::vector<G4double> zpos;
@@ -146,17 +139,11 @@ void MolPolTOSCAField::ReadFieldMap(){
     for(nY = 0; nY < NY; nY++){
       for(nZ = 0; nZ < NZ; nZ++){
         getline(inputfile,inputline);
-
-        if (std::istringstream(inputline) >> raw_xpos >> raw_ypos >> raw_zpos >> raw_B >> raw_Bx >> raw_By >> raw_Bz) {
-          nlines++;
-        } else {
-          G4cerr << "Error " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ") File " << fFilename << " contains invalid data.  Aborting" << G4endl;
-          exit(1);
-        }
+        if (std::istringstream(inputline) >> raw_xpos >> raw_ypos >> raw_zpos >> raw_B >> raw_Bx >> raw_By >> raw_Bz){nlines++;}
+        else {G4cerr << "Error " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ") File " << fFilename << " contains bad data. Exiting..." << G4endl;exit(1);}
         xpos.push_back(raw_xpos*cm);
         ypos.push_back(raw_ypos*cm);
         zpos.push_back(raw_zpos*cm);
-
     		fBFieldData[0][nX][nY][nZ] = raw_Bx * gauss;
     		fBFieldData[1][nX][nY][nZ] = raw_By * gauss;
     		fBFieldData[2][nX][nY][nZ] = raw_Bz * gauss;
@@ -188,7 +175,8 @@ void MolPolTOSCAField::GetFieldValue(const G4double Point[4], G4double *Bfield )
 
   x = Point[0];
   y = Point[1];
-  z = Point[2] - fZoffset; // What point are we looking at in z (in terms of the TOSCA Map Coordinates)
+  // Global point must be offset since we're looking at a local field map.
+  z = Point[2] - fZoffset;
 
   // Check that the point is within the defined region before interpolation.  If it is outside then the field is zero
   if( x < XMIN || x >= XMAX || y >= YMAX || y < YMIN || z >= ZMAX || z < ZMIN ) {
@@ -198,21 +186,22 @@ void MolPolTOSCAField::GetFieldValue(const G4double Point[4], G4double *Bfield )
     return;
   }
 
-  // Ensures we're going to get our grid indices correct
+  // Check to see that point lies in grid.
   assert( XMIN <= x && x < XMAX );
   assert( YMIN <= y && y < YMAX );
   assert( ZMIN <= z && z < ZMAX );
-
+  // Get integer and fractional position values within grid
   fracVal[0] = modf( ( x - XMIN )*(NX-1)/( XMAX - XMIN ), &(intVal[0]) );
   fracVal[1] = modf( ( y - YMIN )*(NY-1)/( YMAX - YMIN ), &(intVal[1]) );
   fracVal[2] = modf( ( z - ZMIN )*(NZ-1)/( ZMAX - ZMIN ), &(intVal[2]) );
-
+  // Check to make sure the point lies in the grid
   for( G4int i = 0; i < 3; i++ ) gridIndex[i] = (G4int) intVal[i];
   assert( 0 <= gridIndex[0] && gridIndex[0] < NX );
   assert( 0 <= gridIndex[1] && gridIndex[1] < NY );
   assert( 0 <= gridIndex[2] && gridIndex[2] < NZ );
   for( G4int i = 0; i < 3; i++ ) gridIndex[i] = (G4int) intVal[i];
 
+  // Interpolate field.
   G4double Bint[3] = {0,0,0};
   G4double c00, c10, c01, c11, c0, c1;
   for( G4int i = 0; i < 3; i++ ){
@@ -229,6 +218,7 @@ void MolPolTOSCAField::GetFieldValue(const G4double Point[4], G4double *Bfield )
     Bint[i] = c0 * (1.0-fracVal[2]) + c1 * fracVal[2];
   }
 
+  // Multiply map field by desired scale factor.
   Bfield[0] = Bint[0] * fFieldScale;
   Bfield[1] = Bint[1] * fFieldScale;
   Bfield[2] = Bint[2] * fFieldScale;

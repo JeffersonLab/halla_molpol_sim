@@ -1,3 +1,15 @@
+// *************************************************************** (╯°□°）╯︵ ┻━┻
+//
+//	MolPolEMFieldMessenger.cc
+//
+//  Updated field messenger for new integrated field types.
+//
+//
+//
+//	Eric King - 2018-11-19
+//
+// *****************************************************************************
+
 #include "MolPolEMFieldMessenger.hh"
 
 #include "MolPolEMFieldSetup.hh"

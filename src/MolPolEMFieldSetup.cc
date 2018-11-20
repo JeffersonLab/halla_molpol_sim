@@ -1,3 +1,23 @@
+// *************************************************************** (╯°□°）╯︵ ┻━┻
+//
+//	MolPolEMFieldSetup.cc
+//
+//  Sets up the integrated global field. Initalizes all 6 fields with zero strength
+//  and boolean for each field usage set to false.
+//
+//  Takes values from MolPolFieldMessenger in UpdateConfiguration() method.  This
+//  will turn on (or turn off) and update fields as specified.
+//
+//  Added G4cout lines for bug checking and testing.
+//
+//  Note: to turn off a field it is (believed to be) fully sufficient to simply
+//        use a macro line for idealized field set to zero strength.
+//
+//
+//	Eric King - 2018-11-19
+//
+// *****************************************************************************
+
 #include "MolPolEMFieldSetup.hh"
 #include "MolPolEMFieldMessenger.hh"
 
@@ -45,8 +65,10 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
 
 void MolPolEMFieldSetup::InitialseAll()
 {
+  // Initializes field messenger.
   fFieldMessenger = new MolPolEMFieldMessenger(this);
 
+  // Constructs the global field object and assigns necessary parameters.
   fEMfield = new MolPolEMField();
   fEquation = new G4EqMagElectricField(fEMfield);
   fMinStep  = 0.01*mm ; // minimal step of 1 miron, default is 0.01 mm: Doesn't seem to make much difference here
@@ -54,11 +76,6 @@ void MolPolEMFieldSetup::InitialseAll()
   fFieldManager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
   fChordFinder = 0;
   UpdateField(); // This is the updater for the GLOBAL FIELD.
-
-  ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // Initial field stup ... EMField class object holds field objects
-  // Not sure if this is needed.  I started doing this, finished, and never checked.
-  // Ideally, not needed.
 
   // Creates zero strength solenoid object set to status off.  Will be updated with update field.
   G4cout << "Intializing Solenoid EMField Setup:" << G4endl;
@@ -91,7 +108,6 @@ void MolPolEMFieldSetup::InitialseAll()
   fEMfield->setDipoleStatus(0);
   MolPolDipole* dip = new MolPolDipole(0.0 , 82.25*cm); //(Tesla strength , Zeff) both from Geometry setup.
   fEMfield->setDipoleObject(1,dip); // Initializes as type ideal. Since no values are yet passed from the field macro this is fine. Will Update()
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +124,8 @@ MolPolEMFieldSetup::~MolPolEMFieldSetup()
 
 void MolPolEMFieldSetup::UpdateConfiguration(){
   // Tesla are the default unit. Currents, which are given to the same variable,
-  // will be passed as unitless (when divided out by teslas).
+  // will be passed as unitless (when divided out by teslas). Additionally, it's
+  // perfectly fine to assign the tesla unit to TOSCA map strengths and
   dDipRelevantStr   *= tesla;
   dDipToscaMapStr   *= tesla;
   dQuad4RelevantStr *= tesla;
@@ -123,63 +140,72 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Field information recieved from macro.  Work on this.
-  G4cout << ">>>>>>>>>> Received values from macro <<<<<<<<<<" << G4endl;
-  G4cout << "  Solenoid Strength: " << dSolRelevantStr / tesla << " tesla" << G4endl;
+  G4cout << "\n>>>>>>>>>> Received values from macro <<<<<<<<<<" << G4endl;
+  G4cout << "   Solenoid Strength: " << dSolRelevantStr / tesla << " tesla" << G4endl;
+  G4cout << "------------------------------------------------" << G4endl;
   if(iQuad1Type  == 0){
     G4cout << "   Quad1 Type: " << iQuad1Type << G4endl;
     G4cout << "   Quad1 Amps: " << dQuad1RelevantStr / tesla << " amps" << G4endl;
   } else if(iQuad1Type  == 1){
     G4cout << "   Quad4 Type: " << iQuad1Type << G4endl;
-    G4cout << "   Quad4 Amps: " << dQuad1RelevantStr / tesla << " tesla" << G4endl;
+    G4cout << "  Quad4 Field: " << dQuad1RelevantStr / tesla << " tesla" << G4endl;
   } else if(iQuad1Type  == 2){
     G4cout << "   Dipole Type: " << iQuad1Type << G4endl;
     G4cout << "    Dipole Map: " << strQuad1MapLoc << G4endl;
-    G4cout << "  Map Strength: " << dQuad1ToscaMapStr << G4endl;
-    G4cout << "Scale Strength: " << dQuad1RelevantStr << G4endl;
-  } else if(iQuad2Type  == 0){
+    G4cout << "  Map Strength: " << dQuad1ToscaMapStr / tesla << G4endl;
+    G4cout << "Scale Strength: " << dQuad1RelevantStr / tesla << G4endl;
+  }
+  G4cout << "------------------------------------------------" << G4endl;
+  if(iQuad2Type  == 0){
     G4cout << "   Quad2 Type: " << iQuad2Type << G4endl;
     G4cout << "   Quad2 Amps: " << dQuad2RelevantStr / tesla << " amps" << G4endl;
   } else if(iQuad2Type  == 1){
     G4cout << "   Quad4 Type: " << iQuad2Type << G4endl;
-    G4cout << "   Quad4 Amps: " << dQuad2RelevantStr / tesla << " tesla" << G4endl;
+    G4cout << "  Quad4 Field: " << dQuad2RelevantStr / tesla << " tesla" << G4endl;
   } else if(iQuad2Type  == 2){
     G4cout << "   Dipole Type: " << iQuad2Type << G4endl;
     G4cout << "    Dipole Map: " << strQuad2MapLoc << G4endl;
-    G4cout << "  Map Strength: " << dQuad2ToscaMapStr << G4endl;
-    G4cout << "Scale Strength: " << dQuad2RelevantStr << G4endl;
-  } else if(iQuad3Type  == 0){
+    G4cout << "  Map Strength: " << dQuad2ToscaMapStr / tesla << G4endl;
+    G4cout << "Scale Strength: " << dQuad2RelevantStr / tesla << G4endl;
+  }
+  G4cout << "------------------------------------------------" << G4endl;
+  if(iQuad3Type  == 0){
     G4cout << "   Quad3 Type: " << iQuad3Type << G4endl;
     G4cout << "   Quad3 Amps: " << dQuad3RelevantStr / tesla << " amps" << G4endl;
   } else if(iQuad3Type  == 1){
     G4cout << "   Quad4 Type: " << iQuad3Type << G4endl;
-    G4cout << "   Quad4 Amps: " << dQuad3RelevantStr / tesla << " tesla" << G4endl;
+    G4cout << "  Quad4 Field: " << dQuad3RelevantStr / tesla << " tesla" << G4endl;
   } else if(iQuad3Type  == 2){
     G4cout << "   Dipole Type: " << iQuad3Type << G4endl;
     G4cout << "    Dipole Map: " << strQuad3MapLoc << G4endl;
-    G4cout << "  Map Strength: " << dQuad3ToscaMapStr << G4endl;
-    G4cout << "Scale Strength: " << dQuad3RelevantStr << G4endl;
-  } else if(iQuad4Type  == 0){
+    G4cout << "  Map Strength: " << dQuad3ToscaMapStr / tesla << G4endl;
+    G4cout << "Scale Strength: " << dQuad3RelevantStr / tesla << G4endl;
+  }
+  G4cout << "------------------------------------------------" << G4endl;
+  if(iQuad4Type  == 0){
     G4cout << "   Quad4 Type: " << iQuad4Type << G4endl;
     G4cout << "   Quad4 Amps: " << dQuad4RelevantStr / tesla << " amps" << G4endl;
   } else if(iQuad4Type  == 1){
     G4cout << "   Quad4 Type: " << iQuad4Type << G4endl;
-    G4cout << "   Quad4 Amps: " << dQuad4RelevantStr / tesla << " tesla" << G4endl;
+    G4cout << "  Quad4 Field: " << dQuad4RelevantStr / tesla << " tesla" << G4endl;
   } else if(iQuad4Type  == 2){
     G4cout << "   Dipole Type: " << iQuad4Type << G4endl;
     G4cout << "    Dipole Map: " << strQuad4MapLoc << G4endl;
-    G4cout << "  Map Strength: " << dQuad4ToscaMapStr << G4endl;
-    G4cout << "Scale Strength: " << dQuad4RelevantStr << G4endl;
-  } else if(iDipoleType == 0){
+    G4cout << "  Map Strength: " << dQuad4ToscaMapStr / tesla << G4endl;
+    G4cout << "Scale Strength: " << dQuad4RelevantStr / tesla << G4endl;
+  }
+  G4cout << "------------------------------------------------" << G4endl;
+  if(iDipoleType == 0){
     G4cout << "  Dipole Type: " << iDipoleType << G4endl;
     G4cout << "  Dipole Amps: " << dDipRelevantStr / tesla << " amps" << G4endl;
   } else if(iDipoleType == 1){
     G4cout << "  Dipole Type: " << iDipoleType << G4endl;
-    G4cout << "  Dipole Amps: " << dDipRelevantStr / tesla << " tesla" << G4endl;
+    G4cout << " Dipole Field: " << dDipRelevantStr / tesla << " tesla" << G4endl;
   } else if(iDipoleType == 2){
     G4cout << "   Dipole Type: " << iDipoleType << G4endl;
     G4cout << "    Dipole Map: " << strDipoleMapLoc << G4endl;
-    G4cout << "  Map Strength: " << dDipToscaMapStr << G4endl;
-    G4cout << "Scale Strength: " << dDipRelevantStr << G4endl;
+    G4cout << "  Map Strength: " << dDipToscaMapStr / tesla << G4endl;
+    G4cout << "Scale Strength: " << dDipRelevantStr / tesla << G4endl;
   }
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -384,11 +410,8 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
 }
 
 /////////////////////////////////////////////////////////////////////////////
-//
 // Register this field to 'global' Field Manager and
 // Create Stepper and Chord Finder with predefined type, minstep (resp.)
-//
-
 void MolPolEMFieldSetup::UpdateField()
 {
   fStepper = new G4ClassicalRK4( fEquation, 8 );
@@ -401,19 +424,12 @@ void MolPolEMFieldSetup::UpdateField()
 
 
 /////////////////////////////////////////////////////////////////////////////
-//
 // Set stepper according to the stepper type
-//
-
-
 void MolPolEMFieldSetup::SetStepper()
 {
   G4int nvar = 8;
-
   if(fStepper) delete fStepper;
-
-  switch ( fStepperType )
-    {
+  switch ( fStepperType ){
     case 0:
       fStepper = new G4ExplicitEuler( fEquation, nvar );
       break;
@@ -433,14 +449,13 @@ void MolPolEMFieldSetup::SetStepper()
       fStepper = new G4CashKarpRKF45( fEquation, nvar );
       break;
     default: fStepper = 0;
-    }
+  }
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // Current to Field Calculation (paprameters from Sasha)
 // Return field at the pole tip (Quadrupole)
-
 G4double MolPolEMFieldSetup::CalA2T(G4double current, G4int magnet)
 {
 
