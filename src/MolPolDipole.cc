@@ -1,32 +1,21 @@
+// *************************************************************** (╯°□°）╯︵ ┻━┻
 //
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
+//	MolPolDipole.cc
 //
+//  Ideal dipole implementation for integrated field types. Object constructed
+//  as part of global field managed from MolPolEMfield().
 //
-// $Id: MolPolDipole.cc 69786 2013-05-15 09:38:51Z gcosmo $
+//  This now takes Zeff as an argument and should be updated to include bounds
+//  for x and y as well.
 //
-// -------------------------------------------------------------------
+//  Since this script was modified from one utilized in local field management
+//  this was changed to utilize global field coordinates.
+//
+//  Will clean up file at later date. :/
+//
+//	Eric King - 2018-11-19
+//
+// *****************************************************************************
 
 #include "MolPolDipole.hh"
 #include "G4RotationMatrix.hh"
@@ -88,7 +77,7 @@ void MolPolDipole::updateDipole(G4double pBend, G4ThreeVector pOrigin, G4Rotatio
 }
 
 //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-// Get Field Value ... Not sure who Bjorn Riese is... haven't touched anything below.
+// Get Field Value ... Not sure who Bjorn Riese is... haven't touched any calculations below.
 ////////////////////////////////////////////////////////////////////////
 //  Allow displaced origin and rotation
 //  Extensions by Björn Riese (GSI)
@@ -145,6 +134,8 @@ void MolPolDipole::GetFieldValue( const G4double y[7], G4double B[3]  ) const
   //}else{
   //B[0] = 0.;
 
+  //G4cout << "  Dipole Boundary Z(" << (fOrigin.z() - 0.5 * fZeff)/10 << "," << (fOrigin.z() + 0.5 * fZeff)/10 << ") cm" << G4endl;
+
   if( (position.z() > (fOrigin.z() - 0.5 * fZeff)) && (position.z() < (fOrigin.z() + 0.5 * fZeff)) ){
     //if( (position.y() > (fOrigin.y() - 300.)) && (position.y() < (fOrigin.y() + 300.)) ){
       //if( (position.x() > (fOrigin.x() - 300.)) && (position.x() < (fOrigin.x() + 300.)) ){
@@ -153,6 +144,8 @@ void MolPolDipole::GetFieldValue( const G4double y[7], G4double B[3]  ) const
         B[2] = 0.;
       //}
     //}
+  } else {
+    //G4cout << "  OUT OF DIPOLE Z BOUNDARY!" << G4endl;
   }
   //}
 

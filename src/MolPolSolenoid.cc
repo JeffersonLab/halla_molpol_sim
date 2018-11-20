@@ -1,3 +1,22 @@
+// *************************************************************** (╯°□°）╯︵ ┻━┻
+//
+//	MolPolSolenoid.cc
+//
+//  Permenant implementation of solenoid map from Bill Henry. Essentially
+//  copied MolPolTOSCAField to MolPol solenoid to act as dedicated class that
+//  only reqires the desired field strength.
+//
+//  Constructor and UpdateSolenoid() both take the field strength in teslas
+//  as their argument.
+//
+//
+//
+//
+//
+//	Eric King - 2018-11-19
+//
+// *****************************************************************************
+
 #include "MolPolSolenoid.hh"
 
 #include "G4PhysicalConstants.hh"

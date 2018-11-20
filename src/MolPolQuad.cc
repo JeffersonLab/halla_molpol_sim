@@ -1,32 +1,23 @@
+// *************************************************************** (╯°□°）╯︵ ┻━┻
 //
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
+//  MolPolQuad.cc
+//
+//  Updated MolPolQuad for use with integrated field types within a global
+//  EMField manager. Relevenant changes are strictly limited to a change from
+//  local coordinates to global coordinates in the calculation. Previously the
+//  class was written for use in local field volumes.
+//
+//  There are some G4cout lines which were used while debugging. These can be
+//  safely removed in the future.
+//
+//  Constructor now also takes the Zeff for any idealized quad field.
+//
+//  Radius could probably be removed from the constructors.
 //
 //
-// $Id: MolPolQuad.cc 69786 2013-05-15 09:38:51Z gcosmo $
+//  Eric King - $date
 //
-// -------------------------------------------------------------------
+// *****************************************************************************
 
 #include "MolPolQuad.hh"
 #include "G4RotationMatrix.hh"
@@ -77,11 +68,9 @@ void MolPolQuad::GetFieldValue( const G4double y[4], G4double B[3]  ) const
   B[2] = 0;
 
   G4ThreeVector position = G4ThreeVector(y[0],y[1],y[2]);
-  //  G4cout << "  Quad @ P(" << y[0]/10 << "," << y[1]/10 << "," << y[2]/10 << ") cm" << G4endl;
-  //  G4cout << "  Quad Boundary Z(" << (fOrigin.z() - 0.5 * fZeff)/10 << "," << (fOrigin.z() + 0.5 * fZeff)/10 << ") cm" << G4endl;
+  //G4cout << "  Quad @ P(" << y[0]/10 << "," << y[1]/10 << "," << y[2]/10 << ") cm" << G4endl;
+  //G4cout << "  Quad Boundary Z(" << (fOrigin.z() - 0.5 * fZeff)/10 << "," << (fOrigin.z() + 0.5 * fZeff)/10 << ") cm" << G4endl;
 
-
-  // what is rsquared
   G4double rsquared = (position.x() * position.x() + position.y() * position.y());
 
   // first, check the least likely thing that z is within allowed space for idealized quad field
