@@ -45,61 +45,77 @@ extern"C" {
 
 static G4RotationMatrix IdentityMatrix;
 
-MolPolDipole::MolPolDipole(G4double pBend)
-{
-  fBend    = pBend ;
-  fOrigin  = G4ThreeVector( 0.0, 0.0, 0.0) ;
-  fpMatrix = &IdentityMatrix;
+//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+// Dipole Constructors -- First (standard), Second (specified position and rotation)
+MolPolDipole::MolPolDipole(G4double pBend, G4double pZeff){
+  fBend   = pBend;
+  fZeff   = pZeff;
 }
 
-/////////////////////////////////////////////////////////////////////////
-
-MolPolDipole::MolPolDipole(G4double pBend, G4ThreeVector
-                           pOrigin, G4RotationMatrix* pMatrix)
-{
-  fBend    = pBend   ;
-  fOrigin  = pOrigin ;
-  fpMatrix = pMatrix ;
+MolPolDipole::MolPolDipole(G4double pBend, G4ThreeVector pOrigin, G4RotationMatrix* pMatrix, G4double pZeff){
+  fBend   = pBend;
+  fOrigin = pOrigin;
+  fMatrix = pMatrix;
+  fZeff   = pZeff;
 }
 
-/////////////////////////////////////////////////////////////////////////
-
+//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+// Obligatory Deconstructor
 MolPolDipole::~MolPolDipole()
 {
 }
 
-/////////////////////////////////////////////////////////////////////////
-
-void MolPolDipole::UpdateDipole(G4double pBend, G4ThreeVector
-                                pOrigin, G4RotationMatrix* pMatrix){
-  fBend    = pBend   ;
-  fOrigin  = pOrigin ;
-  fpMatrix = pMatrix ;
+//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+// Member functions to update dipole -- maybe just move these into class library ... not sure if individuals are needed.  Probably not thinking about it.
+void MolPolDipole::setDipoleStrength(G4double pBend){
+  fBend    = pBend;
+}
+void MolPolDipole::setDipoleZeff(G4double pZeff){
+  fZeff    = pZeff;
+}
+void MolPolDipole::setRotationMatrix(G4RotationMatrix* pMatrix){
+  fMatrix = pMatrix;
+}
+void MolPolDipole::setDipoleOrigin(G4ThreeVector pOrigin){
+  fOrigin = pOrigin;
 }
 
+void MolPolDipole::updateDipole(G4double pBend, G4ThreeVector pOrigin, G4RotationMatrix* pMatrix, G4double pZeff){
+  fBend    = pBend;
+  fOrigin  = pOrigin;
+  fMatrix  = pMatrix;
+  fZeff    = pZeff;
+}
+
+//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+// Get Field Value ... Not sure who Bjorn Riese is... haven't touched anything below.
 ////////////////////////////////////////////////////////////////////////
 //  Allow displaced origin and rotation
 //  Extensions by Björn Riese (GSI)
 
-void MolPolDipole::GetFieldValue( const G4double y[7],
-                                  G4double B[3]  ) const
+void MolPolDipole::GetFieldValue( const G4double y[7], G4double B[3]  ) const
 {
 
-  G4ThreeVector r_global= G4ThreeVector
-    (y[0] - fOrigin.x(),
-     y[1] - fOrigin.y(),
-     y[2] - fOrigin.z());
+  G4ThreeVector position= G4ThreeVector(y[0],y[1],y[2]);
 
-  G4ThreeVector r_local = G4ThreeVector
-    (fpMatrix->colX() * r_global,
-     fpMatrix->colY() * r_global,
-     fpMatrix->colZ() * r_global);
+  //G4cout << "  Dipole @ P(" << y[0] << "," << y[1] << "," << y[2] << ")" << G4endl;
+  //G4cout << "  zMin: " << (fOrigin.z() - 0.5 * fZeff)/10 << " cm  and  zMax: " << (fOrigin.z() + 0.5 * fZeff)/10 << " cm" << G4endl;
+  //G4cout << "  fOriginZ @ " << fOrigin.z()/10 << " cm" << G4endl;
+  //G4cout << "  halfLengthZ: " << fZeff << G4endl;
+
+
+  //Don't need to turn this into local coordinates since EMfield is global.
+
+  //G4ThreeVector r_local = G4ThreeVector
+  //  (fMatrix->colX() * r_global,
+  //   fMatrix->colY() * r_global,
+  //   fMatrix->colZ() * r_global);
 
   //indexed dipole
   //B = ( r / r_0 ) ^ -n  * B_0
   //G4double B_0 = fBend;
 
-  float B_0 = (float)fBend;
+  G4double B_0 = (G4double)fBend;
 
   //float snx = r_local.x();
   //float sny = r_local.y();
@@ -110,16 +126,16 @@ void MolPolDipole::GetFieldValue( const G4double y[7],
   //&snbx, &snby, &snbz,
   //       &B_0);
 
-  //  snbx *= -tesla;
+  //snbx *= -tesla;
   //snby *= -tesla;
   //snbz *= -tesla;
 
   //G4ThreeVector B_local = G4ThreeVector( snbx, snby, snbz );
 
   //G4ThreeVector B_global = G4ThreeVector
-  //(fpMatrix->rowX() * B_local,
-  // fpMatrix->rowY() * B_local,
-  // fpMatrix->rowZ() * B_local);
+  //(fMatrix->rowX() * B_local,
+  // fMatrix->rowY() * B_local,
+  // fMatrix->rowZ() * B_local);
 
 
   //if( sqrt( snbx * snbx + snby * snby ) > 2. * cm ){
@@ -129,9 +145,15 @@ void MolPolDipole::GetFieldValue( const G4double y[7],
   //}else{
   //B[0] = 0.;
 
-  B[0] = B_0;
-  B[1] = 0.;
-  B[2] = 0.;
+  if( (position.z() > (fOrigin.z() - 0.5 * fZeff)) && (position.z() < (fOrigin.z() + 0.5 * fZeff)) ){
+    //if( (position.y() > (fOrigin.y() - 300.)) && (position.y() < (fOrigin.y() + 300.)) ){
+      //if( (position.x() > (fOrigin.x() - 300.)) && (position.x() < (fOrigin.x() + 300.)) ){
+        B[0] = B_0;
+        B[1] = 0.;
+        B[2] = 0.;
+      //}
+    //}
+  }
   //}
 
 
