@@ -141,45 +141,45 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Field information recieved from macro.  Work on this.
   G4cout << "\n>>>>>>>>>> Received values from macro <<<<<<<<<<" << G4endl;
-  G4cout << "   Solenoid Strength: " << dSolRelevantStr / tesla << " tesla" << G4endl;
+  G4cout << "   SCS Strength: " << dSolRelevantStr / tesla << " tesla" << G4endl;
   G4cout << "------------------------------------------------" << G4endl;
   if(iQuad1Type  == 0){
     G4cout << "   Quad1 Type: " << iQuad1Type << G4endl;
     G4cout << "   Quad1 Amps: " << dQuad1RelevantStr / tesla << " amps" << G4endl;
   } else if(iQuad1Type  == 1){
-    G4cout << "   Quad4 Type: " << iQuad1Type << G4endl;
-    G4cout << "  Quad4 Field: " << dQuad1RelevantStr / tesla << " tesla" << G4endl;
+    G4cout << "   Quad1 Type: " << iQuad1Type << G4endl;
+    G4cout << "  Quad1 Field: " << dQuad1RelevantStr / tesla << " tesla" << G4endl;
   } else if(iQuad1Type  == 2){
-    G4cout << "   Dipole Type: " << iQuad1Type << G4endl;
-    G4cout << "    Dipole Map: " << strQuad1MapLoc << G4endl;
-    G4cout << "  Map Strength: " << dQuad1ToscaMapStr / tesla << G4endl;
-    G4cout << "Scale Strength: " << dQuad1RelevantStr / tesla << G4endl;
+    G4cout << "   Quad1 Type: " << iQuad1Type << G4endl;
+    G4cout << "    Quad1 Map: " << strQuad1MapLoc << G4endl;
+    G4cout << "    Map Scale: " << dQuad1ToscaMapStr / tesla << G4endl;
+    G4cout << "Desired Scale: " << dQuad1RelevantStr / tesla << G4endl;
   }
   G4cout << "------------------------------------------------" << G4endl;
   if(iQuad2Type  == 0){
     G4cout << "   Quad2 Type: " << iQuad2Type << G4endl;
     G4cout << "   Quad2 Amps: " << dQuad2RelevantStr / tesla << " amps" << G4endl;
   } else if(iQuad2Type  == 1){
-    G4cout << "   Quad4 Type: " << iQuad2Type << G4endl;
-    G4cout << "  Quad4 Field: " << dQuad2RelevantStr / tesla << " tesla" << G4endl;
+    G4cout << "   Quad2 Type: " << iQuad2Type << G4endl;
+    G4cout << "  Quad2 Field: " << dQuad2RelevantStr / tesla << " tesla" << G4endl;
   } else if(iQuad2Type  == 2){
-    G4cout << "   Dipole Type: " << iQuad2Type << G4endl;
-    G4cout << "    Dipole Map: " << strQuad2MapLoc << G4endl;
-    G4cout << "  Map Strength: " << dQuad2ToscaMapStr / tesla << G4endl;
-    G4cout << "Scale Strength: " << dQuad2RelevantStr / tesla << G4endl;
+    G4cout << "  Dipole Type: " << iQuad2Type << G4endl;
+    G4cout << "   Dipole Map: " << strQuad2MapLoc << G4endl;
+    G4cout << "    Map Scale: " << dQuad2ToscaMapStr / tesla << G4endl;
+    G4cout << "    Des Scale: " << dQuad2RelevantStr / tesla << G4endl;
   }
   G4cout << "------------------------------------------------" << G4endl;
   if(iQuad3Type  == 0){
     G4cout << "   Quad3 Type: " << iQuad3Type << G4endl;
     G4cout << "   Quad3 Amps: " << dQuad3RelevantStr / tesla << " amps" << G4endl;
   } else if(iQuad3Type  == 1){
-    G4cout << "   Quad4 Type: " << iQuad3Type << G4endl;
-    G4cout << "  Quad4 Field: " << dQuad3RelevantStr / tesla << " tesla" << G4endl;
+    G4cout << "   Quad3 Type: " << iQuad3Type << G4endl;
+    G4cout << "  Quad3 Field: " << dQuad3RelevantStr / tesla << " tesla" << G4endl;
   } else if(iQuad3Type  == 2){
-    G4cout << "   Dipole Type: " << iQuad3Type << G4endl;
-    G4cout << "    Dipole Map: " << strQuad3MapLoc << G4endl;
-    G4cout << "  Map Strength: " << dQuad3ToscaMapStr / tesla << G4endl;
-    G4cout << "Scale Strength: " << dQuad3RelevantStr / tesla << G4endl;
+    G4cout << "   Quad3 Type: " << iQuad3Type << G4endl;
+    G4cout << "    Quad3 Map: " << strQuad3MapLoc << G4endl;
+    G4cout << "    Map Scale: " << dQuad3ToscaMapStr / tesla << G4endl;
+    G4cout << "Desired Scale: " << dQuad3RelevantStr / tesla << G4endl;
   }
   G4cout << "------------------------------------------------" << G4endl;
   if(iQuad4Type  == 0){
@@ -189,10 +189,10 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
     G4cout << "   Quad4 Type: " << iQuad4Type << G4endl;
     G4cout << "  Quad4 Field: " << dQuad4RelevantStr / tesla << " tesla" << G4endl;
   } else if(iQuad4Type  == 2){
-    G4cout << "   Dipole Type: " << iQuad4Type << G4endl;
-    G4cout << "    Dipole Map: " << strQuad4MapLoc << G4endl;
-    G4cout << "  Map Strength: " << dQuad4ToscaMapStr / tesla << G4endl;
-    G4cout << "Scale Strength: " << dQuad4RelevantStr / tesla << G4endl;
+    G4cout << "   Quad4 Type: " << iQuad4Type << G4endl;
+    G4cout << "    Quad4 Map: " << strQuad4MapLoc << G4endl;
+    G4cout << "    Map Scale: " << dQuad4ToscaMapStr / tesla << G4endl;
+    G4cout << "Desired Scale: " << dQuad4RelevantStr / tesla << G4endl;
   }
   G4cout << "------------------------------------------------" << G4endl;
   if(iDipoleType == 0){
@@ -202,10 +202,10 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
     G4cout << "  Dipole Type: " << iDipoleType << G4endl;
     G4cout << " Dipole Field: " << dDipRelevantStr / tesla << " tesla" << G4endl;
   } else if(iDipoleType == 2){
-    G4cout << "   Dipole Type: " << iDipoleType << G4endl;
-    G4cout << "    Dipole Map: " << strDipoleMapLoc << G4endl;
-    G4cout << "  Map Strength: " << dDipToscaMapStr / tesla << G4endl;
-    G4cout << "Scale Strength: " << dDipRelevantStr / tesla << G4endl;
+    G4cout << "  Dipole Type: " << iDipoleType << G4endl;
+    G4cout << "   Dipole Map: " << strDipoleMapLoc << G4endl;
+    G4cout << "    Map Scale: " << dDipToscaMapStr / tesla << G4endl;
+    G4cout << "Desired Scale: " << dDipRelevantStr / tesla << G4endl;
   }
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻

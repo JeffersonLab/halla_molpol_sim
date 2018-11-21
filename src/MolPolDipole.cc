@@ -87,12 +87,6 @@ void MolPolDipole::GetFieldValue( const G4double y[7], G4double B[3]  ) const
 
   G4ThreeVector position= G4ThreeVector(y[0],y[1],y[2]);
 
-  //G4cout << "  Dipole @ P(" << y[0] << "," << y[1] << "," << y[2] << ")" << G4endl;
-  //G4cout << "  zMin: " << (fOrigin.z() - 0.5 * fZeff)/10 << " cm  and  zMax: " << (fOrigin.z() + 0.5 * fZeff)/10 << " cm" << G4endl;
-  //G4cout << "  fOriginZ @ " << fOrigin.z()/10 << " cm" << G4endl;
-  //G4cout << "  halfLengthZ: " << fZeff << G4endl;
-
-
   //Don't need to turn this into local coordinates since EMfield is global.
 
   //G4ThreeVector r_local = G4ThreeVector
@@ -134,7 +128,7 @@ void MolPolDipole::GetFieldValue( const G4double y[7], G4double B[3]  ) const
   //}else{
   //B[0] = 0.;
 
-  //G4cout << "  Dipole Boundary Z(" << (fOrigin.z() - 0.5 * fZeff)/10 << "," << (fOrigin.z() + 0.5 * fZeff)/10 << ") cm" << G4endl;
+  G4cout << "Dipole Boundary Z(" << (fOrigin.z() - 0.5 * fZeff)/10 << "," << (fOrigin.z() + 0.5 * fZeff)/10 << ") cm" << G4endl;
 
   if( (position.z() > (fOrigin.z() - 0.5 * fZeff)) && (position.z() < (fOrigin.z() + 0.5 * fZeff)) ){
     //if( (position.y() > (fOrigin.y() - 300.)) && (position.y() < (fOrigin.y() + 300.)) ){
@@ -145,7 +139,7 @@ void MolPolDipole::GetFieldValue( const G4double y[7], G4double B[3]  ) const
       //}
     //}
   } else {
-    //G4cout << "  OUT OF DIPOLE Z BOUNDARY!" << G4endl;
+    G4cout << "OUT OF DIPOLE Z BOUNDARY!" << G4endl;
   }
   //}
 
