@@ -292,7 +292,7 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
     if(iQuad2Type == 2){
       fEMfield->setQuad2Status(1); //Quad2 On
       G4double scale = dQuad2RelevantStr / dQuad2ToscaMapStr;
-      MolPolTOSCAField* q1 = new MolPolTOSCAField( dQuad2ToscaMapLoc, scale, ORIGINQ2 );
+      MolPolTOSCAField* q1 = new MolPolTOSCAField( strQuad2MapLoc, scale, ORIGINQ2 );
       fEMfield->setQuad2Object(2,q1);
       G4cout << "\nUpdating Quad2 Configuration... " << G4endl
              << "       Status: ON; " << G4endl
@@ -331,7 +331,7 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
     if(iQuad3Type == 2){
       fEMfield->setQuad3Status(1); //Quad3 On
       G4double scale = dQuad3RelevantStr / dQuad3ToscaMapStr;
-      MolPolTOSCAField* q1 = new MolPolTOSCAField( dQuad3ToscaMapLoc, scale, ORIGINQ3 );
+      MolPolTOSCAField* q1 = new MolPolTOSCAField( strQuad3MapLoc, scale, ORIGINQ3 );
       fEMfield->setQuad3Object(2,q1);
       G4cout << "\nUpdating Quad3 Configuration... " << G4endl
              << "       Status: ON; " << G4endl
@@ -370,7 +370,7 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
     if(iQuad4Type == 2){
       fEMfield->setQuad4Status(1); //Quad4 On
       G4double scale = dQuad4RelevantStr / dQuad4ToscaMapStr;
-      MolPolTOSCAField* q1 = new MolPolTOSCAField( dQuad4ToscaMapLoc, scale, ORIGINQ4 );
+      MolPolTOSCAField* q1 = new MolPolTOSCAField( strQuad4MapLoc, scale, ORIGINQ4 );
       fEMfield->setQuad4Object(2,q1);
       G4cout << "\nUpdating Quad4 Configuration... " << G4endl
              << "       Status: ON; " << G4endl
