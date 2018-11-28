@@ -245,7 +245,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         strFct = 1.;
       }
 
-      G4double dPhaseSpace = 1. * fabs(cos(fthetaMax) - cos(fthetaMin));
+      G4double dPhaseSpace = 1. * fabs(cos(fthetaComMax) - cos(fthetaComMin));
       G4double zLum = msZ[0] * ironDensity * (zpos + fTargLen/2) * Avogadro / msA[0];
       G4double weight = 1. * zLum * dPhaseSpace * sigma * strFct;
       fDefaultEvent->fUnpolWght = weight;
