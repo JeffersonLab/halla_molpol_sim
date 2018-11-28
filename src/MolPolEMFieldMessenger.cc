@@ -4,9 +4,13 @@
 //
 //  Updated field messenger for new integrated field types.
 //
+//  When changes are made:
+//    (1) Please be as specific as necessary with SetGuidance()
+//    (2) Please update fFieldDir->SetGuidance() line with new name and date.
+//    (3) Generate new HTML via G4 command line with: /control/createHTML /field/
+//    (4) Push the new field file to the repository.
 //
-//
-//	Eric King - 2018-11-19
+//	Eric King - 2018-11-24
 //
 // *****************************************************************************
 
@@ -26,84 +30,122 @@ MolPolEMFieldMessenger::MolPolEMFieldMessenger(MolPolEMFieldSetup* fieldSetup)
     fFieldDir(0)
 {
   fFieldDir = new G4UIdirectory("/field/");
-  fFieldDir->SetGuidance("MolPolEM field tracking control.");
+  fFieldDir->SetGuidance("MolPolEM field control. ");
+  fFieldDir->SetGuidance("Interacts indirectly with MolPolEMField through MolPolEMFieldSetup class.");
+  fFieldDir->SetGuidance("Last edited by Eric King on 11-24-2018");
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // These are the commands to set with with field maps
   fQ1MCmd = new G4UIcmdWithAString("/field/setQ1M", this);
-  fQ1MCmd->SetGuidance("Set Q1 TOSCA map usage. String [fileLoc] [mapStrength] [desiredStrength]");
+  fQ1MCmd->SetGuidance("Sets Q1 TOSCA map usage.");
+  fQ1MCmd->SetGuidance("Requires three arguments in string command.");
+  fQ1MCmd->SetGuidance("[fileLoc] [mapStrength] [desiredStrength]");
+  fQ1MCmd->SetGuidance("Map strength and desired strength can be arbitrarily chosen--center gradient, pole tip, etc. No units required.");
   fQ1MCmd->SetParameterName("Q1M", false);
 
   fQ2MCmd = new G4UIcmdWithAString("/field/setQ2M", this);
-  fQ2MCmd->SetGuidance("Set Q2 TOSCA map usage. String [fileLoc] [mapStrength] [desiredStrength]");
+  fQ2MCmd->SetGuidance("Sets Q2 TOSCA map usage.");
+  fQ2MCmd->SetGuidance("Requires three arguments in string command.");
+  fQ2MCmd->SetGuidance("[fileLoc] [mapStrength] [desiredStrength]");
+  fQ2MCmd->SetGuidance("Map strength and desired strength can be arbitrarily chosen--center gradient, pole tip, etc. No units required.");
   fQ2MCmd->SetParameterName("Q2M", false);
 
   fQ3MCmd = new G4UIcmdWithAString("/field/setQ3M", this);
-  fQ3MCmd->SetGuidance("Set Q3 TOSCA map usage. String [fileLoc] [mapStrength] [desiredStrength]");
+  fQ3MCmd->SetGuidance("Sets Q3 TOSCA map usage.");
+  fQ3MCmd->SetGuidance("Requires three arguments in string command.");
+  fQ3MCmd->SetGuidance("[fileLoc] [mapStrength] [desiredStrength]");
+  fQ3MCmd->SetGuidance("Map strength and desired strength can be arbitrarily chosen--center gradient, pole tip, etc. No units required.");
   fQ3MCmd->SetParameterName("Q3M", false);
 
   fQ4MCmd = new G4UIcmdWithAString("/field/setQ4M", this);
-  fQ4MCmd->SetGuidance("Set Q4 TOSCA map usage. String [fileLoc] [mapStrength] [desiredStrength]");
+  fQ4MCmd->SetGuidance("Sets Q4 TOSCA map usage.");
+  fQ4MCmd->SetGuidance("Requires three arguments in string command.");
+  fQ4MCmd->SetGuidance("[fileLoc] [mapStrength] [desiredStrength]");
+  fQ4MCmd->SetGuidance("Map strength and desired strength can be arbitrarily chosen--center gradient, pole tip, etc. No units required.");
   fQ4MCmd->SetParameterName("Q4M", false);
 
   fDipMCmd = new G4UIcmdWithAString("/field/setDipM", this);
-  fDipMCmd->SetGuidance("Set dipole TOSCA map usage. String [fileLoc] [mapStrength] [desiredStrength]");
+  fDipMCmd->SetGuidance("Sets dipole TOSCA map usage.");
+  fDipMCmd->SetGuidance("Requires three arguments in string command.");
+  fDipMCmd->SetGuidance("[fileLoc] [mapStrength] [desiredStrength]");
+  fDipMCmd->SetGuidance("Map strength and desired strength can be arbitrarily chosen--center gradient, pole tip, etc. No units required.");
   fDipMCmd->SetParameterName("DipM", false);
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // These are the commands to set with ideal field by current
   fQ1ACmd = new G4UIcmdWithADouble("/field/setQ1A", this);
-  fQ1ACmd->SetGuidance("Set Q1 current");
+  fQ1ACmd->SetGuidance("Sets an ideal Q1 field by current.");
+  fQ1ACmd->SetGuidance("Current must be in Amps.");
+  fQ1ACmd->SetGuidance("Calculates pole tip from Sasha G's GL data fit.");
   fQ1ACmd->SetParameterName("Q1A", false);
 
   fQ2ACmd = new G4UIcmdWithADouble("/field/setQ2A", this);
-  fQ2ACmd->SetGuidance("Set Q2 current");
+  fQ2ACmd->SetGuidance("Sets an ideal Q2 field by current.");
+  fQ2ACmd->SetGuidance("Current must be in Amps.");
+  fQ2ACmd->SetGuidance("Calculates pole tip from Sasha G's GL data fit.");
   fQ2ACmd->SetParameterName("Q2A", false);
 
   fQ3ACmd = new G4UIcmdWithADouble("/field/setQ3A", this);
-  fQ3ACmd->SetGuidance("Set Q3 current");
+  fQ3ACmd->SetGuidance("Sets an ideal Q3 field by current.");
+  fQ3ACmd->SetGuidance("Current must be in Amps.");
+  fQ3ACmd->SetGuidance("Calculates pole tip from Sasha G's GL data fit.");
   fQ3ACmd->SetParameterName("Q3A", false);
 
   fQ4ACmd = new G4UIcmdWithADouble("/field/setQ4A", this);
-  fQ4ACmd->SetGuidance("Set Q4 current");
+  fQ4ACmd->SetGuidance("Sets an ideal Q4 field by current.");
+  fQ4ACmd->SetGuidance("Current must be in Amps.");
+  fQ4ACmd->SetGuidance("Calculates pole tip from Sasha G's GL data fit.");
   fQ4ACmd->SetParameterName("Q4A", false);
 
   fDipACmd = new G4UIcmdWithADouble("/field/setDipA", this);
-  fDipACmd->SetGuidance("Set Dipole current");
+  fDipACmd->SetGuidance("Sets an ideal Dipole field by current.");
+  fDipACmd->SetGuidance("Current must be in Amps.");
+  fDipACmd->SetGuidance("Calculates pole tip from Sasha G's GL data fit.");
   fDipACmd->SetParameterName("DipA", false);
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // These are the commands to set with ideal field by pole value.
   fQ1TCmd = new G4UIcmdWithADouble("/field/setQ1T", this);
-  fQ1TCmd->SetGuidance("Set Q1 field in Tesla");
+  fQ1TCmd->SetGuidance("Sets an ideal field for Q1");
+  fQ1TCmd->SetGuidance("This value must be in teslas");
+  fQ1TCmd->SetGuidance("Utilizing this command with a value of zero will turn off field.");
   fQ1TCmd->SetParameterName("Q1T", false);
 
   fQ2TCmd = new G4UIcmdWithADouble("/field/setQ2T", this);
-  fQ2TCmd->SetGuidance("Set Q2 field in Tesla" );
+  fQ2TCmd->SetGuidance("Sets an ideal field for Q2" );
+  fQ2TCmd->SetGuidance("This value must be in teslas" );
+  fQ2TCmd->SetGuidance("Utilizing this command with a value of zero will turn off field.");
   fQ2TCmd->SetParameterName("Q2T", false);
 
   fQ3TCmd = new G4UIcmdWithADouble("/field/setQ3T", this);
-  fQ3TCmd->SetGuidance("Set Q3 field in Tesla");
+  fQ3TCmd->SetGuidance("Sets an ideal field for Q3");
+  fQ3TCmd->SetGuidance("This value must be in teslas");
+  fQ3TCmd->SetGuidance("Utilizing this command with a value of zero will turn off field.");
   fQ3TCmd->SetParameterName("Q3T", false);
 
   fQ4TCmd = new G4UIcmdWithADouble("/field/setQ4T", this);
-  fQ4TCmd->SetGuidance("Set Q4 field in Tesla");
+  fQ4TCmd->SetGuidance("Sets an ideal field for Q4");
+  fQ4TCmd->SetGuidance("This value must be in teslas");
+  fQ4TCmd->SetGuidance("Utilizing this command with a value of zero will turn off field.");
   fQ4TCmd->SetParameterName("Q4T", false);
 
   fDipTCmd = new G4UIcmdWithADouble("/field/setDipT", this);
-  fDipTCmd->SetGuidance("Set Dipole field in Tesla");
+  fDipTCmd->SetGuidance("Sets an ideal Dipole field");
+  fDipTCmd->SetGuidance("This value must be in teslas");
+  fDipTCmd->SetGuidance("Utilizing this command with a value of zero will turn off field.");
   fDipTCmd->SetParameterName("DipT", false);
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // This is the new Solenoid Command.  It's map only and you merely set the strength in Tesla.
+  // This is the new Solenoid Command.  It's map only and you merely Sets the strength in Tesla.
   fSetSolenoidCmd = new G4UIcmdWithADouble("/field/setSolenoid", this);
-  fSetSolenoidCmd->SetGuidance("Set the solenoid value in teslas. Map will scale appropriately.");
+  fSetSolenoidCmd->SetGuidance("Set the solenoid value in teslas; this will allow MolPol to scale solenoid field appropriately.");
+  fSetSolenoidCmd->SetGuidance("Setting the value to zero will turn off the field.");
   fSetSolenoidCmd->SetParameterName("setSolenoid", false);
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // This is the update command.
   fUpdateCmd = new G4UIcmdWithoutParameter("/field/update",this);
-  fUpdateCmd->SetGuidance("This command MUST be applied after setting field values");
+  fUpdateCmd->SetGuidance("This command MUST be applied after setting field values. Executes UpdateConfiguration() in MolPolEMFieldSetup.");
 
 }
 
