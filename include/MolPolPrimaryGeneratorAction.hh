@@ -8,17 +8,20 @@
 #include "MolPolIO.hh"
 #define _USE_MATH_DEFINES
 #include <cmath>
+
+class MolPolDetectorConstruction;
 class G4ParticleGun;
 class G4Event;
 class PrimaryGeneratorMessenger;
 class Simulation;
 class remollMultScatt;
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 class MolPolPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
 public:
-  MolPolPrimaryGeneratorAction();
+  MolPolPrimaryGeneratorAction(MolPolDetectorConstruction*);
   virtual ~MolPolPrimaryGeneratorAction();
 
   void GeneratePrimaries(G4Event*);
@@ -69,6 +72,13 @@ private:
   void InitTargetMomentum();
   G4double GetTmpUnpolDist(const G4double p[8],const G4double refMom[8],const G4int k);
   G4double GetElectronStructFct(G4double&, const G4double);
+
+  MolPolDetectorConstruction* myDetector;
+  void SetTargetQuantities();
+  G4double fTargetA;
+  G4double fTargetZ;
+  G4double fTargetDensity;
+
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
