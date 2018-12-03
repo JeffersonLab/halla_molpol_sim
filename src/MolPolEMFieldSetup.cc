@@ -387,7 +387,7 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
   // Dipole Field Updated ... Ideal if we don't have to reload map for TOSCA dipole.
   // Additional if statements will be needed at some point.
   // i.e. if was TOSCA and still is... just update.
-  // i.e. if was TOSCA and now ideal... create new object and set EMfield object to it.
+  // i.e. if was TOSCA and now ideal...  create new object and set EMfield object to it.
   if(dDipRelevantStr != 0.){
     G4cout << "\nUpdating Dipole Configuration..." << G4endl;
     fEMfield->setDipoleStatus(1); //Dipole on
