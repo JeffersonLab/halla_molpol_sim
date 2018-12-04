@@ -1,7 +1,10 @@
+
 #include "MolPolPrimaryGeneratorAction.hh"
 
 //MolPol headers
 #include "MolPolMessenger.hh"
+#include "MolPolDetectorConstruction.hh"
+#include "MolPolIO.hh"
 
 //G4 headers
 #include "G4Event.hh"
@@ -9,13 +12,13 @@
 #include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
 #include "remollMultScatt.hh"
+#include "G4Material.hh"
 
 //To use CLHEP variables (recent version of G4)
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 
 #include "Randomize.hh"
-#include "MolPolIO.hh"
 
 #include "G4ios.hh"
 
@@ -23,8 +26,8 @@
 
 #include <cmath> /* Used for isnan, isinf, debugging... */
 
-MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
-  :rndmFlag("off")
+MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction(MolPolDetectorConstruction* myDC)
+  :rndmFlag("off"), myDetector(myDC)
 {
   particleGun  = new G4ParticleGun();
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
@@ -49,12 +52,17 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
   fphiMin = -8.0*deg;
   fphiMax = 8.0*deg;
   fZ = 6.9*cm;
-  fTargLen = .124*mm;
   gentype = "moller";
+
+  //TARGET VARIABLES
+  fTargLen = .124*mm;
+  fTargetA = 55.847;
+  fTargetZ = 26;
+  fTargetDensity = 7.87 * g/cm3;
 
   //CREATE NEW MOLPOLEVENT OBJECT TO STORE EVENT INFORMATION FOR RECORDING
   fDefaultEvent = new MolPolEvent();
-
+  
   //LEVCHUCK FLAG AND VALUES - INITIALIZE FLAG TO 'true' BY DEFAULT AND POLARIZATION TO SOME VALUE
   //ADDITIONALLY, fLEcorFac MUST INITIALIZE TO 1.
   fLevchukFlag = true;
@@ -80,7 +88,11 @@ void MolPolPrimaryGeneratorAction::rand(){
 
 void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-  fDefaultEvent->Reset();
+  //FIXME: TEMP WORKAROUND SOLUTION
+  //SEEMS DETECTOR CONSTRUCT FUNCTION CALLED AFTER PRIMIARY GENERATOR CONSTRUCTIOn
+  //SetTargetQuantities();
+
+ fDefaultEvent->Reset();
 
   double xpos, ypos, zpos, thetaPos, phiPos;
   double pX, pY, pZ, eff_sigma, Azz;
@@ -99,11 +111,11 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //Multiple Scattering until the vertex position
       const G4int nTgtMat = 1;
       G4double msA[nTgtMat], msZ[nTgtMat], msThick[nTgtMat];
-      msA[0] = 57.14;//
-      msZ[0] = 26.43;//
+      msA[0] = fTargetA;
+      msZ[0] = fTargetZ;
 
       //~~ Iron density in g/cm3; divide by g/cm2 at the end to get back into G4units
-      G4double ironDensity = 8.15*g/cm3; //FIXME
+      G4double ironDensity = fTargetDensity;
       msThick[0] = ((zpos + fTargLen/2) * ironDensity )/(g/cm2);
       //~~ Sample multiple scattering + angles
       G4double msth(0), msph(0);
@@ -531,3 +543,28 @@ G4double MolPolPrimaryGeneratorAction::GetElectronStructFct(G4double &u, const G
   return dePhot + dee;
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+void MolPolPrimaryGeneratorAction::SetTargetQuantities()
+{
+
+  fTargLen = myDetector->GetTargetFullLength();
+
+  G4Material* tempMaterial = myDetector->GetTarget();
+
+  if(tempMaterial)
+    {
+      fTargetDensity = tempMaterial->GetDensity();
+      fTargetZ = tempMaterial->GetZ();      
+      // FOR A: USE VALUE FROM THE INITIALIZATION
+      // CURRENT CALCULATION ONLY USE THE VALUE W/O UNIT
+      // fTargetA = tempMaterial->GetA();
+    }
+
+  /*
+  //DEBUGGING PURPOSE
+  G4cout << "\n ********** Target Information **********"
+	 << "\n * A: " << fTargetA << " Z: " << fTargetZ
+	 << " rho: " << fTargetDensity << " leng: " << fTargLen
+	 << "\n" << G4endl;
+  */
+}
