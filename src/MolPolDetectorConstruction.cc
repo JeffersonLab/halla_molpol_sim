@@ -1,4 +1,3 @@
-
 #include "MolPolDetectorConstruction.hh"
 #include "G4SystemOfUnits.hh"
 #include "MolPolDetector.hh"
@@ -81,7 +80,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4Element* Ni = new G4Element("Nickel"    , "Ni", z=28, a=58.693*g/mole);
   G4Element* Mo = new G4Element("Molybdenum", "Mo", z=42, a=95.95 *g/mole);
 
-  
+
 
   // INFORMATION FROM SANGHWA
   density = 7.93 *g/cm3;
@@ -183,13 +182,13 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm;   G4double pMTATHLZ = 0.0062 * cm;
   G4double pMTATPos_X = 0.0 * cm; G4double pMTATPos_Y = 0.0 * cm; G4double pMTATPos_Z = 6.9 * cm;
   G4VSolid* MTATSolid = new G4Tubs( "MTATTube", pMTATRin, pMTATRout, pMTATHLZ, 0.0, 360.0 * deg );
-
   G4LogicalVolume* TargetLogical = new G4LogicalVolume(MTATSolid, iron, "Target", 0, 0, 0);
   TargetLogical->SetVisAttributes(IronVisAtt);
   new G4PVPlacement(0, G4ThreeVector(pMTATPos_X,pMTATPos_Y,pMTATPos_Z - pQ6Pos_z), TargetLogical, "Target", BPVTLogical, 0, 0, fCheckOverlaps);
 
   fTargetFullLength = pMTATHLZ * 2;
   fTargetMaterial = TargetLogical->GetMaterial();
+
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Helmholtz Coil 'Physical' Volume
