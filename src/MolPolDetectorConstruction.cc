@@ -390,12 +390,10 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4LogicalVolume * BPAlLogVol[9];
   G4LogicalVolume * BPVacLogVol[9];
   for(G4int i = 0; i < 9; i++){
-    G4double startAt   = pBPpos[i];
-    G4double endAt     = pBPpos[i+1];
     G4String solidName = "BPalum_" + std::to_string(i);
     G4String vacName   = "BPvacm_" + std::to_string(i);
-    BPUpstreamAlum[i]  = new G4Tubs( solidName, 0.*cm, pBPRout, (endAt - startAt) / 2., 0.0 * deg, 360.0 * deg );
-    BPUpstreamVac[i]   = new G4Tubs( vacName,   0.*cm, pBPRin,  (endAt - startAt) / 2., 0.0 * deg, 360.0 * deg );
+    BPUpstreamAlum[i]  = new G4Tubs( solidName, 0.*cm, pBPRout, (pBPpos[i+1] - pBPpos[i]) / 2., 0.0 * deg, 360.0 * deg );
+    BPUpstreamVac[i]   = new G4Tubs( vacName,   0.*cm, pBPRin,  (pBPpos[i+1] - pBPpos[i]) / 2., 0.0 * deg, 360.0 * deg );
     G4String solidLogName = "BPalum_logical_" + std::to_string(i);
     G4String vacLogName   = "BPvacm_logical_" + std::to_string(i);
     BPAlLogVol[i]         = new G4LogicalVolume( BPUpstreamAlum[i], aluminum, solidLogName , 0, 0, 0);
@@ -405,7 +403,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
     G4String solidPVName  = "BeamPipeAlmnum_" + std::to_string(i);
     G4String vacPVName    = "BeamPipeVacuum_" + std::to_string(i);
     if( i % 2 == 0 ) {
-        new G4PVPlacement(0, G4ThreeVector(0,0,((endAt + startAt) / 2.)), BPAlLogVol[i],  solidPVName, world_log,     0, 0, fCheckOverlaps);
+        new G4PVPlacement(0, G4ThreeVector(0,0,((pBPpos[i+1] + pBPpos[i]) / 2.)), BPAlLogVol[i],  solidPVName, world_log,     0, 0, fCheckOverlaps);
         new G4PVPlacement(0, G4ThreeVector(0,0,0),                                BPVacLogVol[i], vacPVName,   BPAlLogVol[i], 0, 0, fCheckOverlaps);
     } else {
         if( i == 1){
