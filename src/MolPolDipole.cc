@@ -54,21 +54,6 @@ MolPolDipole::~MolPolDipole()
 {
 }
 
-//////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-// Member functions to update dipole -- maybe just move these into class library ... not sure if individuals are needed.  Probably not thinking about it.
-void MolPolDipole::setDipoleStrength(G4double pBend){
-  fBend    = pBend;
-}
-void MolPolDipole::setDipoleZeff(G4double pZeff){
-  fZeff    = pZeff;
-}
-void MolPolDipole::setRotationMatrix(G4RotationMatrix* pMatrix){
-  fMatrix = pMatrix;
-}
-void MolPolDipole::setDipoleOrigin(G4ThreeVector pOrigin){
-  fOrigin = pOrigin;
-}
-
 void MolPolDipole::updateDipole(G4double pBend, G4ThreeVector pOrigin, G4RotationMatrix* pMatrix, G4double pZeff){
   fBend    = pBend;
   fOrigin  = pOrigin;
@@ -84,6 +69,10 @@ void MolPolDipole::updateDipole(G4double pBend, G4ThreeVector pOrigin, G4Rotatio
 
 void MolPolDipole::GetFieldValue( const G4double y[7], G4double B[3]  ) const
 {
+  // Set to zero.
+  B[0] = 0.;
+  B[1] = 0.;
+  B[2] = 0.;
 
   G4ThreeVector position= G4ThreeVector(y[0],y[1],y[2]);
 
@@ -128,18 +117,18 @@ void MolPolDipole::GetFieldValue( const G4double y[7], G4double B[3]  ) const
   //}else{
   //B[0] = 0.;
 
-  G4cout << "Dipole Boundary Z(" << (fOrigin.z() - 0.5 * fZeff)/10 << "," << (fOrigin.z() + 0.5 * fZeff)/10 << ") cm" << G4endl;
+  //G4cout << "Dipole Boundary Z(" << (fOrigin.z() - 0.5 * fZeff)/10 << "," << (fOrigin.z() + 0.5 * fZeff)/10 << ") cm" << G4endl;
 
   if( (position.z() > (fOrigin.z() - 0.5 * fZeff)) && (position.z() < (fOrigin.z() + 0.5 * fZeff)) ){
-    //if( (position.y() > (fOrigin.y() - 300.)) && (position.y() < (fOrigin.y() + 300.)) ){
-      //if( (position.x() > (fOrigin.x() - 300.)) && (position.x() < (fOrigin.x() + 300.)) ){
+    if( (position.y() > (fOrigin.y() - 30.*cm)) && (position.y() < (fOrigin.y() + 30.*cm)) ){
+      if( (position.x() > (fOrigin.x() - 8.*cm)) && (position.x() < (fOrigin.x() + 8.*cm)) ){
         B[0] = B_0;
         B[1] = 0.;
         B[2] = 0.;
-      //}
-    //}
+      }
+    }
   } else {
-    G4cout << "OUT OF DIPOLE Z BOUNDARY!" << G4endl;
+    //G4cout << "OUT OF DIPOLE Z BOUNDARY!" << G4endl;
   }
   //}
 

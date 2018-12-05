@@ -68,7 +68,7 @@ void MolPolQuad::GetFieldValue( const G4double y[4], G4double B[3]  ) const
   B[2] = 0;
 
   G4ThreeVector position = G4ThreeVector(y[0],y[1],y[2]);
-  G4cout << "  Quad Boundary Z(" << (fOrigin.z() - 0.5 * fZeff)/10 << "," << (fOrigin.z() + 0.5 * fZeff)/10 << ") cm" << G4endl;
+  //G4cout << "  Quad Boundary Z(" << (fOrigin.z() - 0.5 * fZeff)/10 << "," << (fOrigin.z() + 0.5 * fZeff)/10 << ") cm" << G4endl;
 
   G4double rsquared = (position.x() * position.x() + position.y() * position.y());
 
@@ -78,7 +78,7 @@ void MolPolQuad::GetFieldValue( const G4double y[4], G4double B[3]  ) const
 
   if( (position.z() > (fOrigin.z() - 0.5 * fZeff)) && (position.z() < (fOrigin.z() + 0.5 * fZeff)) ){
     if(rsquared < (fRadius * fRadius)){
-      G4cout << "  Within quadrupole boundary." << G4endl;
+      //G4cout << "  Within quadrupole boundary." << G4endl;
       // idealized quad field Bx = kappa * y, By = kappa * x
       G4ThreeVector idealizedField = G4ThreeVector(fGradient * position.y(),
                                                    fGradient * position.x(),
@@ -92,7 +92,7 @@ void MolPolQuad::GetFieldValue( const G4double y[4], G4double B[3]  ) const
       B[2] = rotatedField.z() ;
     }
   } else {
-    G4cout << "  OUT OF QUAD BOUNDARY!" << G4endl;
+    //G4cout << "  OUT OF QUAD BOUNDARY!" << G4endl;
   }
 
 }
