@@ -62,7 +62,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   G4Element* N  = new G4Element("Nitrogen"  , "N" , z=7 , a=14.01*g/mole);
   G4Element* O  = new G4Element("Oxygen"    , "O" , z=8 , a=16.00*g/mole);
-  G4Element* H  = new G4Element("Hydrogen"  , "H" , z=1 , a=1.01 *g/mole);
+  //G4Element* H  = new G4Element("Hydrogen"  , "H" , z=1 , a=1.01 *g/mole); // Unneeded at this time
   G4Element* C  = new G4Element("Carbon"    , "C" , z=6 , a=12.01*g/mole);
 
   // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
@@ -72,7 +72,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4Element* Al = new G4Element("Aluminum"  , "Al", z=13, a=26.98 *g/mole);
   G4Element* Fe = new G4Element("Iron"      , "Fe", z=26, a=55.845*g/mole);
   G4Element* Si = new G4Element("Silicon"   , "Si", z=14, a=28.09 *g/mole);
-  G4Element* Pb = new G4Element("Lead"      , "Pb", z=82, a=207.19*g/mole);
+  //G4Element* Pb = new G4Element("Lead"      , "Pb", z=82, a=207.19*g/mole); // Unneeded at this time
 
   // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
   G4Element* Mn = new G4Element("Manganese" , "Mn", z=25, a=54.938*g/mole);
@@ -115,9 +115,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   a = 63.55*g/mole;
   G4Material* Cu = new G4Material("Copper" , z=29., a, density);
 
-  density = 1.032*g/cm3;
-  a = 12.01*g/mole;
-  G4Material* scint = new G4Material("scint", z=6., a, density);
+  /*density = 1.032*g/cm3;
+   *a = 12.01*g/mole;
+   *G4Material* scint = new G4Material("scint", z=6., a, density);*/ //Unneeded at this time
 
   density = 1.e-6/760.0 * 1.29*mg/cm3; //0.001 of air density
   pressure = 1.e-6/760.0 *atmosphere;
