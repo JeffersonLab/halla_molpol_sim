@@ -351,11 +351,11 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4LogicalVolume* subcolLogical = new G4LogicalVolume ( subcol, lead, "Collimator", 0, 0, 0);
   subcolLogical ->SetVisAttributes(LeadVisAtt);
   new G4PVPlacement(0,G4ThreeVector( pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X,
-             pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y,
-             pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"Collimator1",world_log,0,0,fCheckOverlaps);
+                                     pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y,
+                                     pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"CollimatorR",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(-pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X,
-            pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y,
-            pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"Collimator2",world_log,0,0,fCheckOverlaps);
+                                     pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y,
+                                     pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"CollimatorL",world_log,0,0,fCheckOverlaps);
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Upstream Flange attached to dipole box
