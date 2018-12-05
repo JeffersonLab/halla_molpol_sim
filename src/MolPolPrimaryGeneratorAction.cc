@@ -104,8 +104,9 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double thcom = acos(G4RandFlat::shoot(cos(fthetaComMax), cos(fthetaComMin)));
       G4double phcom = G4RandFlat::shoot(fphiMin, fphiMax); //deg
 
-      ///zpos: random position within the target of length fTargLen and placement at fZ
-      G4double zpos = ( G4UniformRand() - 0.5 ) * fTargLen + fZ;
+      ///zpos: random position within the target of length fTargLen (local coordinate)
+      // vertex z position is calculated as vtx_z = zpos + fZ (target center) later
+      G4double zpos = ( G4UniformRand() - 0.5 ) * fTargLen;
 
       //Multiple Scattering until the vertex position
       const G4int nTgtMat = 1;
@@ -306,20 +307,21 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       //GENERATE PARTICLES
       //electron #1
+      G4double vtx_z = zpos + fZ;
       G4double KE1 = electron_mass_c2 * sqrt( 1 + pow(p1/electron_mass_c2,2)) - electron_mass_c2;
       particleGun->SetParticleEnergy( KE1 );
-      particleGun->SetParticlePosition( G4ThreeVector(0, 0, zpos) );
+      particleGun->SetParticlePosition( G4ThreeVector(0, 0, vtx_z) );
       particleGun->SetParticleMomentumDirection( G4ThreeVector( tX1, tY1, tZ1 ).unit() );
-      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, zpos),
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, vtx_z),
                                         G4ThreeVector(tX1, tY1, tZ1 ) * p1,
                                         particleGun->GetParticleDefinition()->GetParticleName() );
       particleGun->GeneratePrimaryVertex(anEvent);
       //electron#2
       G4double KE2 = electron_mass_c2 * sqrt( 1 + pow(p2/electron_mass_c2,2)) - electron_mass_c2;
       particleGun->SetParticleEnergy( KE2 );
-      particleGun->SetParticlePosition( G4ThreeVector(0, 0, zpos) );
+      particleGun->SetParticlePosition( G4ThreeVector(0, 0, vtx_z) );
       particleGun->SetParticleMomentumDirection( G4ThreeVector( tX2, tY2, tZ2 ).unit() );
-      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, zpos),
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, vtx_z),
                                         G4ThreeVector(tX2, tY2, tZ2 ) * p2,
                                         particleGun->GetParticleDefinition()->GetParticleName() );
       particleGun->GeneratePrimaryVertex(anEvent);
