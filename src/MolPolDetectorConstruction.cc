@@ -757,8 +757,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4LogicalVolume* DETLogical = new G4LogicalVolume(DLGBSolid, Vacuum, "DETLogical",0,0,0);
   DETLogical->SetSensitiveDetector(DETSD);
 
-  // G4LogicalVolume* sub8Logical = new G4LogicalVolume ( sub8, siliconsteel, "sub8Logical", 0, 0, 0);
-  G4LogicalVolume* sub8Logical = new G4LogicalVolume ( sub8, Vacuum, "sub8Logical", 0, 0, 0);
+  G4LogicalVolume* sub8Logical = new G4LogicalVolume ( sub8, lead, "DetectorBox", 0, 0, 0);
   G4VisAttributes *sub8VisAtt(AlumVisAtt);
   sub8VisAtt->SetForceWireframe(true);
   sub8Logical->SetVisAttributes(sub8VisAtt);
