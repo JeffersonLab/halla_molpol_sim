@@ -709,17 +709,17 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4LogicalVolume* SHL1Logical = new G4LogicalVolume(subSHL2,   lead, "Shield1", 0,0,0);
   G4LogicalVolume* SHL2Logical = new G4LogicalVolume(S2LDSolid, lead, "Shield2", 0,0,0);
   G4LogicalVolume* SHL3Logical = new G4LogicalVolume(subSHL3,   aluminum, "Shield3", 0,0,0);
-  G4LogicalVolume* SHL4Logical = new G4LogicalVolume(S3LDSolid, lead, "Shield4", 0,0,0);
+  //G4LogicalVolume* SHL4Logical = new G4LogicalVolume(S3LDSolid, lead, "Shield4", 0,0,0);
   // FIXME!!!!!  Something here may require attention. Are VisAttributes correct? Does not match materials.
   SHL1Logical->SetVisAttributes(LeadVisAtt);
   SHL2Logical->SetVisAttributes(AlumVisAtt);
   SHL3Logical->SetVisAttributes(LeadVisAtt);
-  SHL4Logical->SetVisAttributes(LeadVisAtt);
+  //SHL4Logical->SetVisAttributes(LeadVisAtt);
 
   new G4PVPlacement(0, G4ThreeVector(pS1LDPos_X, pS1LDPos_Y, pS1LDPos_Z), SHL1Logical, "Shield1", world_log, 0,0,fCheckOverlaps);
   new G4PVPlacement(0, G4ThreeVector(pS2LDPos_X, pS2LDPos_Y, pS2LDPos_Z), SHL2Logical, "Shield2", world_log, 0,0,fCheckOverlaps);
   new G4PVPlacement(0, G4ThreeVector(pS21BPos_X, pS21BPos_Y, pS21BPos_Z), SHL3Logical, "Shield3", world_log, 0,0,fCheckOverlaps);
-  new G4PVPlacement(0, G4ThreeVector(pS3LDPos_X, pS3LDPos_Y, pS3LDPos_Z), SHL4Logical, "Shield4", world_log, 0,0,fCheckOverlaps);
+  //new G4PVPlacement(0, G4ThreeVector(pS3LDPos_X, pS3LDPos_Y, pS3LDPos_Z), SHL4Logical, "Shield4", world_log, 0,0,fCheckOverlaps);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
