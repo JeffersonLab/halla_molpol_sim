@@ -402,14 +402,12 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
                          pQ3Pos_Z + pQ3HL,      //end Q3   (world coord's)
                          pQ4Pos_Z - pQ4HL,      //begin Q4 (world coord's)
                          pQ4Pos_Z + pQ4HL,      //end Q4   (world coord's)
-                         pDMagPos_Z - pDBI1HLZ};//position of dipole mag volume minus half length of initial dipole box geometry
+                         pDBI1Pos_Z - pDBI1HLZ};//position of dipole mag volume minus half length of initial dipole box geometry
   G4VSolid * BPUpstreamAlum[9];
   G4VSolid * BPUpstreamVac[9];
   G4LogicalVolume * BPAlLogVol[9];
   G4LogicalVolume * BPVacLogVol[9];
   for(G4int i = 0; i < 9; i++){
-    G4double startAt   = pBPpos[i];
-    G4double endAt     = pBPpos[i+1];
     G4String solidName = "BPalum_" + std::to_string(i);
     G4String vacName   = "BPvacm_" + std::to_string(i);
     BPUpstreamAlum[i]  = new G4Tubs( solidName, 0.*cm, pBPRout, (pBPpos[i+1] - pBPpos[i]) / 2., 0.0 * deg, 360.0 * deg );
