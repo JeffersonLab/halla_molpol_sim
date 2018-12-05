@@ -127,6 +127,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   temperature = 293.15 *kelvin;  //room temperature
   a = 28.97 *g/mole;
 
+  G4Material* titanium = new G4Material("titanium", 22, 47.867*g/mole, 4.54*g/cm3);
+
   G4Material* Vacuum = new G4Material("Vacuum",z=1,a,density,kStateGas,temperature,pressure);
   G4Material* Air    = new G4Material("Air",    density=1.29*mg/cm3, nelements=2);
   Air->AddElement(N, 79.0*perCent);
