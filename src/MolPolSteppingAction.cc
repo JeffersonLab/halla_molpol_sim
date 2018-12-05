@@ -41,7 +41,11 @@ void MolPolSteppingAction::UserSteppingAction(const G4Step *aStep) {
       aTrack->SetTrackStatus(fStopAndKill);
       return;
   }
-  if( aTrack->GetMaterial()->GetName() != "Vacuum" && aTrack->GetVolume()->GetName() != "Target" ){
+  if( aTrack->GetMaterial()->GetName() != "Vacuum" &&
+      aTrack->GetVolume()->GetName() != "Target"  &&
+      aTrack->GetVolume()->GetName() != "DipoleExitWindowR" &&
+      aTrack->GetVolume()->GetName() != "DipoleExitWindowL")
+  {
     aTrack->SetTrackStatus(fStopAndKill);
     return;
   }
