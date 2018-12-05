@@ -514,7 +514,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   //G4double pVP2Pos_X  = 0.00  * cm;  G4double pVP2Pos_Y = -9.00  * cm;  G4double pVP2Pos_Z = (422.8 - 98.5 - 2) * cm; // Unneeded was position for dipole entrance VP
   G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = -9.00  * cm;  G4double pVP3Pos_Z = (537.0*cm - 14.0*cm - 0.001*cm); // Had to move slightly after adding Dipole End Plate, places right at beginning of Shield1
 
-  G4VSolid* VP3Solid  = new G4Box( "VP3BOX",  pVP2HLX, pVP2HLY, pVP2HLZ );
+  G4VSolid* VP3Solid  = new G4Box( "VP3BOX",  pVP3HLX, pVP3HLY, pVP3HLZ );
   G4LogicalVolume* VP3Logical = new G4LogicalVolume(VP3Solid, Vacuum, "VP3Logical", 0,0,0);
   VP3Logical->SetSensitiveDetector( DPOUT );
   VP3Logical->SetVisAttributes(VacVisAtt);
