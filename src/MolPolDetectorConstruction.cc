@@ -353,7 +353,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid * DUpstreamFlange = new G4Tubs( "DUpstreamFlange", pDUPFLRin , pDUPFLRout , pDUPFLHLZ  , 0.0, 360.0 * deg );
   G4LogicalVolume * DUpstreamFlangeLogical = new G4LogicalVolume(DUpstreamFlange,stainlesssteel304,"DUpstreamFlangeLogical",0,0,0);
   DUpstreamFlangeLogical->SetVisAttributes(LeadVisAtt);
-  new G4PVPlacement(0,G4ThreeVector( 0 , 0 , pDMagPos_Z - 98.5*cm - pDUPFLHLZ ),DUpstreamFlangeLogical,"DipoleUpstreamFlange",world_log,0,0,0);
+  new G4PVPlacement(0,G4ThreeVector( 0 , 0 , pDBI1Pos_Z - 98.5*cm - pDUPFLHLZ ),DUpstreamFlangeLogical,"DipoleUpstreamFlange",world_log,0,0,0);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
