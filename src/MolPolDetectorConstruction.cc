@@ -529,10 +529,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // DIPOLE Virtual Planes
+  // DIPOLE Virtual Planes - NOTE: Dipole Entrance VP integrated into beampipe construction above.
   G4double pVP2HLX    = 6.00 * cm;   G4double pVP2HLY   = 20.00 * cm;  G4double pVP2HLZ   = 0.001   * cm;
-  G4double pVP2Pos_X  = 0.00  * cm;  G4double pVP2Pos_Y = -9.00  * cm;  G4double pVP2Pos_Z = (422.8 - 98.5 - 2) * cm;
-  G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = -9.00  * cm;  G4double pVP3Pos_Z = (422.8 + 98.5 + 1) * cm;
+  G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = -9.00  * cm;  G4double pVP3Pos_Z = (537.0*cm - 14.0*cm - pVP2HLZ);
 
   G4VSolid* VP3Solid  = new G4Box( "VP3BOX",  pVP2HLX, pVP2HLY, pVP2HLZ );
   G4LogicalVolume* VP3Logical = new G4LogicalVolume(VP3Solid, Vacuum, "VP3Logical", 0,0,0);
@@ -540,14 +539,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   VP3Logical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0,G4ThreeVector(pVP3Pos_X, pVP3Pos_Y, pVP3Pos_Z), VP3Logical, "VP.Dp.Exit", world_log, 0,0, fCheckOverlaps);
 
-  // ** MOVED THIS VIRTUAL PLANE INTO THE LAST SECTION OF PRE-DIPOLE BEAMPIPE.
-  //G4VSolid* VP2Solid  = new G4Box( "VP2BOX",  pVP2HLX, pVP2HLY, pVP2HLZ );
-  //G4LogicalVolume* VP2Logical = new G4LogicalVolume(VP2Solid, Vacuum, "VP2Logical", 0,0,0);
-  //VP2Logical->SetSensitiveDetector( DPIN );
-  //VP2Logical->SetVisAttributes(VacVisAtt);
-  //new G4PVPlacement(0,G4ThreeVector(pVP2Pos_X, pVP2Pos_Y, pVP2Pos_Z), VP2Logical, "VP.Dipole.Entr", world_log, 0,0, fCheckOverlaps);
 
-    //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Virtual Planes inside of dipole box :: this block can safely be removed when no longer needed. -Eric King
   G4double DPIVPHLX = 2.295 * cm / 2;
   G4double DPIVPHLY = 15 * cm;
