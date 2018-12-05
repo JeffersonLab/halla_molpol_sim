@@ -118,9 +118,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   a = 63.55*g/mole;
   G4Material* Cu = new G4Material("Copper" , z=29., a, density);
 
-  density = 1.032*g/cm3;
-  a = 12.01*g/mole;
-  //G4Material* scint = new G4Material("scint", z=6., a, density); // Unused at this time
+  /*density = 1.032*g/cm3;
+   *a = 12.01*g/mole;
+   *G4Material* scint = new G4Material("scint", z=6., a, density);*/ // Unused at this time
 
   density = 1.e-6/760.0 * 1.29*mg/cm3; //0.001 of air density
   pressure = 1.e-6/760.0 *atmosphere;
