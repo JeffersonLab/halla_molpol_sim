@@ -262,16 +262,15 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // Dipole magnetic field volume
-  G4double pDMagHLX   =  8.0   * cm;  G4double pDMagHLY   = 30.0 * cm;  G4double pDMagHLZ   = 82.25 * cm;
+  // Dipole magnetic field volume - THIS WAS IMPROPERLY CONSTRUCTED TO BEGIN WITH
+  //             AND UNNECESSARY FOR UNIFIED FIELD TYPES AS MAG VOLUME NOT NEEDED
+  /*G4double pDMagHLX   =  8.0   * cm;  G4double pDMagHLY   = 30.0 * cm;  G4double pDMagHLZ   = 82.25 * cm;
   G4double pDMagPos_X =  0.0   * cm;  G4double pDMagPos_Y =  0.0 * cm;  G4double pDMagPos_Z =  423.4 * cm;
-
-  //unneeded
-  //G4VSolid* DMagSolid = new G4Box ( "DMagBox" , pDMagHLX , pDMagHLY , pDMagHLZ );
-  //G4LogicalVolume* DLogical = new G4LogicalVolume ( DMagSolid, Vacuum, "DipoleMag", 0, 0, 0);
-  //DLogical->SetFieldManager(DFieldManager,allLocal);
-  //DLogical->SetVisAttributes(VacVisAtt);
-  //new G4PVPlacement(0,G4ThreeVector(pDMagPos_X, pDMagPos_Y - 9*cm, pDMagPos_Z), DLogical,"DipoleMag",world_log,0,0,fCheckOverlaps);
+  G4VSolid* DMagSolid = new G4Box ( "DMagBox" , pDMagHLX , pDMagHLY , pDMagHLZ );
+  G4LogicalVolume* DLogical = new G4LogicalVolume ( DMagSolid, Vacuum, "DipoleMag", 0, 0, 0);
+  DLogical->SetFieldManager(DFieldManager,allLocal);
+  DLogical->SetVisAttributes(VacVisAtt);
+  new G4PVPlacement(0,G4ThreeVector(pDMagPos_X, pDMagPos_Y - 9*cm, pDMagPos_Z), DLogical,"DipoleMag",world_log,0,0,fCheckOverlaps);*/
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // DIPOLE BOX
