@@ -343,9 +343,14 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4SubtractionSolid* subcol = new G4SubtractionSolid("subcol", DCOLSolid, DSLOSolid, 0, G4ThreeVector(pDSLOPos_X,pDSLOPos_Y,pDSLOPos_Z) );
   G4LogicalVolume* subcolLogical = new G4LogicalVolume ( subcol, lead, "Collimator", 0, 0, 0);
   subcolLogical ->SetVisAttributes(LeadVisAtt);
-  new G4PVPlacement(0,G4ThreeVector( pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X, pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y, pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"Collimator1",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(-pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X, pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y, pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"Collimator2",world_log,0,0,fCheckOverlaps);
-
+  new G4PVPlacement(0,G4ThreeVector( pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X,
+                                     pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y,
+                                     pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),
+                                     subcolLogical,"Collimator1",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(-pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X,
+                                     pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y,
+                                     pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),
+                                     subcolLogical,"Collimator2",world_log,0,0,fCheckOverlaps);
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Upstream Flange attached to dipole box
@@ -506,16 +511,19 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // DIPOLE Exit Virtual Plane
-  G4double pVP2HLX    = 6.00 * cm;   G4double pVP2HLY   = 20.00 * cm;  G4double pVP2HLZ   = 0.001   * cm;
-  //G4double pVP2Pos_X  = 0.00  * cm;  G4double pVP2Pos_Y = -9.00  * cm;  G4double pVP2Pos_Z = (422.8 - 98.5 - 2) * cm;
-  G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = -9.00  * cm;  G4double pVP3Pos_Z = (422.8 + 98.5 + 1) * cm;
+  // DIPOLE Virtual Planes
+  G4double pVP3HLX    = 6.00 * cm;   G4double pVP3HLY   = 20.00 * cm;  G4double pVP3HLZ   = 0.001   * cm;
+  //G4double pVP2Pos_X  = 0.00  * cm;  G4double pVP2Pos_Y = -9.00  * cm;  G4double pVP2Pos_Z = (422.8 - 98.5 - 2) * cm; // Unneeded was position for dipole entrance VP
+  G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = -9.00  * cm;  G4double pVP3Pos_Z = (537.0*cm - 14.0*cm - 0.001*cm); // Had to move slightly after adding Dipole End Plate, places right at beginning of Shield1
 
   G4VSolid* VP3Solid  = new G4Box( "VP3BOX",  pVP2HLX, pVP2HLY, pVP2HLZ );
   G4LogicalVolume* VP3Logical = new G4LogicalVolume(VP3Solid, Vacuum, "VP3Logical", 0,0,0);
   VP3Logical->SetSensitiveDetector( DPOUT );
   VP3Logical->SetVisAttributes(VacVisAtt);
-  new G4PVPlacement(0,G4ThreeVector(pVP3Pos_X, pVP3Pos_Y, 537.0*cm - 14.0*cm - pVP2HLZ /*pVP3Pos_Z*/), VP3Logical, "VP.Dp.Exit", world_log, 0,0, fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(pVP3Pos_X, pVP3Pos_Y, pVP3Pos_Z), VP3Logical, "VP.Dp.Exit", world_log, 0,0, fCheckOverlaps);
+
+  // Note Dipole Entrance VP now included in beampipe construction section above.
+
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Virtual Planes inside of dipole box :: this block can safely be removed when no longer needed. -Eric King
