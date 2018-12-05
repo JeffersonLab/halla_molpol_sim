@@ -97,8 +97,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   stainlesssteel304->AddElement(P,  0.0005);
   stainlesssteel304->AddElement(S,  0.0003);
 
-  density = 7.87 * g/cm3;
-  a = 55.847 * g /mole;
+  density = 0.787 * g/cm3;
+  a = 55.85 * g /mole;
   G4Material* iron = new G4Material("iron", z=26, a, density);
 
   density = 7.65 *g/cm3;
