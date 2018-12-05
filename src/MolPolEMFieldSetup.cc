@@ -392,7 +392,7 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
     G4cout << "\nUpdating Dipole Configuration..." << G4endl;
     fEMfield->setDipoleStatus(1); //Dipole on
     if(iDipoleType == 1){
-      MolPolDipole* dip = new MolPolDipole(dDipRelevantStr,G4ThreeVector(0,0,ORIGIND),NOROT,2*82.25*cm);
+      MolPolDipole* dip = new MolPolDipole(dDipRelevantStr,G4ThreeVector(0,-9.0*cm,ORIGIND),NOROT,2*82.25*cm);
       fEMfield->setDipoleObject(1,(G4MagneticField*)dip );
       G4cout << "         Status: ON;" << G4endl
              << "           Type: Ideal;" << G4endl
