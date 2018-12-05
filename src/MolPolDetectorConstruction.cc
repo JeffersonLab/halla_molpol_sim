@@ -291,8 +291,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pDBW2Pos_X =  0.0   * cm;  G4double pDBW2Pos_Y =  9.0 * cm;  G4double pDBW2Pos_Z =  0.0  * cm;
   G4double pDBW3Pos_X = -4.13  * cm;  G4double pDBW3Pos_Y = -7.0 * cm;  G4double pDBW3Pos_Z =  0.0  * cm;
   G4double pDBW4Pos_X =  4.13  * cm;  G4double pDBW4Pos_Y = -7.0 * cm;  G4double pDBW4Pos_Z =  0.0  * cm;
-  G4double pDBT3Pos_X =  0.0   * cm;  G4double pDBT3Pos_Y =  0.0 * cm;  G4double pDBT3Pos_Z =  0.0  * cm;
-  G4double pDBT4Pos_X =  0.0   * cm;  G4double pDBT4Pos_Y =  0.0 * cm;  G4double pDBT4Pos_Z =  0.0  * cm;
+  //G4double pDBT3Pos_X =  0.0   * cm;  G4double pDBT3Pos_Y =  0.0 * cm;  G4double pDBT3Pos_Z =  0.0  * cm; // Unneeded T windows placed in cutouts pDBW3/4
+  //G4double pDBT4Pos_X =  0.0   * cm;  G4double pDBT4Pos_Y =  0.0 * cm;  G4double pDBT4Pos_Z =  0.0  * cm; // Unneeded T windows placed in cutouts pDBW3/4
   G4double pDMS1Pos_X =  0.0   * cm;  G4double pDMS1Pos_Y =  0.0 * cm;  G4double pDMS1Pos_Z =  0.0  * cm;
   G4double pDMBHPos_X =  0.0   * cm;  G4double pDMBHPos_Y =  9.0 * cm;  G4double pDMBHPos_Z =  0.0  * cm;
   G4double pDMFRPos_X =  0.0   * cm;  G4double pDMFRPos_Y =  0.0 * cm;  G4double pDMFRPos_Z =-87.2  * cm;
@@ -310,22 +310,13 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* DMFRSolid = new G4Tubs( "DMFRTubs", pDMFRRin , pDMFRRout , pDMFRHL  , 0.0, 360.0 * deg );//used
 
   G4SubtractionSolid* sub1 = new G4SubtractionSolid("sub1", DBI1Solid, DBV1Solid, 0, G4ThreeVector(pDBV1Pos_X, pDBV1Pos_Y, pDBV1Pos_Z) );
-  G4UnionSolid*       sub2 = new G4UnionSolid      ("sub2", sub1 , DMS1Solid, 0, G4ThreeVector(pDMS1Pos_X + pDBV1Pos_X, pDMS1Pos_Y + pDBV1Pos_Y, pDMS1Pos_Z + pDBV1Pos_Z) );
+  G4UnionSolid*       sub2 = new G4UnionSolid("sub2", sub1 , DMS1Solid, 0, G4ThreeVector(pDMS1Pos_X + pDBV1Pos_X, pDMS1Pos_Y + pDBV1Pos_Y, pDMS1Pos_Z + pDBV1Pos_Z) );
   G4SubtractionSolid* sub3 = new G4SubtractionSolid("sub3", sub2 , DMBHSolid, 0, G4ThreeVector(pDMBHPos_X + pDMS1Pos_X + pDBV1Pos_X, pDMBHPos_Y + pDMS1Pos_Y + pDBV1Pos_Y, pDMBHPos_Z + pDMS1Pos_Z + pDBV1Pos_Z) );
   G4UnionSolid*       sub4 = new G4UnionSolid      ("sub4", sub3 , DMFRSolid, 0, G4ThreeVector(pDMFRPos_X + pDMBHPos_X + pDMS1Pos_X + pDBV1Pos_X, pDMFRPos_Y + pDMBHPos_Y + pDMS1Pos_Y + pDBV1Pos_Y, pDMFRPos_Z + pDMBHPos_Z + pDMS1Pos_Z + pDBV1Pos_Z));
 
-  //Subtract the Sub4 volume from the DMagSolid Volume.
-  //G4SubtractionSolid* sub0 = new G4SubtractionSolid("sub0", DMagSolid , sub4 , 0 , G4ThreeVector (0,0,0));
-
-  G4LogicalVolume* DipoleVacuumBoxLogical = new G4LogicalVolume ( sub4, siliconsteel, "DipoleVacuumBoxLogical", 0, 0, 0);
-  DipoleVacuumBoxLogical->SetVisAttributes(SteelVisAtt);
-
-  //Now place the Sub4 volume in the world volume and place the magnetic field volume in the world volume.
-  //Both should be placed where the dipole magnetic volume was placed.
-  //new G4PVPlacement(0,G4ThreeVector(0.,0.,0.),sub4Logical,"DipoleVacuumBox",DLogical,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(pDBI1Pos_X, pDBI1Pos_Y, pDBI1Pos_Z),DipoleVacuumBoxLogical,"DipoleVacuumBox",world_log,0,0,fCheckOverlaps);
-  //with the global field this is not necessary to have. just problematic.
-  //new G4PVPlacement(0,G4ThreeVector(pDMagPos_X, pDMagPos_Y - 9*cm, pDMagPos_Z),DLogical,   "DipoleMag",      world_log,0,0,fCheckOverlaps);
+  G4LogicalVolume* sub4Logical = new G4LogicalVolume ( sub4, siliconsteel, "DipoleVacuumBox", 0, 0, 0);
+  sub4Logical->SetVisAttributes(SteelVisAtt);
+  new G4PVPlacement(0,G4ThreeVector(pDBI1Pos_X, pDBI1Pos_Y - 9*cm, pDBI1Pos_Z),sub4Logical,"DipoleVacuumBox",world_log,0,0,fCheckOverlaps);
 
   //This is the back dipole window. Start with the steel plate, take out the windows (DBW3/4), cut out the beampipe hole (DBW2)
   G4SubtractionSolid* sub9  = new G4SubtractionSolid("sub9" , DBW1Solid, DBW2Solid, 0, G4ThreeVector(pDBW2Pos_X, pDBW2Pos_Y, pDBW2Pos_Z) );
@@ -333,11 +324,10 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4SubtractionSolid* sub11 = new G4SubtractionSolid("sub11", sub10    , DBW4Solid, 0, G4ThreeVector(pDBW4Pos_X, pDBW4Pos_Y, pDBW4Pos_Z) );
   G4LogicalVolume* sub11Logical = new G4LogicalVolume ( sub11, siliconsteel, "sub13Logical", 0, 0, 0);
   sub11Logical->SetVisAttributes(SteelVisAtt);
-  new G4PVPlacement(0,G4ThreeVector(pDBW1Pos_X, pDBW1Pos_Y, pDBW1Pos_Z),sub11Logical,"DipoleVacuumBox",world_log,0,0,fCheckOverlaps);
-  //Thin titanium windows for the dipole exit windows, must be placed at z = pDBW1Pos_Z and place at the positions of the cutouts (pDBW3/4) plus the dipole vacuum box Y offset
-  //FIXME: Windows must be assigned titanium.  Don't have at the moment.
-  G4LogicalVolume* DipoleExitWindowLLogical = new G4LogicalVolume ( DBT3Solid, siliconsteel, "DipoleExitWindowL", 0, 0, 0);
-  G4LogicalVolume* DipoleExitWindowRLogical = new G4LogicalVolume ( DBT4Solid, siliconsteel, "DipoleExitWindowR", 0, 0, 0);
+  new G4PVPlacement(0,G4ThreeVector(pDBW1Pos_X, pDBW1Pos_Y, pDBW1Pos_Z),sub11Logical,"DipoleVacuumBoxExit",world_log,0,0,fCheckOverlaps);
+  G4LogicalVolume* DipoleExitWindowLLogical = new G4LogicalVolume ( DBT3Solid, titanium, "DipoleExitWindowL", 0, 0, 0);
+  G4LogicalVolume* DipoleExitWindowRLogical = new G4LogicalVolume ( DBT4Solid, titanium, "DipoleExitWindowR", 0, 0, 0);
+  //Windows placed at -9*cm offset for dipole box plus an addition -7*cm offset for the window cutouts
   new G4PVPlacement(0,G4ThreeVector(pDBW3Pos_X, pDBW3Pos_Y + pDBI1Pos_Y, pDBW1Pos_Z),DipoleExitWindowLLogical,"DipoleExitWindowL",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(pDBW4Pos_X, pDBW4Pos_Y + pDBI1Pos_Y, pDBW1Pos_Z),DipoleExitWindowRLogical,"DipoleExitWindowR",world_log,0,0,fCheckOverlaps);
 
