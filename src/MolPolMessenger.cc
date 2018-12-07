@@ -30,18 +30,19 @@ MolPolMessenger::MolPolMessenger(){
     //    fFieldSet     = NULL;
 
     fMolPolDir = new G4UIdirectory("/MolPol/");
-    fMolPolDir->SetGuidance("UI commands of this code");
+    fMolPolDir->SetGuidance("MolPol UI commands for anything other than field controls.");
 
     fileCmd = new G4UIcmdWithAString("/MolPol/filename",this);
-    fileCmd->SetGuidance("Output filename");
+    fileCmd->SetGuidance("Sets the output ROOT file name.");
     fileCmd->SetParameterName("filename", false);
 
     seedCmd = new G4UIcmdWithAnInteger("/MolPol/seed",this);
-    seedCmd->SetGuidance("Set random engine seed");
+    seedCmd->SetGuidance("Sets a specific seed for the engine.");
     seedCmd->SetParameterName("seed", false);
 
     genSelectCmd = new G4UIcmdWithAString("/MolPol/gen",this);
-    genSelectCmd->SetGuidance("Select generator");
+    genSelectCmd->SetGuidance("Sets the event generator for the simulation.");
+    genSelectCmd->SetGuidance("Setting this to 'moller' will set the Moller Generator (of course).");
     genSelectCmd->SetParameterName("generator", false);
 
     fXminCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/xmin", this);
@@ -61,7 +62,7 @@ MolPolMessenger::MolPolMessenger(){
     fYmaxCmd->SetParameterName("ymax", false);
 
     fBeamECmd = new G4UIcmdWithADoubleAndUnit("/MolPol/beamE", this);
-    fBeamECmd->SetGuidance("Set beam energy");
+    fBeamECmd->SetGuidance("Sets the beam energy in GeV.");
     fBeamECmd->SetParameterName("beamE", false);
 
     fEminCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/emin", this);
@@ -73,11 +74,11 @@ MolPolMessenger::MolPolMessenger(){
     fEmaxCmd->SetParameterName("emax", false);
 
     fthetaComMinCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/thcommin", this);
-    fthetaComMinCmd->SetGuidance("Set thcom range minimum");
+    fthetaComMinCmd->SetGuidance("Sets the theta_com range minimum");
     fthetaComMinCmd->SetParameterName("thcommin", false);
 
     fthetaComMaxCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/thcommax", this);
-    fthetaComMaxCmd->SetGuidance("Set thcom range maximum");
+    fthetaComMaxCmd->SetGuidance("Sets the theta_com range maximum");
     fthetaComMaxCmd->SetParameterName("thcommax", false);
 
     fthetaMinCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/thetamin", this);
