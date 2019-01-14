@@ -80,7 +80,7 @@ void MolPolEMFieldSetup::InitialseAll()
   G4double ORIGINQ3 = 209.08 * cm;
   G4double ORIGINQ4 = 274.59 * cm;
   G4double ORIGIND  = 423.4  * cm;
-  G4double ORIGINQ6 = 6.9    * cm;
+  //G4double ORIGINQ6 = 6.9    * cm;
 
   G4double BORERADIUS = 5.08 * cm;
 
@@ -162,13 +162,12 @@ void MolPolEMFieldSetup::InitialseAll()
   fChordFinderFZB5 = 0;
   UpdateFieldFZB5();
 
-  fMagFieldFZB6 = new MolPolSolenoid(SOLENOID, 0, G4ThreeVector(0.0, 0.0, ORIGINQ6));
+  fMagFieldFZB6 = new MolPolSolenoid(SOLENOID);
   fEquationFZB6 = new G4Mag_UsualEqRhs(fMagFieldFZB6);
   fStepperFZB6  = new G4ClassicalRK4(fEquationFZB6);
   fLocalFieldManagerFZB6 = new G4FieldManager();
   fChordFinderFZB6 = 0;
   UpdateFieldFZB6();
-
 
 }
 
@@ -195,7 +194,7 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
   G4double ORIGINQ3 = 209.08 * cm;
   G4double ORIGINQ4 = 274.59 * cm;
   G4double ORIGIND  = 423.4  * cm;
-  G4double ORIGINQ6 = 6.9    * cm;
+  //G4double ORIGINQ6 = 6.9    * cm;
 
   G4double BORERADIUS = 5.08 * cm;
 
@@ -244,7 +243,7 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
   fMagFieldFZB3->UpdateQuad(KAPPA3, G4ThreeVector(0.0, 0.0, ORIGINQ3), NOROT, BORERADIUS);
   fMagFieldFZB4->UpdateQuad(KAPPA4, G4ThreeVector(0.0, 0.0, ORIGINQ4), NOROT, BORERADIUS);
   fMagFieldFZB5->UpdateDipole(DIPOLE, G4ThreeVector(0.0, 0.0, ORIGIND), NOROT);
-  fMagFieldFZB6->UpdateSolenoid(SOLENOID, 0, G4ThreeVector(0.0, 0.0, ORIGINQ6));
+  fMagFieldFZB6->UpdateSolenoid(SOLENOID/tesla);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -255,10 +254,9 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
 
 void MolPolEMFieldSetup::UpdateField()
 {
-  fStepper = new G4ClassicalRK4( fEquation, 8 );
-
+  SetStepper(); //sets according to value of fStepperType
+  //fStepper = new G4ClassicalRK4( fEquation, 8 );
   fFieldManager->SetDetectorField(fEMfield);
-
   if(fChordFinder) delete fChordFinder;
   fIntgrDriver = new G4MagInt_Driver(fMinStep,fStepper,fStepper->GetNumberOfVariables());
   fChordFinder = new G4ChordFinder(fIntgrDriver);
