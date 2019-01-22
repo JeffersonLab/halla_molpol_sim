@@ -1,4 +1,4 @@
-#include "CLHEP/Random/Random.h"
+#include "Randomize.hh"
 
 #include "MolPolRunAction.hh"
 #include "MolPolPrimaryGeneratorAction.hh"
@@ -49,13 +49,10 @@
 
 int main(int argc, char** argv){
 
-    // Initialize the CLHEP random engine used by
-    // "shoot" type functions
-
-    unsigned int seed = time(0);
-
-    CLHEP::HepRandom::createInstance();
-    CLHEP::HepRandom::setTheSeed(seed);
+    // Initialize seed
+    G4Random::setTheEngine(new CLHEP::RanecuEngine);
+    G4int seconds =  time(NULL);
+    G4Random::setTheSeed(seconds);
 
     MolPolIO *io = new MolPolIO();
 
