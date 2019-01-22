@@ -144,7 +144,7 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
   if( cmd == seedCmd ){
     G4int seed = seedCmd->GetNewIntValue(newValue);
-    CLHEP::HepRandom::setTheSeed(seed);
+    G4Random::setTheSeed(seed);
   }
 
   // POSSCAN

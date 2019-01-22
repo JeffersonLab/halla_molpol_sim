@@ -116,7 +116,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       //~~ Iron density in g/cm3; divide by g/cm2 at the end to get back into G4units
       G4double ironDensity = fTargetDensity;
-      msThick[0] = ((zpos + fTargLen/2) * ironDensity )/(g/cm2);
+      msThick[0] = ((zpos + fTargLen/2) * ironDensity ); // in (g/cm2);
       //~~ Sample multiple scattering + angles
       G4double msth(0), msph(0);
 
