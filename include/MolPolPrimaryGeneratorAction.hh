@@ -60,9 +60,6 @@ private:
   double angle;//in deg
   G4String gentype;
 
-  //Initial target multiple scattering
-  remollMultScatt *fMS;
-
   //Levchuk effect
   static const G4int eMomDistN = 150;
   G4double eMomDist[2][eMomDistN];
