@@ -12,9 +12,10 @@
 *.pdf
 *.log
 *.dot
+*.png
 
-#ignore build and map directory
-build*
+#ignore any directory that contains "build" and map directory
+*build*
 bldXcode
 map_directory
 
