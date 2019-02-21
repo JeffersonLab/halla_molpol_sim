@@ -180,11 +180,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Target
-<<<<<<< HEAD
-  G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm; G4double pMTATHLZ = .0062 * mm;
-=======
-  G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm;   G4double pMTATHLZ = 0.0062 * mm;
->>>>>>> 7f1e92b86435d418bf02e7d01f9bdf41984b7ebc
+  G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm; G4double pMTATHLZ = 0.0062 * mm;
   G4double pMTATPos_X = 0.0 * cm; G4double pMTATPos_Y = 0.0 * cm; G4double pMTATPos_Z = 6.9 * cm;
   G4VSolid* MTATSolid = new G4Tubs( "MTATTube", pMTATRin, pMTATRout, pMTATHLZ, 0.0, 360.0 * deg );
 
