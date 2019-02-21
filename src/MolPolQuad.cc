@@ -20,7 +20,7 @@ MolPolQuad::MolPolQuad(G4double pGradient, G4ThreeVector pOrigin, G4RotationMatr
   fOrigin      = pOrigin ;
   fpMatrix     = pMatrix ;
   fRadius      = pRadius;
-  fMultContrib = -0.05;
+  fMultContrib = 0.0;
 }
 
 
@@ -64,11 +64,25 @@ void MolPolQuad::GetFieldValue( const G4double y[4], G4double B[3]  ) const
   G4double rhoquad_local = sqrt( r_local.x()*r_local.x() + r_local.y()*r_local.y() );
 
   G4ThreeVector B_local = G4ThreeVector(
-    fGradient * rhoquad_local * ( sin(phiquad_local) + fMultContrib * pow(rhoquad_local,4 ) / pow(fRadius,4 ) * sin(5*phiquad_local) ),
-    fGradient * rhoquad_local * ( cos(phiquad_local) + fMultContrib * pow(rhoquad_local,4 ) / pow(fRadius,4 ) * cos(5*phiquad_local) ),
+    fGradient * rhoquad_local * sin(phiquad_local) + fMultContrib * fGradient * pow( rhoquad_local / fRadius , 4 ) * sin(5*phiquad_local),
+    fGradient * rhoquad_local * cos(phiquad_local) + fMultContrib * fGradient * pow( rhoquad_local / fRadius , 4 ) * cos(5*phiquad_local),
     0
   );
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /*
+  G4cout << "=====================================================================" << G4endl;
+  G4cout << "IDEAL: " << G4endl;
+  G4cout << "  Bx = -k * y = -" << fGradient << " * " << r_local.y() << G4endl;
+  G4cout << "  Bx = " << fGradient * r_local.y() << G4endl;
+  G4cout << "  By = -k * x = -" << fGradient << " * " << r_local.x() << G4endl;
+  G4cout << "  By = " << fGradient * r_local.x() << G4endl;
+  G4cout << "W-12Pole: " << G4endl;
+  G4cout << "  Bx = -k * rho * sin(phi) = -" << fGradient << " * " << rhoquad_local << " * sin(" << phiquad_local << ")" << G4endl;
+  G4cout << "  Bx = " <<  fGradient * rhoquad_local * sin(phiquad_local) << G4endl;
+  G4cout << "  By = -k * rho * cos(phi) = -" << fGradient << " * " << rhoquad_local << " * cos(" << phiquad_local << ")" << G4endl;
+  G4cout << "  By = " <<  fGradient * rhoquad_local * cos(phiquad_local) << G4endl;
+    */
 
 
   /*
@@ -90,7 +104,7 @@ void MolPolQuad::GetFieldValue( const G4double y[4], G4double B[3]  ) const
     fMultContrib * fGradient * rhoquad_local * cos( 6 * phiquad_local ) * pow( rhoquad_local , 4 ) / pow( fRadius , 4 ),
     0
   );
-  
+
   G4ThreeVector BCylTotal_local = BCyl2_local + BCyl6_local;
 
   //Convert to cartesian field
@@ -116,4 +130,11 @@ void MolPolQuad::GetFieldValue( const G4double y[4], G4double B[3]  ) const
     B[1] = -1.0 * B_global.y() ;
     B[2] = B_global.z() ;
   }
+
+  /*G4cout << "BField Reported: " << G4endl;
+  G4cout << "  Bx = " << B[0] << G4endl;
+  G4cout << "  By = " << B[1] << G4endl;
+  G4cout << "  Bz = " << B[2] << G4endl;
+    */
+
 }
