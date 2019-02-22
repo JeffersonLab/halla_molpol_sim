@@ -54,7 +54,7 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction(MolPolDetectorConstru
   gentype = "moller";
 
   //TARGET VARIABLES
-  fTargLen = .124*mm;
+  fTargLen = .0124*mm;
   fTargetA = 55.847;
   fTargetZ = 26;
   fTargetDensity = 7.87 * g/cm3;
