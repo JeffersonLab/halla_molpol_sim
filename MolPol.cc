@@ -196,6 +196,7 @@ int main(int argc, char** argv){
     delete visManager;
 #endif
 
+    delete runManager;
 
     return 0;
 }

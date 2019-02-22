@@ -123,10 +123,10 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
   	  //G4cout << "Remoll MS next..." << G4endl;
   	  //if(!fRemollMSFlag) G4cout << "Remoll MSc off..." << G4endl;
       if(fRemollMSFlag){
-  		  fMS = new remollMultScatt();
-  		  fMS->Init(fBeamE,nTgtMat,msThick,msA,msZ);
-  		  msth = fMS->GenerateMSPlane();
-  		  msph = fMS->GenerateMSPlane();
+                  remollMultScatt fMS;
+  		  fMS.Init(fBeamE,nTgtMat,msThick,msA,msZ);
+  		  msth = fMS.GenerateMSPlane();
+  		  msph = fMS.GenerateMSPlane();
   		  //G4cout << "Remoll MSc on..." << G4endl;
       }
 
