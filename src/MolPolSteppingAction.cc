@@ -42,6 +42,8 @@ void MolPolSteppingAction::UserSteppingAction(const G4Step *aStep) {
       return;
   }
   if( aTrack->GetMaterial()->GetName() != "Vacuum" &&
+      aTrack->GetMaterial()->GetName() != "Air" &&
+      aTrack->GetMaterial()->GetName() != "scint" &&
       aTrack->GetVolume()->GetName() != "Target"  &&
       aTrack->GetVolume()->GetName() != "DipoleExitWindowR" &&
       aTrack->GetVolume()->GetName() != "DipoleExitWindowL")
