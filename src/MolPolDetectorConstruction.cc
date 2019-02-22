@@ -156,7 +156,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // HELMHOLTZ COIL Magnetic Volume
-  G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 49.53 * cm;  G4double pQ6Pos_z=   6.9 * cm;
+  G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 38.1 * cm;  G4double pQ6Pos_z=   6.9 * cm;
   G4VSolid* Q6MagSolid = new G4Tubs( "Q6MagTubs", pQ6Rin, pQ6Rout, pQ6HL, 0.0, 360.0 * deg);
   G4LogicalVolume* Q6MagLogical = new G4LogicalVolume(Q6MagSolid, Vacuum, "Q6Mag", 0,0,0);
   Q6MagLogical->SetFieldManager(Q6FieldManager, allLocal);
@@ -767,9 +767,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   G4double pMDBXHLX   = 37.00 * cm;  G4double pMDBXHLY   = 47.10 * cm;  G4double pMDBXHLZ   = 61.20 * cm;
   G4double pMDBAHLX   = 18.50 * cm;  G4double pMDBAHLY   = 29.80 * cm;  G4double pMDBAHLZ   = 40.00 * cm;
-  G4double pMDBWHLX   = 13.70 * cm;  G4double pMDBWHLY   = 11.50 * cm;  G4double pMDBWHLZ   =  6.45 * cm;
+  G4double pMDBWHLX   = 14.60 * cm;  G4double pMDBWHLY   = 11.50 * cm;  G4double pMDBWHLZ   = 6.305 * cm;
   G4double pMDBWalpha =  6.0  *deg;  G4double pMDBWtheta = 0.0  *deg;   G4double pMDBWphi   =  0.0  *deg;
-  G4double pMDBLHLX   = 13.70 * cm;  G4double pMDBLHLY   = 11.50 * cm;  G4double pMDBLHLZ   =  6.45 * cm;
+  G4double pMDBLHLX   = 14.60 * cm;  G4double pMDBLHLY   = 11.50 * cm;  G4double pMDBLHLZ   = 6.305 * cm;
   G4double pMDBLalpha = 10.0  *deg;  G4double pMDBLtheta = 0.0  *deg;   G4double pMDBLphi   =  0.0  *deg;
   G4double pMDETHLX   =  9.20 * cm;  G4double pMDETHLY   = 17.00 * cm;  G4double pMDETHLZ   = 34.00 * cm;
   G4double pDLGBHLX   =  8.20 * cm;  G4double pDLGBHLY   = 16.20 * cm;  G4double pDLGBHLZ   = 20.10 * cm;
@@ -777,7 +777,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pMDBXPos_X   =  0.055 * cm; G4double pMDBXPos_Y  = -46.70 * cm;  G4double pMDBXPos_Z   =723.20 * cm;//Adjusted for 2019 survey
   G4double pMDBAPos_X   =  0.00 * cm;  G4double pMDBAPos_Y   =  1.10 * cm;  G4double pMDBAPos_Z   =  1.80 * cm;
   G4double pMDBWPos_X   =  0.00 * cm;  G4double pMDBWPos_Y   =  8.49 * cm;  G4double pMDBWPos_Z   =-49.70 * cm;
-  G4double pMDBLPos_X   =  0.00 * cm;  G4double pMDBLPos_Y   =  7.50 * cm;  G4double pMDBLPos_Z   =-49.70 * cm;
+  G4double pMDBLPos_X   =  0.00 * cm;  G4double pMDBLPos_Y   =  7.67 * cm;  G4double pMDBLPos_Z   =-49.70 * cm;
   G4double pMDETPos_X   =  0.46 * cm;  G4double pMDETPos_Y   =  2.46 * cm;  G4double pMDETPos_Z   = -4.08 * cm;
   G4double pDLGBPos_X   =  0.00 * cm;  G4double pDLGBPos_Y   =  0.00 * cm;  G4double pDLGBPos_Z   =-11.00 * cm;
 
