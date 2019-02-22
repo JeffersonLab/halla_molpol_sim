@@ -156,7 +156,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // HELMHOLTZ COIL Magnetic Volume
-  G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 38.1 * cm;  G4double pQ6Pos_z=   6.9 * cm;
+  G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 49.53 * cm;  G4double pQ6Pos_z=   6.9 * cm;
   G4VSolid* Q6MagSolid = new G4Tubs( "Q6MagTubs", pQ6Rin, pQ6Rout, pQ6HL, 0.0, 360.0 * deg);
   G4LogicalVolume* Q6MagLogical = new G4LogicalVolume(Q6MagSolid, Vacuum, "Q6Mag", 0,0,0);
   Q6MagLogical->SetFieldManager(Q6FieldManager, allLocal);
