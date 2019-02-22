@@ -39,7 +39,7 @@ MolPolDetectorConstruction::~MolPolDetectorConstruction(){
 
 G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
-  G4bool placeTargetAndWindows = true;
+  G4bool placeTargetAndWindows = true;//can be removed along with conditionals at target and T windows after we're confidient we will no longer need to ray test.
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //// Define Visual Attributes
@@ -134,9 +134,6 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   Air->AddElement(N, 79.0*perCent);
   Air->AddElement(O, 21.0*perCent);
 
-  //Move this back to section with virtual flux detectors AFTER removing solenoid VP (one space between this line and code-block head.
-  G4SDManager* SDman = G4SDManager::GetSDMpointer();
-
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Build world
   G4double world_x = 10*m;  G4double world_y = 10*m;  G4double world_z = 10*m;
@@ -183,7 +180,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Target
-  G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm; G4double pMTATHLZ = .0062 * mm;
+  G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm; G4double pMTATHLZ = 0.0062 * mm;
   G4double pMTATPos_X = 0.0 * cm; G4double pMTATPos_Y = 0.0 * cm; G4double pMTATPos_Z = 6.9 * cm;
   G4VSolid* MTATSolid = new G4Tubs( "MTATTube", pMTATRin, pMTATRout, pMTATHLZ, 0.0, 360.0 * deg );
 
@@ -193,30 +190,6 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   fTargetFullLength = pMTATHLZ * 2;
   fTargetMaterial = TargetLogical->GetMaterial();
-
-
-
-
-
-
-
-  // >>>>>>>>>>>>>>>>>>>>> DELETE ME FOR FINAL VERSION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // End of Solenoid VP --- Sensitive Detector #22
-  G4VSolid*        SolVPSolid   = new G4Tubs("VBSolid",0,4.78*cm, 0.00001*mm ,0.0,360.0*deg);
-  G4LogicalVolume* SolVPLogical = new G4LogicalVolume(SolVPSolid, Vacuum, "SolVP",0,0,0);
-  SolVPLogical->SetVisAttributes(VacVisAtt);
-  MolPolDetector* SOLNSD = new MolPolDetector("SOLN", 22);
-  SDman->AddNewDetector(SOLNSD);
-  SolVPLogical->SetSensitiveDetector(SOLNSD);
-  new G4PVPlacement(0, G4ThreeVector( 0, 0, 6.9*cm + 49.53*cm + 0.001*cm ), SolVPLogical, "SolVP", world_log, 0, 0, fCheckOverlaps);
-
-
-
-
-
-
-
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -453,7 +426,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
     BPVacLogVol[i]->SetVisAttributes(BPVisAtt);
     G4String solidPVName  = "BeamPipeAlmnum_" + std::to_string(i);
     G4String vacPVName    = "BeamPipeVacuum_" + std::to_string(i);
-    if( i % 2 == 0 && i != 0) {
+    if( i % 2 == 0 ) {
         new G4PVPlacement(0, G4ThreeVector(0,0,((pBPpos[i+1] + pBPpos[i]) / 2.)), BPAlLogVol[i],  solidPVName, world_log,     0, 0, fCheckOverlaps);
         new G4PVPlacement(0, G4ThreeVector(0,0,0),                                BPVacLogVol[i], vacPVName,   BPAlLogVol[i], 0, 0, fCheckOverlaps);
     } else {
@@ -520,7 +493,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   MolPolDetector* DPIN   = new MolPolDetector("dpin", 14);
   MolPolDetector* DPOUT  = new MolPolDetector("dpout",15);
 
-  //G4SDManager* SDman = G4SDManager::GetSDMpointer();
+  G4SDManager* SDman = G4SDManager::GetSDMpointer();
 
   SDman->AddNewDetector(Q1ENSD);
   SDman->AddNewDetector(Q1EXSD);
@@ -711,7 +684,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   pRot9->rotateZ(90.*deg);
 
   G4RotationMatrix* pRot7 = new G4RotationMatrix();
-  pRot7->rotateX(-7.3*deg);
+  pRot7->rotateX(-7.05*deg);
 
 
 
@@ -801,11 +774,11 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pMDETHLX   =  9.20 * cm;  G4double pMDETHLY   = 17.00 * cm;  G4double pMDETHLZ   = 34.00 * cm;
   G4double pDLGBHLX   =  8.20 * cm;  G4double pDLGBHLY   = 16.20 * cm;  G4double pDLGBHLZ   = 20.10 * cm;
 
-  G4double pMDBXPos_X   =  0.00 * cm;  G4double pMDBXPos_Y   =-46.86 * cm;  G4double pMDBXPos_Z   =724.00 * cm; //10cm up
+  G4double pMDBXPos_X   =  0.055 * cm; G4double pMDBXPos_Y  = -46.70 * cm;  G4double pMDBXPos_Z   =723.20 * cm;//Adjusted for 2019 survey
   G4double pMDBAPos_X   =  0.00 * cm;  G4double pMDBAPos_Y   =  1.10 * cm;  G4double pMDBAPos_Z   =  1.80 * cm;
-  G4double pMDBWPos_X   =  0.00 * cm;  G4double pMDBWPos_Y   =  8.50 * cm;  G4double pMDBWPos_Z   =-49.70 * cm;
+  G4double pMDBWPos_X   =  0.00 * cm;  G4double pMDBWPos_Y   =  8.49 * cm;  G4double pMDBWPos_Z   =-49.70 * cm;
   G4double pMDBLPos_X   =  0.00 * cm;  G4double pMDBLPos_Y   =  7.50 * cm;  G4double pMDBLPos_Z   =-49.70 * cm;
-  G4double pMDETPos_X   =  0.00 * cm;  G4double pMDETPos_Y   =  0.00 * cm;  G4double pMDETPos_Z   =  0.00 * cm;
+  G4double pMDETPos_X   =  0.46 * cm;  G4double pMDETPos_Y   =  2.46 * cm;  G4double pMDETPos_Z   = -4.08 * cm;
   G4double pDLGBPos_X   =  0.00 * cm;  G4double pDLGBPos_Y   =  0.00 * cm;  G4double pDLGBPos_Z   =-11.00 * cm;
 
   G4VSolid* MDBXSolid  = new G4Box ( "MDBXBox"  , pMDBXHLX, pMDBXHLY, pMDBXHLZ );
@@ -857,7 +830,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
    * new G4PVPlacement(0, G4ThreeVector(pHOD3Pos_X,pHOD3Pos_Y,pHOD3Pos_Z), HOD3Logical, "Detector_HOD3", MDETLogical, 0,0, fCheckOverlaps);
    */
 
-  G4double pAPP1HLX   = 2.0 * cm;   G4double pAPP1HLY   = 15.5 * cm;   G4double pAPP1HLZ   =  0.65 * cm;// NOTE: 0.65 IS THE CORRECT VALUE FOR THE Z HALF LENGTH
+  G4double pAPP1HLX   = 2.0 * cm;   G4double pAPP1HLY   = 15. * cm;   G4double pAPP1HLZ   =  0.65 * cm;// NOTE: 0.65 IS THE CORRECT VALUE FOR THE Z HALF LENGTH
   G4double pAPP1Pos_X = 4.4 * cm;   G4double pAPP1Pos_Y = 0.0 * cm;    G4double pAPP1Pos_Z = -32.5 * cm;
   G4VSolid* APP1LSolid = new G4Box( "APP1LBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
   G4VSolid* APP1RSolid = new G4Box( "APP1RBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
@@ -881,7 +854,6 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   VPHOD2Logical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0, G4ThreeVector(    pAPP1Pos_X,pAPP1Pos_Y,pAPP1Pos_Z-pAPP1HLZ-pVPHODHLZ), VPHOD1Logical, "APP1L-VP", MDETLogical, 0,0, fCheckOverlaps);
   new G4PVPlacement(0, G4ThreeVector(-1.*pAPP1Pos_X,pAPP1Pos_Y,pAPP1Pos_Z-pAPP1HLZ-pVPHODHLZ), VPHOD2Logical, "APP1R-VP", MDETLogical, 0,0, fCheckOverlaps);
-
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // DETECTOR Box Virtual Plane
