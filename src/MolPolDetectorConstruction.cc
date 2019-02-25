@@ -684,7 +684,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   pRot9->rotateZ(90.*deg);
 
   G4RotationMatrix* pRot7 = new G4RotationMatrix();
-  pRot7->rotateX(-7.3*deg);
+  pRot7->rotateX(-7.05*deg);
 
 
 
@@ -767,18 +767,18 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   G4double pMDBXHLX   = 37.00 * cm;  G4double pMDBXHLY   = 47.10 * cm;  G4double pMDBXHLZ   = 61.20 * cm;
   G4double pMDBAHLX   = 18.50 * cm;  G4double pMDBAHLY   = 29.80 * cm;  G4double pMDBAHLZ   = 40.00 * cm;
-  G4double pMDBWHLX   = 13.70 * cm;  G4double pMDBWHLY   = 11.50 * cm;  G4double pMDBWHLZ   =  6.45 * cm;
+  G4double pMDBWHLX   = 14.60 * cm;  G4double pMDBWHLY   = 11.50 * cm;  G4double pMDBWHLZ   = 6.305 * cm;
   G4double pMDBWalpha =  6.0  *deg;  G4double pMDBWtheta = 0.0  *deg;   G4double pMDBWphi   =  0.0  *deg;
-  G4double pMDBLHLX   = 13.70 * cm;  G4double pMDBLHLY   = 11.50 * cm;  G4double pMDBLHLZ   =  6.45 * cm;
+  G4double pMDBLHLX   = 14.60 * cm;  G4double pMDBLHLY   = 11.50 * cm;  G4double pMDBLHLZ   = 6.305 * cm;
   G4double pMDBLalpha = 10.0  *deg;  G4double pMDBLtheta = 0.0  *deg;   G4double pMDBLphi   =  0.0  *deg;
   G4double pMDETHLX   =  9.20 * cm;  G4double pMDETHLY   = 17.00 * cm;  G4double pMDETHLZ   = 34.00 * cm;
   G4double pDLGBHLX   =  8.20 * cm;  G4double pDLGBHLY   = 16.20 * cm;  G4double pDLGBHLZ   = 20.10 * cm;
 
-  G4double pMDBXPos_X   =  0.00 * cm;  G4double pMDBXPos_Y   =-46.86 * cm;  G4double pMDBXPos_Z   =724.00 * cm; //10cm up
+  G4double pMDBXPos_X   =  0.055 * cm; G4double pMDBXPos_Y  = -46.70 * cm;  G4double pMDBXPos_Z   =723.20 * cm;//Adjusted for 2019 survey
   G4double pMDBAPos_X   =  0.00 * cm;  G4double pMDBAPos_Y   =  1.10 * cm;  G4double pMDBAPos_Z   =  1.80 * cm;
-  G4double pMDBWPos_X   =  0.00 * cm;  G4double pMDBWPos_Y   =  8.50 * cm;  G4double pMDBWPos_Z   =-49.70 * cm;
-  G4double pMDBLPos_X   =  0.00 * cm;  G4double pMDBLPos_Y   =  7.50 * cm;  G4double pMDBLPos_Z   =-49.70 * cm;
-  G4double pMDETPos_X   =  0.00 * cm;  G4double pMDETPos_Y   =  0.00 * cm;  G4double pMDETPos_Z   =  0.00 * cm;
+  G4double pMDBWPos_X   =  0.00 * cm;  G4double pMDBWPos_Y   =  8.49 * cm;  G4double pMDBWPos_Z   =-49.70 * cm;
+  G4double pMDBLPos_X   =  0.00 * cm;  G4double pMDBLPos_Y   =  7.67 * cm;  G4double pMDBLPos_Z   =-49.70 * cm;
+  G4double pMDETPos_X   =  0.46 * cm;  G4double pMDETPos_Y   =  2.46 * cm;  G4double pMDETPos_Z   = -4.08 * cm;
   G4double pDLGBPos_X   =  0.00 * cm;  G4double pDLGBPos_Y   =  0.00 * cm;  G4double pDLGBPos_Z   =-11.00 * cm;
 
   G4VSolid* MDBXSolid  = new G4Box ( "MDBXBox"  , pMDBXHLX, pMDBXHLY, pMDBXHLZ );
@@ -830,7 +830,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
    * new G4PVPlacement(0, G4ThreeVector(pHOD3Pos_X,pHOD3Pos_Y,pHOD3Pos_Z), HOD3Logical, "Detector_HOD3", MDETLogical, 0,0, fCheckOverlaps);
    */
 
-  G4double pAPP1HLX   = 2.0 * cm;   G4double pAPP1HLY   = 15.5 * cm;   G4double pAPP1HLZ   =  0.65 * cm;// NOTE: 0.65 IS THE CORRECT VALUE FOR THE Z HALF LENGTH
+  G4double pAPP1HLX   = 2.0 * cm;   G4double pAPP1HLY   = 15. * cm;   G4double pAPP1HLZ   =  0.65 * cm;// NOTE: 0.65 IS THE CORRECT VALUE FOR THE Z HALF LENGTH
   G4double pAPP1Pos_X = 4.4 * cm;   G4double pAPP1Pos_Y = 0.0 * cm;    G4double pAPP1Pos_Z = -32.5 * cm;
   G4VSolid* APP1LSolid = new G4Box( "APP1LBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
   G4VSolid* APP1RSolid = new G4Box( "APP1RBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
