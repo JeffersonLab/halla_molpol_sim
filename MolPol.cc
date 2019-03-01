@@ -1,4 +1,4 @@
-#include "CLHEP/Random/Random.h"
+#include "Randomize.hh"
 
 #include "MolPolRunAction.hh"
 #include "MolPolPrimaryGeneratorAction.hh"
@@ -49,13 +49,10 @@
 
 int main(int argc, char** argv){
 
-    // Initialize the CLHEP random engine used by
-    // "shoot" type functions
-
-    unsigned int seed = time(0);
-
-    CLHEP::HepRandom::createInstance();
-    CLHEP::HepRandom::setTheSeed(seed);
+    // Initialize seed
+    G4Random::setTheEngine(new CLHEP::RanecuEngine);
+    G4int seconds =  time(NULL);
+    G4Random::setTheSeed(seconds);
 
     MolPolIO *io = new MolPolIO();
 
@@ -103,11 +100,11 @@ int main(int argc, char** argv){
 
     // Initialize Run manager
 		////////////////////////////////////////////////////////////////////////////
+		
+    runManager->Initialize(); 
 
-    runManager->Initialize();
-
-		// do initialization in all macro files,
-		//see remoll examples for assistance.
+		// do initialization in all macro files, 
+		//see remoll examples for assistance. 
 
 
     /*
@@ -127,7 +124,7 @@ int main(int argc, char** argv){
     {
 
 	// G4UIterminal is a (dumb) terminal.
-
+	
 #if defined(G4UI_USE_QT)
 	session = new G4UIQt(argc,argv);
 #elif defined(G4UI_USE_WIN32)
@@ -199,6 +196,7 @@ int main(int argc, char** argv){
     delete visManager;
 #endif
 
+    delete runManager;
 
     return 0;
 }

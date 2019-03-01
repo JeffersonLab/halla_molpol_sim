@@ -23,9 +23,9 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
   G4double GetTargetFullLength() {return fTargetFullLength;}
 
   private:
-
+  
   MolPolEMFieldSetup* mEMFieldSetup;
-
+  
   G4bool fCheckOverlaps;
   G4Material* fTargetMaterial;
   G4double fTargetFullLength;
