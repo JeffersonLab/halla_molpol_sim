@@ -1,0 +1,29 @@
+/run/initialize
+
+/MolPol/gen               moller
+/MolPol/filename          results_unified.root
+/MolPol/calculateLevchuk  true
+/MolPol/targetPolPct      0.082
+/MolPol/radCorrections    true
+/MolPol/remollMS          true
+/MolPol/seed              8675309
+
+/MolPol/beamE             2.2 GeV
+
+/MolPol/thcommin          60   deg
+/MolPol/thcommax          120  deg
+/MolPol/phimin           -22.5 deg
+/MolPol/phimax            7.5  deg
+
+########################################################################################
+# Here we use both fields set by strength and those using maps. Solenoid is only by map.
+########################################################################################
+/field/setSolenoid        3.0
+/field/setQ1M             ../Q1_map_1011G_reducedPrecision.table      972   2500
+/field/setQ2T             0.05
+/field/setQ3T             0.0
+/field/setQ4M             ../Q1_map_1011G_reducedPrecision.table      972   1000
+/field/setDipM            ../lilly_map_3.0kG_reducedPrecision.table   3.0   2.96
+/field/update
+
+/run/beamOn               50000
