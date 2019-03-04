@@ -36,7 +36,8 @@ public:
   double yPos(){return particleGun->GetParticlePosition().y();}
   double GetAngle(){return angle;}
   G4double fXmin, fXmax, fYmin, fYmax;
-  G4double fZ;
+  G4double fXsmear, fYsmear; 
+  G4double fX, fY, fZ;
   G4double fTargLen;
   G4double fTargPol;//[0,1]
   G4double fBeamE;
