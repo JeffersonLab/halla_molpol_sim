@@ -25,8 +25,8 @@
 
 #include <cmath> /* Used for isnan, isinf, debugging... */
 
-MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction(MolPolDetectorConstruction* myDC)
-  :rndmFlag("off"), myDetector(myDC)
+MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
+  :rndmFlag("off")
 {
   particleGun  = new G4ParticleGun();
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
