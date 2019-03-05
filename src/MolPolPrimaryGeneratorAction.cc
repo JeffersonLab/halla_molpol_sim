@@ -25,8 +25,8 @@
 
 #include <cmath> /* Used for isnan, isinf, debugging... */
 
-MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction(MolPolDetectorConstruction* myDC)
-  :rndmFlag("off"), myDetector(myDC)
+MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
+  :rndmFlag("off")
 {
   particleGun  = new G4ParticleGun();
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
@@ -40,17 +40,27 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction(MolPolDetectorConstru
   //Requirement (BPM values): <0.1mm
 
   fBeamPol = "long";
+
+  //Flat generation range
   fXmin = 0.0*mm;
   fXmax = 0.0*mm;
   fYmin = 0.0*mm;
   fYmax = 0.0*mm;
+
+  //Gaussian XY beam profile for the Moller generator
+  fX = 0.0*mm;
+  fY = 0.0*mm;
+  fXsmear = 0.0*mm;
+  fYsmear = 0.0*mm;
+  fZ = 6.9*cm;
+
   fthetaMin = 1.0*deg;   //unit: rad (x* (pi/180))
   fthetaMax = 3.0*deg;
   fthetaComMin = 70*deg;
   fthetaComMax = 110*deg;
   fphiMin = -8.0*deg;
   fphiMax = 8.0*deg;
-  fZ = 6.9*cm;
+
   gentype = "moller";
 
   //TARGET VARIABLES
@@ -87,14 +97,8 @@ void MolPolPrimaryGeneratorAction::rand(){
 
 void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
-  //FIXME: TEMP WORKAROUND SOLUTION
-  //SEEMS DETECTOR CONSTRUCT FUNCTION CALLED AFTER PRIMIARY GENERATOR CONSTRUCTIOn
-  //SetTargetQuantities();
 
  fDefaultEvent->Reset();
-
-  double xpos, ypos, zpos, thetaPos, phiPos;
-  double pX, pY, pZ, eff_sigma, Azz;
 
   if( gentype == "moller" )
     {
@@ -104,8 +108,10 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double thcom = acos(G4RandFlat::shoot(cos(fthetaComMax), cos(fthetaComMin)));
       G4double phcom = G4RandFlat::shoot(fphiMin, fphiMax); //deg
 
-      ///zpos: random position within the target of length fTargLen (local coordinate)
+      //zpos: random position within the target of length fTargLen (local coordinate)
       // vertex z position is calculated as vtx_z = zpos + fZ (target center) later
+      G4double xpos     = G4RandGauss::shoot( fX, fXsmear );
+      G4double ypos     = G4RandGauss::shoot( fY, fYsmear );
       G4double zpos = ( G4UniformRand() - 0.5 ) * fTargLen;
 
       //Multiple Scattering until the vertex position
@@ -132,7 +138,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       assert( !std::isnan(msth) && !std::isnan(msph) );
 
-      //~~FIXME do we need to take care of a raster?!?!
+      //No Raster (actual data taking done mostly without raster)
       G4ThreeVector direction = G4ThreeVector(0,0,1.);
 
       //~~apply MS
@@ -258,7 +264,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       }
 
       G4double dPhaseSpace = 1. * fabs(cos(fthetaComMax) - cos(fthetaComMin));
-      G4double zLum = msZ[0] * ironDensity * (zpos + fTargLen/2) * Avogadro / msA[0];
+      G4double zLum = msZ[0] * ironDensity * (cm3/g) * (zpos + fTargLen/2) / cm * Avogadro / msA[0];
       G4double weight = 1. * zLum * dPhaseSpace * sigma * strFct;
       fDefaultEvent->fUnpolWght = weight;
 
@@ -297,8 +303,8 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       if(arg2 > 0) tZ2 = sqrt(arg2);
 
       //STORE EVENT QUANTITIES OF IMPORTANCE
-      eff_sigma = sigma;
-      Azz = -((7+pow(cos(thcom),2))*pow(sin(thcom),2))/pow(3+cos(thcom)*cos(thcom),2);
+      G4double eff_sigma = sigma;
+      G4double Azz = -((7+pow(cos(thcom),2))*pow(sin(thcom),2))/pow(3+cos(thcom)*cos(thcom),2);
 
       fDefaultEvent->SetEffCrossSection(eff_sigma);
       fDefaultEvent->SetAsymmetry(Azz);
@@ -310,18 +316,18 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double vtx_z = zpos + fZ;
       G4double KE1 = electron_mass_c2 * sqrt( 1 + pow(p1/electron_mass_c2,2)) - electron_mass_c2;
       particleGun->SetParticleEnergy( KE1 );
-      particleGun->SetParticlePosition( G4ThreeVector(0, 0, vtx_z) );
+      particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, vtx_z) );
       particleGun->SetParticleMomentumDirection( G4ThreeVector( tX1, tY1, tZ1 ).unit() );
-      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, vtx_z),
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, vtx_z),
                                         G4ThreeVector(tX1, tY1, tZ1 ) * p1,
                                         particleGun->GetParticleDefinition()->GetParticleName() );
       particleGun->GeneratePrimaryVertex(anEvent);
       //electron#2
       G4double KE2 = electron_mass_c2 * sqrt( 1 + pow(p2/electron_mass_c2,2)) - electron_mass_c2;
       particleGun->SetParticleEnergy( KE2 );
-      particleGun->SetParticlePosition( G4ThreeVector(0, 0, vtx_z) );
+      particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, vtx_z) );
       particleGun->SetParticleMomentumDirection( G4ThreeVector( tX2, tY2, tZ2 ).unit() );
-      fDefaultEvent->ProduceNewParticle(G4ThreeVector(0, 0, vtx_z),
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, vtx_z),
                                         G4ThreeVector(tX2, tY2, tZ2 ) * p2,
                                         particleGun->GetParticleDefinition()->GetParticleName() );
       particleGun->GeneratePrimaryVertex(anEvent);
@@ -331,22 +337,23 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     }
   else
     {
-      xpos     = G4RandFlat::shoot( fXmin, fXmax );
-      ypos     = G4RandFlat::shoot( fYmin, fYmax );
-      zpos     = fZ;
 
-      thetaPos = G4RandFlat::shoot( fthetaMin, fthetaMax );
-      phiPos   = G4RandFlat::shoot( fphiMin, fphiMax );
+      G4double xpos     = G4RandFlat::shoot( fXmin, fXmax );
+      G4double ypos     = G4RandFlat::shoot( fYmin, fYmax );
+      G4double zpos     = fZ;
 
-      double me = electron_mass_c2;
-      double beamE = fBeamE;
-      double p = sqrt( beamE*beamE - me*me); //unit:MeV
+      G4double thetaPos = G4RandFlat::shoot( fthetaMin, fthetaMax );
+      G4double phiPos   = G4RandFlat::shoot( fphiMin, fphiMax );
 
-      pX = cos( phiPos ) * sin( thetaPos ) * p;
-      pY = sin( phiPos ) * sin( thetaPos ) * p;
-      pZ = cos( thetaPos ) * p;
-      eff_sigma = 1;
-      Azz = 1;
+      G4double me = electron_mass_c2;
+      G4double beamE = fBeamE;
+      G4double p = sqrt( beamE*beamE - me*me); //unit:MeV
+
+      G4double pX = cos( phiPos ) * sin( thetaPos ) * p;
+      G4double pY = sin( phiPos ) * sin( thetaPos ) * p;
+      G4double pZ = cos( thetaPos ) * p;
+      G4double eff_sigma = 1;
+      G4double Azz = 1;
 
       fDefaultEvent->SetEffCrossSection(eff_sigma);
       fDefaultEvent->SetAsymmetry(Azz);
@@ -542,30 +549,4 @@ G4double MolPolPrimaryGeneratorAction::GetElectronStructFct(G4double &u, const G
 
   //Sum both contributions to the electron structure function
   return dePhot + dee;
-}
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-void MolPolPrimaryGeneratorAction::SetTargetQuantities()
-{
-
-  fTargLen = myDetector->GetTargetFullLength();
-
-  G4Material* tempMaterial = myDetector->GetTarget();
-
-  if(tempMaterial)
-    {
-      fTargetDensity = tempMaterial->GetDensity();
-      fTargetZ = tempMaterial->GetZ();      
-      // FOR A: USE VALUE FROM THE INITIALIZATION
-      // CURRENT CALCULATION ONLY USE THE VALUE W/O UNIT
-      // fTargetA = tempMaterial->GetA();
-    }
-
-  /*
-  //DEBUGGING PURPOSE
-  G4cout << "\n ********** Target Information **********"
-	 << "\n * A: " << fTargetA << " Z: " << fTargetZ
-	 << " rho: " << fTargetDensity << " leng: " << fTargLen
-	 << "\n" << G4endl;
-  */
 }

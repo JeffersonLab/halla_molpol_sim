@@ -60,6 +60,14 @@ MolPolMessenger::MolPolMessenger(){
     fYmaxCmd->SetGuidance("Set y range maximum");
     fYmaxCmd->SetParameterName("ymax", false);
 
+    fXsmearCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/xsmear", this);
+    fXsmearCmd->SetGuidance("Set x sigma");
+    fXsmearCmd->SetParameterName("xsmear", false);
+
+    fYsmearCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/ysmear", this);
+    fYsmearCmd->SetGuidance("Set y sigma");
+    fYsmearCmd->SetParameterName("ysmear", false);
+
     fBeamECmd = new G4UIcmdWithADoubleAndUnit("/MolPol/beamE", this);
     fBeamECmd->SetGuidance("Set beam energy");
     fBeamECmd->SetParameterName("beamE", false);
@@ -100,6 +108,14 @@ MolPolMessenger::MolPolMessenger(){
     fLevchukEffectCmd->SetGuidance("Set Levchuck Effect On:True Off:False");
     fLevchukEffectCmd->SetParameterName("calculateLevchuk",false);
 
+    fXCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/fx", this);
+    fXCmd->SetGuidance("Set particle x");
+    fXCmd->SetParameterName("fx", false);
+
+    fYCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/fy", this);
+    fYCmd->SetGuidance("Set particle y");
+    fYCmd->SetParameterName("fy", false);
+
     fZCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/fz", this);
     fZCmd->SetGuidance("Set particle z");
     fZCmd->SetParameterName("fz", false);
@@ -118,6 +134,29 @@ MolPolMessenger::MolPolMessenger(){
 }
 
 MolPolMessenger::~MolPolMessenger(){
+  delete fLevchukEffectCmd;
+  delete fTargPolCmd;
+  delete fRadCorrCmd;
+  delete fRemollMSFlagCmd;
+  delete fXminCmd;
+  delete fXmaxCmd;
+  delete fYminCmd;
+  delete fYmaxCmd;
+  delete fXsmearCmd;
+  delete fYsmearCmd;
+  delete fBeamECmd;
+  delete fEminCmd;
+  delete fEmaxCmd;
+  delete fthetaComMinCmd;
+  delete fthetaComMaxCmd;
+  delete fthetaMinCmd;
+  delete fthetaMaxCmd;
+  delete fphiMinCmd;
+  delete fphiMaxCmd;
+  delete fXCmd;
+  delete fYCmd;
+  delete fZCmd;
+
 }
 
 
@@ -147,19 +186,6 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4Random::setTheSeed(seed);
   }
 
-  // POSSCAN
-  /*
-  if (cmd == fDetPosXCmd ) {
-    G4double x = fDetPosXCmd->GetNewDoubleValue(newValue);
-    fdetcon->fDetPosX = x;
-  }
-
-  if (cmd == fDetPosYCmd ) {
-    G4double x = fDetPosYCmd->GetNewDoubleValue(newValue);
-    fdetcon->fDetPosY = x;
-  }
-  */
-
   if( cmd == genSelectCmd ){
     fprigen->SetGenerator(newValue);
   }
@@ -178,6 +204,14 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == fYmaxCmd ){
     G4double x = fYmaxCmd->GetNewDoubleValue(newValue);
     fprigen->fYmax = x;
+  }
+  if( cmd == fXsmearCmd ){
+    G4double x = fXsmearCmd->GetNewDoubleValue(newValue);
+    fprigen->fXsmear = x;
+  }
+  if( cmd == fYsmearCmd ){
+    G4double x = fYsmearCmd->GetNewDoubleValue(newValue);
+    fprigen->fYsmear = x;
   }
   if( cmd == fBeamECmd ){
     G4double x = fBeamECmd->GetNewDoubleValue(newValue);
@@ -215,9 +249,16 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
     G4double x = fphiMaxCmd->GetNewDoubleValue(newValue);
     fprigen->fphiMax = x;
   }
+  if( cmd == fXCmd ){
+    G4double x = fXCmd->GetNewDoubleValue(newValue);
+    fprigen->fX = x;
+  }
+  if( cmd == fYCmd ){
+    G4double x = fYCmd->GetNewDoubleValue(newValue);
+    fprigen->fY = x;
+  }
   if( cmd == fZCmd ){
     G4double x = fZCmd->GetNewDoubleValue(newValue);
     fprigen->fZ = x;
   }
-
 }

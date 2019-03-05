@@ -21,7 +21,7 @@ class remollMultScatt;
 class MolPolPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
 {
 public:
-  MolPolPrimaryGeneratorAction(MolPolDetectorConstruction*);
+  MolPolPrimaryGeneratorAction();
   virtual ~MolPolPrimaryGeneratorAction();
 
   void GeneratePrimaries(G4Event*);
@@ -36,7 +36,8 @@ public:
   double yPos(){return particleGun->GetParticlePosition().y();}
   double GetAngle(){return angle;}
   G4double fXmin, fXmax, fYmin, fYmax;
-  G4double fZ;
+  G4double fXsmear, fYsmear; 
+  G4double fX, fY, fZ;
   G4double fTargLen;
   G4double fTargPol;//[0,1]
   G4double fBeamE;
@@ -70,8 +71,6 @@ private:
   G4double GetTmpUnpolDist(const G4double p[8],const G4double refMom[8],const G4int k);
   G4double GetElectronStructFct(G4double&, const G4double);
 
-  MolPolDetectorConstruction* myDetector;
-  void SetTargetQuantities();
   G4double fTargetA;
   G4double fTargetZ;
   G4double fTargetDensity;
