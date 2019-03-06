@@ -1,37 +1,36 @@
 /run/initialize
 
 /MolPol/gen               moller
-/MolPol/filename          MolPol_REMOLL.root
+/MolPol/filename          results_MolPol.root
 /MolPol/calculateLevchuk  true
-/MolPol/targetPolPct      0.075
+/MolPol/targetPolPct      0.08523
 /MolPol/radCorrections    true
 /MolPol/remollMS          true
-/MolPol/seed              50
+/MolPol/seed              8675309
 
-/MolPol/fz                6.9 cm
+/MolPol/thcommin          50   deg
+/MolPol/thcommax          130  deg
+/MolPol/phimin           -22.5 deg
+/MolPol/phimax            7.5  deg
 
-/MolPol/thcommin          70 deg
-/MolPol/thcommax          110 deg
-/MolPol/phimin            -25 deg
-/MolPol/phimax            25  deg
+/MolPol/fz                6.9  cm
+/MolPol/fy                0.0  cm
+/MolPol/fx                0.0  cm
+/MolPol/xsmear            0.2  mm
+/MolPol/ysmear            0.2  mm
 
 /field/MagSourceMode      1
+/field/setQ1T             0.25
+/field/setQ2T             0.05
+/field/setQ3T             0.0
+/field/setQ4T             0.1
+/field/setQ5T             0.296
+/field/setQ6T             3.5
 
-/field/setQ1T             -0.171
-/field/setQ2T             0.131
-/field/setQ3T             0.096
-/field/setQ4T             0.206
-/field/setQ5T             0.700
-
-#/MolPol/emin             1.063 GeV
-#/MolPol/emax             1.063 GeV
-#/MolPol/beamE            10.6 GeV
-/MolPol/beamE             5.0 GeV
-#/MolPol/beamE            8.5 GeV
-#/MolPol/beamE            4.5 GeV
+/MolPol/beamE             2.2 GeV
 
 /gun/particle             e-
 
 /field/update
 
-/run/beamOn               50000
+/run/beamOn               100000
