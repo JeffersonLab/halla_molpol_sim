@@ -358,7 +358,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // COLLIMATORS
   G4double pDCOLHLX = 1.00   * cm;  G4double pDCOLHLY = 4.00 * cm;  G4double pDCOLHLZ = 3.00  * cm;
-  G4double pDSLOHLX = 1.00   * cm;  G4double pDSLOHLY = 1.50 * cm;  G4double pDSLOHLZ = 3.00  * cm;
+  G4double pDSLOHLX = 1.00   * cm;  G4double pDSLOHLY = 1.80 * cm;  G4double pDSLOHLZ = 3.00  * cm;
   G4double pDCOLPos_X =-4.00   * cm;  G4double pDCOLPos_Y = 9.00 * cm;  G4double pDCOLPos_Z =-92.00  * cm;
   G4double pDSLOPos_X = 0.00   * cm;  G4double pDSLOPos_Y = 0.00 * cm;  G4double pDSLOPos_Z =  0.00  * cm;
   G4VSolid* DCOLSolid = new G4Box ( "DCOLBox" , pDCOLHLX , pDCOLHLY  , pDCOLHLZ );
