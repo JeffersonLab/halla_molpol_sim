@@ -181,7 +181,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Target
   G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm; G4double pMTATHLZ = 0.0062 * mm;
-  G4double pMTATPos_X = 0.0 * cm; G4double pMTATPos_Y = 0.0 * cm; G4double pMTATPos_Z = 6.9 * cm;
+  G4double pMTATPos_X = 0.0 * cm; G4double pMTATPos_Y = 0.0 * cm; G4double pMTATPos_Z = 6.74 * cm;
   G4VSolid* MTATSolid = new G4Tubs( "MTATTube", pMTATRin, pMTATRout, pMTATHLZ, 0.0, 360.0 * deg );
 
   G4LogicalVolume* TargetLogical = new G4LogicalVolume(MTATSolid, iron, "Target", 0, 0, 0);
@@ -772,21 +772,26 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pMDBLHLX   = 14.60 * cm;  G4double pMDBLHLY   = 11.50 * cm;  G4double pMDBLHLZ   = 6.305 * cm;
   G4double pMDBLalpha = 10.0  *deg;  G4double pMDBLtheta = 0.0  *deg;   G4double pMDBLphi   =  0.0  *deg;
   G4double pMDETHLX   =  9.20 * cm;  G4double pMDETHLY   = 17.00 * cm;  G4double pMDETHLZ   = 34.00 * cm;
-  G4double pDLGBHLX   =  8.20 * cm;  G4double pDLGBHLY   = 16.20 * cm;  G4double pDLGBHLZ   = 20.10 * cm;
+  G4double pDLGBHLX   =  9.20 * cm;  G4double pDLGBHLY   = 16.20 * cm;  G4double pDLGBHLZ   = 20.10 * cm;
+  G4double pSPCLHLX   =  9.00 * cm;  G4double pSPCLHLY   = 15.00 * cm;  G4double pSPCLHLZ   = 15.00 * cm;
 
   G4double pMDBXPos_X   =  0.055 * cm; G4double pMDBXPos_Y  = -46.70 * cm;  G4double pMDBXPos_Z   =723.20 * cm;//Adjusted for 2019 survey
   G4double pMDBAPos_X   =  0.00 * cm;  G4double pMDBAPos_Y   =  1.10 * cm;  G4double pMDBAPos_Z   =  1.80 * cm;
   G4double pMDBWPos_X   =  0.00 * cm;  G4double pMDBWPos_Y   =  8.49 * cm;  G4double pMDBWPos_Z   =-49.70 * cm;
   G4double pMDBLPos_X   =  0.00 * cm;  G4double pMDBLPos_Y   =  7.67 * cm;  G4double pMDBLPos_Z   =-49.70 * cm;
-  G4double pMDETPos_X   =  0.46 * cm;  G4double pMDETPos_Y   =  2.46 * cm;  G4double pMDETPos_Z   = -4.08 * cm;
-  G4double pDLGBPos_X   =  0.00 * cm;  G4double pDLGBPos_Y   =  0.00 * cm;  G4double pDLGBPos_Z   =-11.00 * cm;
+  G4double pMDETPos_X   =  0.405* cm;  G4double pMDETPos_Y   =  2.46 * cm;  G4double pMDETPos_Z   = -4.08 * cm;
+  G4double pDLGBPos_X   =  0.00 * cm;  G4double pDLGBPos_Y   =  0.00 * cm;  G4double pDLGBPos_Z   =-11.00 * cm;//Calorimeter Case
+  G4double pSPCLPos_X   =  0.00 * cm;  G4double pSPCLPos_Y   =  0.00 * cm;  G4double pSPCLPos_Z   =  -5.1 * cm;//Calorimeter Block
 
   G4VSolid* MDBXSolid  = new G4Box ( "MDBXBox"  , pMDBXHLX, pMDBXHLY, pMDBXHLZ );
   G4VSolid* MDBASolid  = new G4Box ( "MDBABox"  , pMDBAHLX, pMDBAHLY, pMDBAHLZ );
   G4VSolid* MDBWSolid  = new G4Para( "MDBWPara" , pMDBWHLX, pMDBWHLY, pMDBWHLZ, pMDBWalpha, pMDBWtheta, pMDBWphi);
   G4VSolid* MDBLSolid  = new G4Para( "MDBLPara" , pMDBLHLX, pMDBLHLY, pMDBLHLZ, pMDBLalpha, pMDBLtheta, pMDBLphi);
   G4VSolid* MDETSolid  = new G4Box ( "MDETBox"  , pMDETHLX, pMDETHLY, pMDETHLZ );
+  //DLGB is the case which holds the spaghetti calorimeter; this is made of aluminum
+  //Spaghetti calorimeter [SPCL] is of the dimensions specified in the Manual[2019].
   G4VSolid* DLGBSolid  = new G4Box ( "DLGBBox"  , pDLGBHLX, pDLGBHLY, pDLGBHLZ );
+  G4VSolid* SPCLSolid  = new G4Box ( "SPCLBox"  , pSPCLHLX, pSPCLHLY, pSPCLHLZ );
 
   G4SubtractionSolid* sub5 = new G4SubtractionSolid("sub5", MDBXSolid, MDBASolid, 0    , G4ThreeVector(pMDBAPos_X, pMDBAPos_Y, pMDBAPos_Z) );
   G4SubtractionSolid* sub6 = new G4SubtractionSolid("sub6", sub5     , MDBWSolid, pRot9, G4ThreeVector(pMDBWPos_X, pMDBWPos_Y, pMDBWPos_Z) );
@@ -797,17 +802,26 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   MDBXLogical->SetVisAttributes(MDBXVisAtt);
   new G4PVPlacement(0 , G4ThreeVector(pMDBXPos_X, pMDBXPos_Y, pMDBXPos_Z) , MDBXLogical , "Detector_MDBX" , world_log , 0 , 0 , fCheckOverlaps);
 
-  //This is the 'MDET' volume in G3. It's the mother volume for all the detector pieces which will be placed and then rotated by the 7.3*deg as a whole.
-  //This must be positioned at the MDBA positions (In G3 this was just a daughter volume, in G4 it's part of a boolean subtraction.
+  //This is the 'MDET' volume in G3. It's the mother volume for all the detector pieces which will be placed and then rotated by the pRot7 as a whole.
+  //This must be positioned at the MDBA positions (In G3 this was just a daughter volume, in G4 it's part of a boolean subtraction).
   G4LogicalVolume * MDETLogical = new G4LogicalVolume( MDETSolid , Air , "DetectorContainer" , 0 , 0 , 0);
   MDETLogical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(pRot7 , G4ThreeVector(pMDBAPos_X+pMDETPos_X+pMDBXPos_X,
                                           pMDBAPos_Y+pMDETPos_Y+pMDBXPos_Y,
                                           pMDBAPos_Z+pMDETPos_Z+pMDBXPos_Z), MDETLogical , "Detector_MDET" , world_log , 0 , 0 , fCheckOverlaps);
 
-  G4LogicalVolume* DETLogical = new G4LogicalVolume(DLGBSolid, Vacuum, "DETLogical",0,0,0);
-  DETLogical->SetSensitiveDetector(DETSD);
-  new G4PVPlacement(0 , G4ThreeVector(pDLGBPos_X, pDLGBPos_Y, pDLGBPos_Z) , DETLogical , "Detector_DLGB" , MDETLogical , 0 , 0 , fCheckOverlaps);
+  G4LogicalVolume* DLGBLogical = new G4LogicalVolume(DLGBSolid, aluminum, "DLGBLogical",0,0,0);
+  new G4PVPlacement(0 , G4ThreeVector(pDLGBPos_X, pDLGBPos_Y, pDLGBPos_Z) , DLGBLogical , "Detector_CAL_CASE" , MDETLogical , 0 , 0 , fCheckOverlaps);
+
+  G4LogicalVolume* SPCLLogical = new G4LogicalVolume(SPCLSolid, Vacuum, "SPCLLogical",0,0,0);
+  new G4PVPlacement(0 , G4ThreeVector(pSPCLPos_X, pSPCLPos_Y, pSPCLPos_Z ) , SPCLLogical , "Detector_SpagCalor" , DLGBLogical , 0 , 0 , fCheckOverlaps);
+
+  //Place virtual plane at the very front of calorimeter as a daughter volume for now and let that be sensitive detector #9
+  G4double CalVPHLZ = 0.00001 * cm;
+  G4VSolid* SpagCalVPSolid  = new G4Box ( "SpagCalVPSolid"  , pSPCLHLX, pSPCLHLY, CalVPHLZ );
+  G4LogicalVolume* SpagCalVpLogical = new G4LogicalVolume(SpagCalVPSolid, Vacuum, "SpagCalVpLogical",0,0,0);
+  SpagCalVpLogical->SetSensitiveDetector(DETSD);
+  new G4PVPlacement(0 , G4ThreeVector(0. , 0. , -1.*pSPCLHLZ + CalVPHLZ ) , SpagCalVpLogical , "SpagCalor_VP" , SPCLLogical , 0 , 0 , fCheckOverlaps);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -863,7 +877,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4LogicalVolume* VP1Logical = new G4LogicalVolume(VP1Solid, Vacuum, "VPDetector", 0,0,0);
   VP1Logical->SetSensitiveDetector( DETVP );
   VP1Logical->SetVisAttributes(VacVisAtt);
-  new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pMDBXPos_Z - pMDBXHLZ - pVP1HLZ ), VP1Logical, "VP.Detector.Entr", world_log, 0,0, fCheckOverlaps);
+  //new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pMDBXPos_Z - pMDBXHLZ - pVP1HLZ + 23.05*cm ), VP1Logical, "VP.Detector.Entr", world_log, 0,0, fCheckOverlaps);
 
   G4cout << "Z-position of DetectorBox Virtual Plane " << pMDBXPos_Z - pMDBXHLZ - pVP1HLZ << G4endl;
 
