@@ -145,12 +145,12 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Field Setup
   mEMFieldSetup = new MolPolEMFieldSetup();  //setup the field,
-  G4FieldManager* Q1FieldManager = mEMFieldSetup->GetFieldManagerFZB1();
-  G4FieldManager* Q2FieldManager = mEMFieldSetup->GetFieldManagerFZB2();
-  G4FieldManager* Q3FieldManager = mEMFieldSetup->GetFieldManagerFZB3();
-  G4FieldManager* Q4FieldManager = mEMFieldSetup->GetFieldManagerFZB4();
-  G4FieldManager* DFieldManager  = mEMFieldSetup->GetFieldManagerFZB5();
-  G4FieldManager* Q6FieldManager = mEMFieldSetup->GetFieldManagerFZB6();
+  //G4FieldManager* Q1FieldManager = mEMFieldSetup->GetFieldManagerFZB1();
+  //G4FieldManager* Q2FieldManager = mEMFieldSetup->GetFieldManagerFZB2();
+  //G4FieldManager* Q3FieldManager = mEMFieldSetup->GetFieldManagerFZB3();
+  //G4FieldManager* Q4FieldManager = mEMFieldSetup->GetFieldManagerFZB4();
+  //G4FieldManager* DFieldManager  = mEMFieldSetup->GetFieldManagerFZB5();
+  //G4FieldManager* Q6FieldManager = mEMFieldSetup->GetFieldManagerFZB6();
   G4bool allLocal = true;
 
 
@@ -159,7 +159,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 49.53 * cm;  G4double pQ6Pos_z=   6.9 * cm;//49.53*cm is half-length of solenoid map
   G4VSolid* Q6MagSolid = new G4Tubs( "Q6MagTubs", pQ6Rin, pQ6Rout, pQ6HL, 0.0, 360.0 * deg);
   G4LogicalVolume* Q6MagLogical = new G4LogicalVolume(Q6MagSolid, Vacuum, "Q6Mag", 0,0,0);
-  Q6MagLogical->SetFieldManager(Q6FieldManager, allLocal);
+  //Q6MagLogical->SetFieldManager(Q6FieldManager, allLocal);
   Q6MagLogical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0, G4ThreeVector(0, 0, pQ6Pos_z), Q6MagLogical, "SolenoidMag", world_log, 0, 0, fCheckOverlaps);
 
@@ -241,16 +241,16 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   Q4Logical->SetVisAttributes(SteelVisAtt);
 
   Q1MagLogical->SetVisAttributes(VacVisAtt);
-  Q1MagLogical->SetFieldManager(Q1FieldManager,allLocal);
+  //Q1MagLogical->SetFieldManager(Q1FieldManager,allLocal);
 
   Q2MagLogical->SetVisAttributes(VacVisAtt);
-  Q2MagLogical->SetFieldManager(Q2FieldManager,allLocal);
+  //Q2MagLogical->SetFieldManager(Q2FieldManager,allLocal);
 
   Q3MagLogical->SetVisAttributes(VacVisAtt);
-  Q3MagLogical->SetFieldManager(Q3FieldManager,allLocal);
+  //Q3MagLogical->SetFieldManager(Q3FieldManager,allLocal);
 
   Q4MagLogical->SetVisAttributes(VacVisAtt);
-  Q4MagLogical->SetFieldManager(Q4FieldManager,allLocal);
+  //Q4MagLogical->SetFieldManager(Q4FieldManager,allLocal);
 
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ1Pos_Z),Q1Logical,"Q1Phys",world_log,0,0,fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(0,0,pQ2Pos_Z),Q2Logical,"Q2Phys",world_log,0,0,fCheckOverlaps);
@@ -334,7 +334,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   // Create Sub0 which subtracts the sub4 volume from the DMagSolid Volume, create DLogical from sub0, and place as before.
   G4SubtractionSolid* sub0 = new G4SubtractionSolid("sub0", DMagSolid , sub4 , 0 , G4ThreeVector (0,0,0));
   G4LogicalVolume* DLogical = new G4LogicalVolume ( sub0, Vacuum, "DipoleMag", 0, 0, 0);
-  DLogical->SetFieldManager(DFieldManager,allLocal);
+  //DLogical->SetFieldManager(DFieldManager,allLocal);
   DLogical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0,G4ThreeVector(pDMagPos_X, pDMagPos_Y - 9*cm, pDMagPos_Z), DLogical,"DipoleMag",world_log,0,0,fCheckOverlaps);
   //Create the sub4 logical volume and place this in the WORLD_LOG not the DipoleMag volume.
