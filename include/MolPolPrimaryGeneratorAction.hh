@@ -8,6 +8,7 @@
 #include "MolPolIO.hh"
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <fstream>
 
 class MolPolDetectorConstruction;
 class G4ParticleGun;
@@ -70,11 +71,13 @@ private:
   void InitTargetMomentum();
   G4double GetTmpUnpolDist(const G4double p[8],const G4double refMom[8],const G4int k);
   G4double GetElectronStructFct(G4double&, const G4double);
+  G4bool CheckLUNDFile(G4String LUNDfile_name);
 
   G4double fTargetA;
   G4double fTargetZ;
   G4double fTargetDensity;
-
+  G4int    fNLUNDLines;
+  std::ifstream LUNDfile;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

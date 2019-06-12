@@ -12,6 +12,8 @@
 #include "G4ParticleDefinition.hh"
 #include "remollMultScatt.hh"
 #include "G4Material.hh"
+#include "G4Run.hh"
+#include "G4RunManager.hh"
 
 //To use CLHEP variables (recent version of G4)
 #include "G4PhysicalConstants.hh"
@@ -23,6 +25,9 @@
 
 #include <cassert>
 
+#include <iostream>
+#include <fstream>
+#include <string>
 #include <cmath> /* Used for isnan, isinf, debugging... */
 
 MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
@@ -84,12 +89,16 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 
   //INITIALIZE TARGET MOMENTUM DISTRIBUTION FOR LEVCHUK EFFECT
   InitTargetMomentum();
+
+  fNLUNDLines = 0;
 }
 
 MolPolPrimaryGeneratorAction::~MolPolPrimaryGeneratorAction()
 {
   delete particleGun;
   delete fDefaultEvent;
+
+  if( gentype == "moller") LUNDfile.close();
 }
 
 void MolPolPrimaryGeneratorAction::rand(){
@@ -335,6 +344,69 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //FINALIZE EVENT DATA FOR RECORDING
       fIO->SetEventData(fDefaultEvent);
     }
+  else if("LUND")
+    {
+      if( fNLUNDLines < 1 )
+	{
+	  G4bool is_good_input = CheckLUNDFile("../g3input.dat");
+	  assert(is_good_input and "ERROR: bad LUND input file");
+
+	  const G4Run* aRun = G4RunManager::GetRunManager()->GetCurrentRun();
+	  G4int NTOTAL_TO_PROCESS = aRun->GetNumberOfEventToBeProcessed();
+	  assert(fNLUNDLines >= NTOTAL_TO_PROCESS and "Requested number of events exceeds LUND input limit");
+
+	}
+
+      // get kinematic variables
+      G4double beamE;
+      G4double xpos, ypos, zpos;
+      G4double thcom, phcom;
+      G4double p1[3];
+      G4double p2[3];
+      G4double Azz;
+
+      LUNDfile >> beamE >> thcom >> phcom >> xpos >> ypos >> zpos >> p1[0] >> p1[1] >> p1[2] >> p2[0] >> p2[1] >> p2[2] >> Azz;
+
+      // Unit just in case
+      beamE = beamE * GeV;
+
+      for(int i=0; i<3; i++)
+	{
+	  p1[i] = p1[i] * GeV;
+	  p2[i] = p2[i] * GeV;
+	}
+
+      G4double me = electron_mass_c2;
+      G4double eff_sigma = 1;
+
+      G4double kinE1 = sqrt(p1[0]*p1[0] + p1[1]*p1[1] + p1[2]*p1[2] + me*me) - me;
+      G4double kinE2 = sqrt(p2[0]*p2[0] + p2[1]*p2[1] + p2[2]*p2[2] + me*me) - me;
+
+      fDefaultEvent->SetEffCrossSection(eff_sigma);
+      fDefaultEvent->SetAsymmetry(Azz);
+      fDefaultEvent->SetThCoM(thcom * radian);
+      fDefaultEvent->SetPhCoM(phcom * radian);
+
+      particleGun->SetParticleEnergy( kinE1 );
+      particleGun->SetParticlePosition( G4ThreeVector(xpos*cm, ypos*cm, zpos*cm) );
+      particleGun->SetParticleMomentumDirection( G4ThreeVector( p1[0], p1[1], p1[2] ).unit() );
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, zpos),
+                                        G4ThreeVector(p1[0], p1[1], p1[2]),
+                                        particleGun->GetParticleDefinition()->GetParticleName() );
+      particleGun->GeneratePrimaryVertex(anEvent);
+
+      particleGun->SetParticleEnergy( kinE2 );
+      particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, zpos) );
+      particleGun->SetParticleMomentumDirection( G4ThreeVector( p2[0], p2[1], p2[2] ).unit() );
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, zpos),
+                                        G4ThreeVector(p2[0], p2[1], p2[2]),
+                                        particleGun->GetParticleDefinition()->GetParticleName() );
+      particleGun->GeneratePrimaryVertex(anEvent);
+
+      //FINALIZE EVENT DATA FOR RECORDING
+      fIO->SetEventData(fDefaultEvent);
+
+    }
   else
     {
 
@@ -550,3 +622,36 @@ G4double MolPolPrimaryGeneratorAction::GetElectronStructFct(G4double &u, const G
   //Sum both contributions to the electron structure function
   return dePhot + dee;
 }
+
+G4bool MolPolPrimaryGeneratorAction::CheckLUNDFile(G4String LUNDfile_name){
+
+  // Get input kinematics variables
+  // format
+  // : BEAME, THETACOM, PHICOM, vtx[3], p1[3], p2[3], ANPOW        
+
+  G4bool is_good_lund = true;
+
+  LUNDfile.open(LUNDfile_name);
+
+  if( ! LUNDfile.good() )
+    return false;
+
+  G4int nlines = 0;
+  G4String line;
+  while(std::getline(LUNDfile, line))
+    {
+      nlines++;
+    }
+  
+  LUNDfile.clear();
+  LUNDfile.seekg(0, std::ios::beg);
+
+  if( nlines < 1 )
+    return false;
+
+  fNLUNDLines = nlines;
+  G4cout << "Total LUND generated: " << fNLUNDLines << G4endl;
+
+  return is_good_lund;
+}
+
