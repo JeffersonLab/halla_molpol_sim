@@ -367,9 +367,13 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       LUNDfile >> beamE >> thcom >> phcom >> xpos >> ypos >> zpos >> p1[0] >> p1[1] >> p1[2] >> p2[0] >> p2[1] >> p2[2] >> Azz;
 
-      // Unit just in case
+      // Attach units
       beamE = beamE * GeV;
-
+      xpos *= cm;
+      ypos *= cm;
+      zpos *= cm;
+      thcom *= radian;
+      phcom *= radian;
       for(int i=0; i<3; i++)
 	{
 	  p1[i] = p1[i] * GeV;
@@ -384,11 +388,11 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       fDefaultEvent->SetEffCrossSection(eff_sigma);
       fDefaultEvent->SetAsymmetry(Azz);
-      fDefaultEvent->SetThCoM(thcom * radian);
-      fDefaultEvent->SetPhCoM(phcom * radian);
+      fDefaultEvent->SetThCoM(thcom);
+      fDefaultEvent->SetPhCoM(phcom);
 
       particleGun->SetParticleEnergy( kinE1 );
-      particleGun->SetParticlePosition( G4ThreeVector(xpos*cm, ypos*cm, zpos*cm) );
+      particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, zpos) );
       particleGun->SetParticleMomentumDirection( G4ThreeVector( p1[0], p1[1], p1[2] ).unit() );
       fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, zpos),
                                         G4ThreeVector(p1[0], p1[1], p1[2]),
