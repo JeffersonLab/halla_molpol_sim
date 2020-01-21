@@ -30,6 +30,8 @@
 #include <string>
 #include <cmath> /* Used for isnan, isinf, debugging... */
 
+#define _unused(x) ((void)(x)) /* Avoid unused variable warning for variables actually used in assert() */
+
 MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
   :rndmFlag("off")
 {
@@ -354,10 +356,12 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       if( fNLUNDLines < 1 )
   	  {
   	    G4bool is_good_input = CheckLUNDFile("../g3input.dat");
+        _unused( is_good_input ); //Avoids unused variable warning during compiling, var is used in assert()
   	    assert(is_good_input and "ERROR: bad LUND input file");
 
   	    const G4Run* aRun = G4RunManager::GetRunManager()->GetCurrentRun();
   	    G4int NTOTAL_TO_PROCESS = aRun->GetNumberOfEventToBeProcessed();
+        _unused( NTOTAL_TO_PROCESS ); //Avoids unused variable warning during compiling, var is used in assert()
   	    assert(fNLUNDLines >= NTOTAL_TO_PROCESS and "Requested number of events exceeds LUND input limit");
   	  }
 
