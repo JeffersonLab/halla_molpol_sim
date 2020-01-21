@@ -12,6 +12,8 @@
 #include "G4ParticleDefinition.hh"
 #include "remollMultScatt.hh"
 #include "G4Material.hh"
+#include "G4Run.hh"
+#include "G4RunManager.hh"
 
 //To use CLHEP variables (recent version of G4)
 #include "G4PhysicalConstants.hh"
@@ -23,6 +25,9 @@
 
 #include <cassert>
 
+#include <iostream>
+#include <fstream>
+#include <string>
 #include <cmath> /* Used for isnan, isinf, debugging... */
 
 MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
@@ -71,7 +76,7 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 
   //CREATE NEW MOLPOLEVENT OBJECT TO STORE EVENT INFORMATION FOR RECORDING
   fDefaultEvent = new MolPolEvent();
-  
+
   //LEVCHUCK FLAG AND VALUES - INITIALIZE FLAG TO 'true' BY DEFAULT AND POLARIZATION TO SOME VALUE
   //ADDITIONALLY, fLEcorFac MUST INITIALIZE TO 1.
   fLevchukFlag = true;
@@ -84,12 +89,16 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 
   //INITIALIZE TARGET MOMENTUM DISTRIBUTION FOR LEVCHUK EFFECT
   InitTargetMomentum();
+
+  fNLUNDLines = 0;
 }
 
 MolPolPrimaryGeneratorAction::~MolPolPrimaryGeneratorAction()
 {
   delete particleGun;
   delete fDefaultEvent;
+
+  if( gentype == "moller") LUNDfile.close();
 }
 
 void MolPolPrimaryGeneratorAction::rand(){
@@ -340,34 +349,89 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //FINALIZE EVENT DATA FOR RECORDING
       fIO->SetEventData(fDefaultEvent);
     }
-      else if(gentype == "beam") // JUST A SINGLE BEAM
-
+      else if("LUND")
     {
+      if( fNLUNDLines < 1 )
+  	  {
+  	    G4bool is_good_input = CheckLUNDFile("../g3input.dat");
+  	    assert(is_good_input and "ERROR: bad LUND input file");
+
+  	    const G4Run* aRun = G4RunManager::GetRunManager()->GetCurrentRun();
+  	    G4int NTOTAL_TO_PROCESS = aRun->GetNumberOfEventToBeProcessed();
+  	    assert(fNLUNDLines >= NTOTAL_TO_PROCESS and "Requested number of events exceeds LUND input limit");
+  	  }
+
+      // get kinematic variables
+      G4double beamE;
+      G4double xpos, ypos, zpos;
+      G4double thcom, phcom;
+      G4double p1[3];
+      G4double p2[3];
+      G4double Azz;
+
+      LUNDfile >> beamE >> thcom >> phcom >> xpos >> ypos >> zpos >> p1[0] >> p1[1] >> p1[2] >> p2[0] >> p2[1] >> p2[2] >> Azz;
+
+      // Attach units
+      beamE = beamE * GeV;
+      xpos *= cm;
+      ypos *= cm;
+      zpos *= cm;
+      thcom *= radian;
+      phcom *= radian;
+      for(int i=0; i<3; i++)
+  	  {
+  	    p1[i] = p1[i] * GeV;
+  	    p2[i] = p2[i] * GeV;
+  	  }
+
+      G4double me = electron_mass_c2;
+      G4double eff_sigma = 1;
+
+      G4double kinE1 = sqrt(p1[0]*p1[0] + p1[1]*p1[1] + p1[2]*p1[2] + me*me) - me;
+      G4double kinE2 = sqrt(p2[0]*p2[0] + p2[1]*p2[1] + p2[2]*p2[2] + me*me) - me;
+
+      fDefaultEvent->SetEffCrossSection(eff_sigma);
+      fDefaultEvent->SetAsymmetry(Azz);
+      fDefaultEvent->SetThCoM(thcom);
+      fDefaultEvent->SetPhCoM(phcom);
+
+      particleGun->SetParticleEnergy( kinE1 );
+      particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, zpos) );
+      particleGun->SetParticleMomentumDirection( G4ThreeVector( p1[0], p1[1], p1[2] ).unit() );
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, zpos),
+                                        G4ThreeVector(p1[0], p1[1], p1[2]),
+                                        particleGun->GetParticleDefinition()->GetParticleName() );
+      particleGun->GeneratePrimaryVertex(anEvent);
+
+      particleGun->SetParticleEnergy( kinE2 );
+      particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, zpos) );
+      particleGun->SetParticleMomentumDirection( G4ThreeVector( p2[0], p2[1], p2[2] ).unit() );
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, zpos),
+                                        G4ThreeVector(p2[0], p2[1], p2[2]),
+                                        particleGun->GetParticleDefinition()->GetParticleName() );
+      particleGun->GeneratePrimaryVertex(anEvent);
+
+      //FINALIZE EVENT DATA FOR RECORDING
+      fIO->SetEventData(fDefaultEvent);
+      }
+        else if(gentype == "beam") // JUST A SINGLE BEAM
+      {
       G4double xpos     = G4RandGauss::shoot( fX, fXsmear );
       G4double ypos     = G4RandGauss::shoot( fY, fYsmear );
       G4double zpos     = fZ;
 
-      //Get directional vector
       G4ThreeVector direction = G4ThreeVector(0,0,1.);
-      //Rotate the directional vector to match that specified for the beam
-      //Remember we're rotating the axis, so an angle from ZtoX is made by turning the Y-axis.
+
       direction.rotateX(-fBeamRotZY);
       direction.rotateY( fBeamRotZX);
-
-      ///G4cout << "Dir(" << direction.x() << "," << direction.y() << "," << direction.z() << ")" << G4endl;
-      ///G4cout << "Mag: " << direction.mag() << G4endl << G4endl;
 
       G4double me = electron_mass_c2;
       G4double beamE = fBeamE;
       G4double p = sqrt( beamE*beamE - me*me); //unit:MeV
-      G4double dirz = sqrt(1 - direction.x()*direction.x() - direction.y()*direction.y());
-      //test//if(dirz != direction.z()) G4cout << "Directional Mismatch Beam-Type Generator: " << dirz << " v. " << direction.z() << G4endl;
+
       G4double pX = direction.x() * p;
       G4double pY = direction.y() * p;
       G4double pZ = direction.z() * p;
-
-      ///G4cout << "X(" << xpos << "," << ypos << "," << zpos << ")" << G4endl;
-      ///G4cout << "P(" << pX << "," << pY << "," << pZ << ")" << G4endl;
 
       fDefaultEvent->SetEffCrossSection(0);
       fDefaultEvent->SetAsymmetry(0);
@@ -384,7 +448,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //FINALIZE EVENT DATA FOR RECORDING
       fIO->SetEventData(fDefaultEvent);
     }
-      else
+  else
     {
 
       G4double xpos     = G4RandFlat::shoot( fXmin, fXmax );
@@ -598,4 +662,36 @@ G4double MolPolPrimaryGeneratorAction::GetElectronStructFct(G4double &u, const G
 
   //Sum both contributions to the electron structure function
   return dePhot + dee;
+}
+
+G4bool MolPolPrimaryGeneratorAction::CheckLUNDFile(G4String LUNDfile_name){
+
+  // Get input kinematics variables
+  // format
+  // : BEAME, THETACOM, PHICOM, vtx[3], p1[3], p2[3], ANPOW
+
+  G4bool is_good_lund = true;
+
+  LUNDfile.open(LUNDfile_name);
+
+  if( ! LUNDfile.good() )
+    return false;
+
+  G4int nlines = 0;
+  G4String line;
+  while(std::getline(LUNDfile, line))
+    {
+      nlines++;
+    }
+
+  LUNDfile.clear();
+  LUNDfile.seekg(0, std::ios::beg);
+
+  if( nlines < 1 )
+    return false;
+
+  fNLUNDLines = nlines;
+  G4cout << "Total LUND generated: " << fNLUNDLines << G4endl;
+
+  return is_good_lund;
 }

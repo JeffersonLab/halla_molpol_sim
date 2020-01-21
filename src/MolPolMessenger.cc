@@ -139,6 +139,7 @@ MolPolMessenger::MolPolMessenger(){
     fTargPolCmd = new G4UIcmdWithADouble("/MolPol/targetPolPct",this);
     fTargPolCmd->SetGuidance("Target polarization percentage? (Between 0 and 1)");
     fTargPolCmd->SetParameterName("targetPolPct",false);
+
 }
 
 MolPolMessenger::~MolPolMessenger(){

@@ -7,6 +7,7 @@
 #include "G4UImanager.hh"
 #include "G4ios.hh"
 #include "MolPolIO.hh"
+#include "MolPolPrimaryGeneratorAction.hh"
 
 MolPolRunAction::MolPolRunAction()
 {
