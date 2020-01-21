@@ -53,8 +53,8 @@ public:
   G4bool fRemollMSFlag;
   G4double x1,x2,x3,x4,u1,u2,u3,u4,s;
 
-  G4double fBeamRotZX;
-  G4double fBeamRotZY;
+  G4double fBeamRotZX = 0.00 * rad;
+  G4double fBeamRotZY = 0.00 * rad;
 
 private:
   MolPolEvent* fDefaultEvent;

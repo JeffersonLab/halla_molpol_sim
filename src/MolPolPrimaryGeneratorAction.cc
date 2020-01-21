@@ -41,9 +41,6 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 
   fBeamPol = "long";
 
-  G4double fBeamRotZX = 0.00 * rad;
-  G4double fBeamRotZY = 0.00 * rad;
-
   //Flat generation range
   fXmin = 0.0*mm;
   fXmax = 0.0*mm;
