@@ -340,7 +340,51 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //FINALIZE EVENT DATA FOR RECORDING
       fIO->SetEventData(fDefaultEvent);
     }
-  else
+      else if(gentype == "beam") // JUST A SINGLE BEAM
+
+    {
+      G4double xpos     = G4RandGauss::shoot( fX, fXsmear );
+      G4double ypos     = G4RandGauss::shoot( fY, fYsmear );
+      G4double zpos     = fZ;
+
+      //Get directional vector
+      G4ThreeVector direction = G4ThreeVector(0,0,1.);
+      //Rotate the directional vector to match that specified for the beam
+      //Remember we're rotating the axis, so an angle from ZtoX is made by turning the Y-axis.
+      direction.rotateX(-fBeamRotZY);
+      direction.rotateY( fBeamRotZX);
+
+      ///G4cout << "Dir(" << direction.x() << "," << direction.y() << "," << direction.z() << ")" << G4endl;
+      ///G4cout << "Mag: " << direction.mag() << G4endl << G4endl;
+
+      G4double me = electron_mass_c2;
+      G4double beamE = fBeamE;
+      G4double p = sqrt( beamE*beamE - me*me); //unit:MeV
+      G4double dirz = sqrt(1 - direction.x()*direction.x() - direction.y()*direction.y());
+      //test//if(dirz != direction.z()) G4cout << "Directional Mismatch Beam-Type Generator: " << dirz << " v. " << direction.z() << G4endl;
+      G4double pX = direction.x() * p;
+      G4double pY = direction.y() * p;
+      G4double pZ = direction.z() * p;
+
+      ///G4cout << "X(" << xpos << "," << ypos << "," << zpos << ")" << G4endl;
+      ///G4cout << "P(" << pX << "," << pY << "," << pZ << ")" << G4endl;
+
+      fDefaultEvent->SetEffCrossSection(0);
+      fDefaultEvent->SetAsymmetry(0);
+
+      double kinE = sqrt(pX*pX + pY*pY + pZ*pZ + me*me) - me;
+      particleGun->SetParticleEnergy( kinE );
+      particleGun->SetParticlePosition( G4ThreeVector(xpos, ypos, zpos) );
+      particleGun->SetParticleMomentumDirection( G4ThreeVector( pX, pY, pZ ).unit() );
+      fDefaultEvent->ProduceNewParticle(G4ThreeVector(xpos, ypos, zpos),
+                                        G4ThreeVector(pX, pY, pZ ),
+                                        particleGun->GetParticleDefinition()->GetParticleName() );
+      particleGun->GeneratePrimaryVertex(anEvent);
+
+      //FINALIZE EVENT DATA FOR RECORDING
+      fIO->SetEventData(fDefaultEvent);
+    }
+      else
     {
 
       G4double xpos     = G4RandFlat::shoot( fXmin, fXmax );
