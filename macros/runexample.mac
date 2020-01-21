@@ -1,36 +1,54 @@
 /run/initialize
 
+#GENERAL: GENERATOR TYPES: moller, LUND, beam
 /MolPol/gen               moller
-/MolPol/filename          results_MolPol.root
+/MolPol/filename          results_crex_6tube.root
+
+#GENERATOR EFFECTS
 /MolPol/calculateLevchuk  true
-/MolPol/targetPolPct      0.08523
+/MolPol/targetPolPct      0.08012
 /MolPol/radCorrections    true
 /MolPol/remollMS          true
-/MolPol/seed              8675309
+/MolPol/seed              5674661
 
-/MolPol/thcommin          50   deg
-/MolPol/thcommax          130  deg
-/MolPol/phimin           -22.5 deg
-/MolPol/phimax            7.5  deg
+#GENERATED PHASE SPACE
+/MolPol/thcommin          60   deg
+/MolPol/thcommax          120  deg
+/MolPol/phimin           -25   deg
+/MolPol/phimax            5    deg
 
-/MolPol/fz                6.9  cm
-/MolPol/fy                0.0  cm
-/MolPol/fx                0.0  cm
-/MolPol/xsmear            0.2  mm
-/MolPol/ysmear            0.2  mm
+#BEAM INFORMATION: TARGET LADDER AT 67.4 mm - YCORRECTOR CENTER AT -251.0 mm
+/MolPol/fx                0.0      mm
+/MolPol/fy                0.0      mm
+/MolPol/fz                67.4     mm
+/MolPol/xsmear            0.2      mm
+/MolPol/ysmear            0.2      mm
+/MolPol/beamRotZX         0.0     rad
+/MolPol/beamRotZY         0.0     rad
+/MolPol/beamE             2.2     GeV
 
+#FIELD INFORMATION
 /field/MagSourceMode      1
-/field/setQ1T             0.25
+/field/setQ1T             0.28
 /field/setQ2T             0.05
-/field/setQ3T             0.0
-/field/setQ4T             0.1
-/field/setQ5T             0.296
-/field/setQ6T             3.5
+/field/setQ3T             0.
+/field/setQ4T             0.10
+/field/setQ5T             0.335
+/field/setQ6T             4.0
 
-/MolPol/beamE             2.2 GeV
+#MAGNET OFFSET INFORMATION
+/field/setQ1YOffset       0.530   mm
+/field/setQ2XOffset       0.500   mm
+/field/setQ4XOffset       0.250   mm
+/field/setQ4YOffset       0.600   mm
 
-/gun/particle             e-
+#YVES SOL OFFSETS 2019 MARCH 2.137 GeV X=.28mm,Y:-0.47,XROT:0.0042*deg,YROT:0.00077*deg
+/field/setQ6XOffset       0.28   mm
+/field/setQ6YOffset      -0.47    mm
+/field/setQ6XRot         -0.0042  deg
+/field/setQ6YRot          0.00077 deg
 
+#FIELD UPDATE COMMAND MUST BE MADE AFTER FIELD DEFINITIONS
 /field/update
-
-/run/beamOn               100000
+/gun/particle             e-
+/run/beamOn               250000
