@@ -41,6 +41,9 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 
   fBeamPol = "long";
 
+  G4double fBeamRotZX = 0.00 * rad;
+  G4double fBeamRotZY = 0.00 * rad;
+
   //Flat generation range
   fXmin = 0.0*mm;
   fXmax = 0.0*mm;
@@ -140,6 +143,11 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       //No Raster (actual data taking done mostly without raster)
       G4ThreeVector direction = G4ThreeVector(0,0,1.);
+
+      //Rotate the directional vector to match that specified for the beam
+      //Remember we're rotating the axis, so an angle from ZtoX is made by turning the Y-axis, good for very small angles only
+      direction.rotateX(-fBeamRotZY);
+      direction.rotateY( fBeamRotZX);
 
       //~~apply MS
       direction.rotateY(msth);

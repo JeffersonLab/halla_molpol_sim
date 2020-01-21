@@ -104,6 +104,14 @@ MolPolMessenger::MolPolMessenger(){
     fphiMaxCmd->SetGuidance("Set phi range maximum");
     fphiMaxCmd->SetParameterName("phimax", false);
 
+    fBeamRotZXCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/beamRotZX", this);
+    fBeamRotZXCmd->SetGuidance("Set beam angle off Z-axis towards X-axis");
+    fBeamRotZXCmd->SetParameterName("beamRotZX", false);
+
+    fBeamRotZYCmd = new G4UIcmdWithADoubleAndUnit("/MolPol/beamRotZY", this);
+    fBeamRotZYCmd->SetGuidance("Set beam angle off Z-axis towards Y-axis");
+    fBeamRotZYCmd->SetParameterName("beamRotZY", false);
+
     fLevchukEffectCmd = new G4UIcmdWithABool("/MolPol/calculateLevchuk", this);
     fLevchukEffectCmd->SetGuidance("Set Levchuck Effect On:True Off:False");
     fLevchukEffectCmd->SetParameterName("calculateLevchuk",false);
@@ -260,5 +268,14 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == fZCmd ){
     G4double x = fZCmd->GetNewDoubleValue(newValue);
     fprigen->fZ = x;
+  }
+  
+  if( cmd == fBeamRotZXCmd ){
+    G4double x = fBeamRotZXCmd->GetNewDoubleValue(newValue);
+    fprigen->fBeamRotZX = x;
+  }
+  if( cmd == fBeamRotZYCmd ){
+    G4double x = fBeamRotZYCmd->GetNewDoubleValue(newValue);
+    fprigen->fBeamRotZY = x;
   }
 }

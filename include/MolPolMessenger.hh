@@ -83,6 +83,9 @@ class MolPolMessenger : public G4UImessenger {
 	G4UIcmdWithADoubleAndUnit *fYCmd;
 	G4UIcmdWithADoubleAndUnit *fZCmd;
 
+    G4UIcmdWithADoubleAndUnit *fBeamRotZXCmd;
+    G4UIcmdWithADoubleAndUnit *fBeamRotZYCmd;
+
 };
 
 #endif//MolPolMessenger_HH

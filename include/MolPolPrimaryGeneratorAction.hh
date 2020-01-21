@@ -53,6 +53,9 @@ public:
   G4bool fRemollMSFlag;
   G4double x1,x2,x3,x4,u1,u2,u3,u4,s;
 
+  G4double fBeamRotZX;
+  G4double fBeamRotZY;
+
 private:
   MolPolEvent* fDefaultEvent;
   G4ParticleGun* particleGun; //pointer a to G4  class
