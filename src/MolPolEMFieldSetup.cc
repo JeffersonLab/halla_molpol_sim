@@ -54,6 +54,23 @@ MolPolEMFieldSetup::MolPolEMFieldSetup()
   fQ5T = 0;
   fQ6T = 0;
 
+  fXoffsetQ1 = 0.0 * cm;
+  fXoffsetQ2 = 0.0 * cm;
+  fXoffsetQ3 = 0.0 * cm;
+  fXoffsetQ4 = 0.0 * cm;
+  fXoffsetQ5 = 0.0 * cm;
+  fXoffsetQ6 = 0.0 * mm;
+
+  fYoffsetQ1 = 0.0 * cm;
+  fYoffsetQ2 = 0.0 * cm;
+  fYoffsetQ3 = 0.0 * cm;
+  fYoffsetQ4 = 0.0 * cm;
+  fYoffsetQ5 = 0.0 * cm;
+  fYoffsetQ6 = 0.0 * mm;
+
+  fSolRotX   = 0.00 * rad;
+  fSolRotY   = 0.00 * rad;
+
   InitialseAll();
 
 }
@@ -80,7 +97,7 @@ void MolPolEMFieldSetup::InitialseAll()
   G4double ORIGINQ3 = 209.08 * cm;
   G4double ORIGINQ4 = 274.59 * cm;
   G4double ORIGIND  = 423.4  * cm;
-  //G4double ORIGINQ6 = 6.9    * cm;
+  G4double ORIGINQ6 = 6.9    * cm;
 
   G4double BORERADIUS = 5.08 * cm;
 
@@ -126,43 +143,42 @@ void MolPolEMFieldSetup::InitialseAll()
 	 << "\tDIPOLE: "<<DIPOLE/tesla<< " tesla"<<G4endl
    << "\tSOLEND: "<<SOLENOID/tesla<< " tesla"<<G4endl;
 
-  //MolPolQuad(G4double pGradient, G4ThreeVector pOrigin, G4RotationMatrix* pMatrix, G4double pRadius)
-  fMagFieldFZB1 = new MolPolQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, BORERADIUS);
+  fMagFieldFZB1 = new MolPolQuad(KAPPA1, G4ThreeVector(fXoffsetQ1, fYoffsetQ1, ORIGINQ1), NOROT, BORERADIUS);
   fEquationFZB1 = new G4Mag_UsualEqRhs(fMagFieldFZB1);
   fStepperFZB1  = new G4ClassicalRK4(fEquationFZB1);
   fLocalFieldManagerFZB1 = new G4FieldManager();
   fChordFinderFZB1 = 0;
   UpdateFieldFZB1();
 
-  fMagFieldFZB2 = new MolPolQuad(KAPPA2, G4ThreeVector(0.0, 0.0, ORIGINQ2), NOROT, BORERADIUS);
+  fMagFieldFZB2 = new MolPolQuad(KAPPA2, G4ThreeVector(fXoffsetQ2, fYoffsetQ2, ORIGINQ2), NOROT, BORERADIUS);
   fEquationFZB2 = new G4Mag_UsualEqRhs(fMagFieldFZB2);
   fStepperFZB2  = new G4ClassicalRK4(fEquationFZB2);
   fLocalFieldManagerFZB2 = new G4FieldManager();
   fChordFinderFZB2 = 0;
   UpdateFieldFZB2();
 
-  fMagFieldFZB3 = new MolPolQuad(KAPPA3, G4ThreeVector(0.0, 0.0, ORIGINQ3), NOROT, BORERADIUS);
+  fMagFieldFZB3 = new MolPolQuad(KAPPA3, G4ThreeVector(fXoffsetQ3, fYoffsetQ3, ORIGINQ3), NOROT, BORERADIUS);
   fEquationFZB3 = new G4Mag_UsualEqRhs(fMagFieldFZB3);
   fStepperFZB3  = new G4ClassicalRK4(fEquationFZB3);
   fLocalFieldManagerFZB3 = new G4FieldManager();
   fChordFinderFZB3 = 0;
   UpdateFieldFZB3();
 
-  fMagFieldFZB4 = new MolPolQuad(KAPPA4, G4ThreeVector(0.0, 0.0, ORIGINQ4), NOROT, BORERADIUS);
+  fMagFieldFZB4 = new MolPolQuad(KAPPA4, G4ThreeVector(fXoffsetQ4, fYoffsetQ4, ORIGINQ4), NOROT, BORERADIUS);
   fEquationFZB4 = new G4Mag_UsualEqRhs(fMagFieldFZB4);
   fStepperFZB4  = new G4ClassicalRK4(fEquationFZB4);
   fLocalFieldManagerFZB4 = new G4FieldManager();
   fChordFinderFZB4 = 0;
   UpdateFieldFZB4();
 
-  fMagFieldFZB5 = new MolPolDipole(DIPOLE, G4ThreeVector(0.0, 0.0, ORIGIND), NOROT);
+  fMagFieldFZB5 = new MolPolDipole(DIPOLE, G4ThreeVector(fXoffsetQ5, fYoffsetQ5, ORIGIND), NOROT);
   fEquationFZB5 = new G4Mag_UsualEqRhs(fMagFieldFZB5);
   fStepperFZB5  = new G4ClassicalRK4(fEquationFZB5);
   fLocalFieldManagerFZB5 = new G4FieldManager();
   fChordFinderFZB5 = 0;
   UpdateFieldFZB5();
 
-  fMagFieldFZB6 = new MolPolSolenoid(SOLENOID);
+  fMagFieldFZB6 = new MolPolSolenoid(SOLENOID, G4ThreeVector(fXoffsetQ6, fYoffsetQ6, ORIGINQ6), fSolRotX, fSolRotY );
   fEquationFZB6 = new G4Mag_UsualEqRhs(fMagFieldFZB6);
   fStepperFZB6  = new G4ClassicalRK4(fEquationFZB6);
   fLocalFieldManagerFZB6 = new G4FieldManager();
@@ -194,7 +210,7 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
   G4double ORIGINQ3 = 209.08 * cm;
   G4double ORIGINQ4 = 274.59 * cm;
   G4double ORIGIND  = 423.4  * cm;
-  //G4double ORIGINQ6 = 6.9    * cm;
+  G4double ORIGINQ6 = 6.9    * cm;
 
   G4double BORERADIUS = 5.08 * cm;
 
@@ -238,12 +254,12 @@ void MolPolEMFieldSetup::UpdateConfiguration(){
 	 << "\tDIPOLE: "<<DIPOLE/tesla<< " tesla"<<G4endl
    << "\tSOLEND: "<<SOLENOID/tesla<< " tesla"<<G4endl;
 
-  fMagFieldFZB1->UpdateQuad(KAPPA1, G4ThreeVector(0.0, 0.0, ORIGINQ1), NOROT, BORERADIUS);
-  fMagFieldFZB2->UpdateQuad(KAPPA2, G4ThreeVector(0.0, 0.0, ORIGINQ2), NOROT, BORERADIUS);
-  fMagFieldFZB3->UpdateQuad(KAPPA3, G4ThreeVector(0.0, 0.0, ORIGINQ3), NOROT, BORERADIUS);
-  fMagFieldFZB4->UpdateQuad(KAPPA4, G4ThreeVector(0.0, 0.0, ORIGINQ4), NOROT, BORERADIUS);
-  fMagFieldFZB5->UpdateDipole(DIPOLE, G4ThreeVector(0.0, 0.0, ORIGIND), NOROT);
-  fMagFieldFZB6->UpdateSolenoid(SOLENOID/tesla);
+  fMagFieldFZB1->UpdateQuad(KAPPA1, G4ThreeVector(fXoffsetQ1, fYoffsetQ1, ORIGINQ1), NOROT, BORERADIUS);
+  fMagFieldFZB2->UpdateQuad(KAPPA2, G4ThreeVector(fXoffsetQ2, fYoffsetQ2, ORIGINQ2), NOROT, BORERADIUS);
+  fMagFieldFZB3->UpdateQuad(KAPPA3, G4ThreeVector(fXoffsetQ3, fYoffsetQ3, ORIGINQ3), NOROT, BORERADIUS);
+  fMagFieldFZB4->UpdateQuad(KAPPA4, G4ThreeVector(fXoffsetQ4, fYoffsetQ4, ORIGINQ4), NOROT, BORERADIUS);
+  fMagFieldFZB5->UpdateDipole(DIPOLE, G4ThreeVector(fXoffsetQ5, fYoffsetQ5, ORIGIND), NOROT);
+  fMagFieldFZB6->UpdateSolenoid(SOLENOID/tesla, G4ThreeVector(fXoffsetQ6, fYoffsetQ6, ORIGINQ6), fSolRotX, fSolRotY );
 }
 
 /////////////////////////////////////////////////////////////////////////////

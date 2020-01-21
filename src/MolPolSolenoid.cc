@@ -22,23 +22,38 @@
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4ThreeVector.hh"
+#include "G4RotationMatrix.hh"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <assert.h>
 
-MolPolSolenoid::MolPolSolenoid(G4double desiredFieldStrengthT){
-  fZoffset = 6.9*cm;
-  fFilename = "../solenoid.map";
-  fInit = false;
-  fFieldScale = desiredFieldStrengthT / 5.0;
+MolPolSolenoid::MolPolSolenoid(G4double pFieldStrengthT, G4ThreeVector pCenter, G4double pXrot, G4double pYrot){
+  fZoffset    = pCenter.z();
+  fYoffset    = pCenter.y();
+  fXoffset    = pCenter.x();
+  fYrot       = pYrot;
+  fXrot       = pXrot;
+  fFilename   = "../solenoid.map";
+  fInit       = false;
+  fFieldScale = pFieldStrengthT / 5.0;
   ReadFieldMap();
 }
 
-void MolPolSolenoid::UpdateSolenoid(G4double desiredFieldStrengthT){
-  fFieldScale = desiredFieldStrengthT / 5.0;
-  G4cout << "  New solenoid desired field strength: " << desiredFieldStrengthT << G4endl;
+void MolPolSolenoid::UpdateSolenoid(G4double pFieldStrengthT, G4ThreeVector pCenter, G4double pXrot, G4double pYrot){
+  fFieldScale = pFieldStrengthT / 5.0;
+  fZoffset    = pCenter.z();
+  fYoffset    = pCenter.y();
+  fXoffset    = pCenter.x();
+  fYrot       = pYrot;
+  fXrot       = pXrot;
+  G4cout << "  New solenoid desired field strength: " << pFieldStrengthT << G4endl;
   G4cout << "  Scale factor required for 5.0 tesla map: " << fFieldScale << G4endl;
+  G4cout << "  Solenoid Offset in X: " << fXoffset / mm << G4endl;
+  G4cout << "  Solenoid Offset in Y: " << fYoffset / mm << G4endl;
+  G4cout << "  Solenoid Offset in Z: " << fZoffset / mm << G4endl;
+  G4cout << "  Solenoid Rotation in X: " << fXrot / deg << G4endl;
+  G4cout << "  Solenoid Rotation in Y: " << fYrot / deg << G4endl;
 }
 
 MolPolSolenoid::~MolPolSolenoid(){
@@ -142,15 +157,52 @@ void MolPolSolenoid::ReadFieldMap(){
 }
 
 void MolPolSolenoid::GetFieldValue(const G4double Point[4], G4double *Bfield ) const {
-  G4double    x, y, z, fracVal[3], intVal[3];
+
+  G4double    fracVal[3], intVal[3];
   G4int       gridIndex[3];
 
-  x = Point[0];
-  y = Point[1];
-  z = Point[2] - fZoffset;
+  // ***** print checks - leaving in for the moment. will remove after independent validation from Don. ***** //
+  G4bool   printCheck(false);  if(printCheck) G4cout << "===================================================================" << G4endl;
+  if(printCheck) G4cout << "Global Point:" << G4endl;
+  if(printCheck) G4cout << "    X: " << Point[0] / mm << "mm" << G4endl;
+  if(printCheck) G4cout << "    Y: " << Point[1] / mm << "mm" << G4endl;
+  if(printCheck) G4cout << "    Z: " << Point[2] / mm << "mm" << G4endl;
 
-  // Check that the point is within the defined region before interpolation.  If it is outside then the field is zero
-  if( x < XMIN || x >= XMAX || y >= YMAX || y < YMIN || z >= ZMAX || z < ZMIN ) {
+  G4ThreeVector rho_map_local = G4ThreeVector(
+    Point[0] - fXoffset,
+    Point[1] - fYoffset,
+    Point[2] - fZoffset
+  );
+
+  //print checks - remove before pulling into anything else.
+  if(printCheck) G4cout << "Offset Point:" << G4endl;
+  if(printCheck) G4cout << "    x: " << rho_map_local.x() / mm << "mm" << G4endl;
+  if(printCheck) G4cout << "    y: " << rho_map_local.y() / mm << "mm" << G4endl;
+  if(printCheck) G4cout << "    z: " << rho_map_local.z() / mm << "mm" << G4endl;
+
+  // Construct the G4 rotation matrix
+  G4RotationMatrix solenoidRotation = G4RotationMatrix();
+  solenoidRotation.rotateX( fXrot );
+  solenoidRotation.rotateY( fYrot );
+  solenoidRotation.rotateZ( 0. * deg);
+
+  // Rotate rho (in inverse direction) and find poition on map.
+  G4ThreeVector rho_map_rotated = G4ThreeVector(
+    solenoidRotation.colX() * rho_map_local,
+    solenoidRotation.colY() * rho_map_local,
+    solenoidRotation.colZ() * rho_map_local
+  );
+
+  //print checks - remove before pulling into anything else.
+  if(printCheck) G4cout << "Rotated Point:" << G4endl;
+  if(printCheck) G4cout << "   x': " << rho_map_rotated.x() / mm << "mm" << G4endl;
+  if(printCheck) G4cout << "   y': " << rho_map_rotated.y() / mm << "mm" << G4endl;
+  if(printCheck) G4cout << "   z': " << rho_map_rotated.z() / mm << "mm" << G4endl;
+
+  // Check that the rotated point is within the defined region before interpolation.  If it is outside then the field is zero
+  if( rho_map_rotated.x()  < XMIN || rho_map_rotated.x() >= XMAX ||
+      rho_map_rotated.y() >= YMAX || rho_map_rotated.y() <  YMIN ||
+      rho_map_rotated.z() >= ZMAX || rho_map_rotated.z() <  ZMIN ){
     Bfield[0] = 0.0;
     Bfield[1] = 0.0;
     Bfield[2] = 0.0;
@@ -158,21 +210,24 @@ void MolPolSolenoid::GetFieldValue(const G4double Point[4], G4double *Bfield ) c
   }
 
   // Ensures we're going to get our grid indices correct
-  assert( XMIN <= x && x < XMAX );
-  assert( YMIN <= y && y < YMAX );
-  assert( ZMIN <= z && z < ZMAX );
+  assert( XMIN <= rho_map_rotated.x() && rho_map_rotated.x() < XMAX );
+  assert( YMIN <= rho_map_rotated.y() && rho_map_rotated.y() < YMAX );
+  assert( ZMIN <= rho_map_rotated.z() && rho_map_rotated.z() < ZMAX );
 
-  fracVal[0] = modf( ( x - XMIN )*(NX-1)/( XMAX - XMIN ), &(intVal[0]) );
-  fracVal[1] = modf( ( y - YMIN )*(NY-1)/( YMAX - YMIN ), &(intVal[1]) );
-  fracVal[2] = modf( ( z - ZMIN )*(NZ-1)/( ZMAX - ZMIN ), &(intVal[2]) );
+  // Gets the fractional and integer values for interpolation
+  fracVal[0] = modf( ( rho_map_rotated.x() - XMIN )*(NX-1)/( XMAX - XMIN ), &(intVal[0]) );
+  fracVal[1] = modf( ( rho_map_rotated.y() - YMIN )*(NY-1)/( YMAX - YMIN ), &(intVal[1]) );
+  fracVal[2] = modf( ( rho_map_rotated.z() - ZMIN )*(NZ-1)/( ZMAX - ZMIN ), &(intVal[2]) );
 
+  // This was from the HallC TOSCA code and should be covered by the first check to see if the particle is in the map-defined region, but I'll leave it.
   for( G4int i = 0; i < 3; i++ ) gridIndex[i] = (G4int) intVal[i];
   assert( 0 <= gridIndex[0] && gridIndex[0] < NX );
   assert( 0 <= gridIndex[1] && gridIndex[1] < NY );
   assert( 0 <= gridIndex[2] && gridIndex[2] < NZ );
   for( G4int i = 0; i < 3; i++ ) gridIndex[i] = (G4int) intVal[i];
 
-  G4double Bint[3] = {0,0,0};
+  // Interpolate the magnetic field from the map.
+  G4ThreeVector Bint_local = G4ThreeVector(0.,0.,0.);
   G4double c00, c10, c01, c11, c0, c1;
   for( G4int i = 0; i < 3; i++ ){
     c00 = fBFieldData[i][ gridIndex[0] ][ gridIndex[1] ][ gridIndex[2] ] * (1.0-fracVal[0])
@@ -185,10 +240,31 @@ void MolPolSolenoid::GetFieldValue(const G4double Point[4], G4double *Bfield ) c
           + fBFieldData[i][ gridIndex[0]+1 ][ gridIndex[1]+1 ][ gridIndex[2]+1 ]*fracVal[0];
     c0  = c00 * (1.0-fracVal[1]) + c10 * fracVal[1];
     c1  = c01 * (1.0-fracVal[1]) + c11 * fracVal[1];
-    Bint[i] = c0 * (1.0-fracVal[2]) + c1 * fracVal[2];
+    Bint_local[i] = c0 * (1.0-fracVal[2]) + c1 * fracVal[2];
   }
 
-  Bfield[0] = Bint[0] * fFieldScale;
-  Bfield[1] = Bint[1] * fFieldScale;
-  Bfield[2] = Bint[2] * fFieldScale;
+  //print checks - remove before pulling into anything else.
+  if(printCheck) G4cout << "Interpolated BField at Rotated Point:" << G4endl;
+  if(printCheck) G4cout << "   Bx: " << Bint_local[0] / tesla << "T" << G4endl;
+  if(printCheck) G4cout << "   By: " << Bint_local[1] / tesla << "T" << G4endl;
+  if(printCheck) G4cout << "   Bz: " << Bint_local[2] / tesla << "T" << G4endl;
+
+  // Perform the proper rotation on the Bfield this gives us the global field from the local map position field.
+  G4ThreeVector Bint_global = G4ThreeVector(
+    solenoidRotation.rowX() * Bint_local,
+    solenoidRotation.rowY() * Bint_local,
+    solenoidRotation.rowZ() * Bint_local
+  );
+
+  //print checks - remove before pulling into anything else.
+  if(printCheck) G4cout << "Rotated BField at Offset Point:" << G4endl;
+  if(printCheck) G4cout << "  Bx': " << Bint_global.x() / tesla << "T" << G4endl;
+  if(printCheck) G4cout << "  By': " << Bint_global.y() / tesla << "T" << G4endl;
+  if(printCheck) G4cout << "  Bz': " << Bint_global.z() / tesla << "T" << G4endl;
+
+  // Scale the field according to whatever fieldscale was set on constructing the solenoid class.
+  Bfield[0] = Bint_global.x() * fFieldScale;
+  Bfield[1] = Bint_global.y() * fFieldScale;
+  Bfield[2] = Bint_global.z() * fFieldScale;
+
 }

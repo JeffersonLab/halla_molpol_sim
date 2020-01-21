@@ -90,6 +90,24 @@ public:
   G4double                    fQ5T;
   G4double                    fQ6T;
 
+  //for x and y field offsets
+  G4double                    fXoffsetQ1;
+  G4double                    fXoffsetQ2;
+  G4double                    fXoffsetQ3;
+  G4double                    fXoffsetQ4;
+  G4double                    fXoffsetQ5;
+  G4double                    fXoffsetQ6;
+  G4double                    fYoffsetQ1;
+  G4double                    fYoffsetQ2;
+  G4double                    fYoffsetQ3;
+  G4double                    fYoffsetQ4;
+  G4double                    fYoffsetQ5;
+  G4double                    fYoffsetQ6;
+
+  //Solenoid rotations
+  G4double                    fSolRotX;
+  G4double                    fSolRotY;
+
 private:
   MolPolEMField*              fEMfield;
   G4FieldManager*             fFieldManager;
