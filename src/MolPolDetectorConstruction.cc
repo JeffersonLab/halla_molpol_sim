@@ -877,7 +877,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4LogicalVolume* VP1Logical = new G4LogicalVolume(VP1Solid, Vacuum, "VPDetector", 0,0,0);
   VP1Logical->SetSensitiveDetector( DETVP );
   VP1Logical->SetVisAttributes(VacVisAtt);
-  //new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pMDBXPos_Z - pMDBXHLZ - pVP1HLZ + 23.05*cm ), VP1Logical, "VP.Detector.Entr", world_log, 0,0, fCheckOverlaps);
+  //new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pMDBXPos_Z - pMDBXHLZ - pVP1HLZ), VP1Logical, "VP.Detector.Entr", world_log, 0,0, fCheckOverlaps);
 
   G4cout << "Z-position of DetectorBox Virtual Plane " << pMDBXPos_Z - pMDBXHLZ - pVP1HLZ << G4endl;
 
