@@ -11,6 +11,10 @@
 /MolPol/remollMS          true
 /MolPol/seed              5674661
 
+#STEPPING ACTION OPTIONS
+/MolPol/Step/krypteffect  false 
+/MolPol/Step/onlymollers  true
+
 #GENERATED PHASE SPACE
 /MolPol/thcommin          60   deg
 /MolPol/thcommax          120  deg
@@ -51,4 +55,4 @@
 #FIELD UPDATE COMMAND MUST BE MADE AFTER FIELD DEFINITIONS
 /field/update
 /gun/particle             e-
-/run/beamOn               250000
+/run/beamOn               250
