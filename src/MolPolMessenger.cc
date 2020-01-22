@@ -11,7 +11,6 @@
 #include "MolPolEventAction.hh"
 #include "MolPolPrimaryGeneratorAction.hh"
 #include "MolPolSteppingAction.hh"
-//#include "MolPolEMFieldSetup.hh"
 
 #include "G4UImanager.hh"
 #include "G4UIdirectory.hh"
@@ -23,14 +22,17 @@ MolPolMessenger::MolPolMessenger(){
     /*  Initialize all the things it talks to to NULL */
 
     fIO           = NULL;
-    fdetcon       = NULL;
-    fevact        = NULL;
-    fprigen       = NULL;
+    fDetCon       = NULL;
+    fEvtAct       = NULL;
+    fPriGen       = NULL;
     fStepAct      = NULL;
     //    fFieldSet     = NULL;
 
-    fMolPolDir = new G4UIdirectory("/MolPol/");
-    fMolPolDir->SetGuidance("UI commands of this code");
+    fMolPolMainDir = new G4UIdirectory("/MolPol/");
+    fMolPolMainDir->SetGuidance("UI commands of this code");
+
+    fMolPolStepDir = new G4UIdirectory("/MolPol/Step/");
+    fMolPolStepDir->SetGuidance("UI commands for MolPolSteppingAction");
 
     fileCmd = new G4UIcmdWithAString("/MolPol/filename",this);
     fileCmd->SetGuidance("Output filename");
@@ -140,6 +142,14 @@ MolPolMessenger::MolPolMessenger(){
     fTargPolCmd->SetGuidance("Target polarization percentage? (Between 0 and 1)");
     fTargPolCmd->SetParameterName("targetPolPct",false);
 
+    fStepActKryptEdgeCmd = new G4UIcmdWithABool("/MolPol/Step/krypteffect",this);
+    fStepActKryptEdgeCmd->SetGuidance("Effective Krypt Edges? True:On False:Off | Default: False");
+    fStepActKryptEdgeCmd->SetParameterName("remollMS",false);
+
+    fTrackMollersOnlyCmd = new G4UIcmdWithABool("/MolPol/Step/onlymollers",this);
+    fTrackMollersOnlyCmd->SetGuidance("Track/Record only Moller Electrons? True:On False:Off | Default: True");
+    fTrackMollersOnlyCmd->SetParameterName("targetPolPct",false);
+
 }
 
 MolPolMessenger::~MolPolMessenger(){
@@ -172,20 +182,20 @@ MolPolMessenger::~MolPolMessenger(){
 void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   if( cmd == fTargPolCmd ){
     G4double x = fTargPolCmd->GetNewDoubleValue(newValue);
-    if( x >= 0.0 && x <= 1.0) fprigen->fTargPol = x;
+    if( x >= 0.0 && x <= 1.0) fPriGen->fTargPol = x;
     else  G4Exception("MolPolMessenger.cc","",RunMustBeAborted,"targetPolPct set outside of allowable bounds; default value being used.");
   }
   if( cmd == fRadCorrCmd ){
     G4bool flag = fRadCorrCmd->GetNewBoolValue(newValue);
-    fprigen->fRadCorrFlag = flag;
+    fPriGen->fRadCorrFlag = flag;
   }
   if( cmd == fRemollMSFlagCmd ){
     G4bool flag = fRemollMSFlagCmd->GetNewBoolValue(newValue);
-    fprigen->fRemollMSFlag = flag;
+    fPriGen->fRemollMSFlag = flag;
   }
   if( cmd == fLevchukEffectCmd ){
     G4bool flag = fLevchukEffectCmd->GetNewBoolValue(newValue);
-    fprigen->fLevchukFlag = flag;
+    fPriGen->fLevchukFlag = flag;
   }
   if( cmd == fileCmd ){
     fIO->SetFilename(newValue);
@@ -196,87 +206,96 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   if( cmd == genSelectCmd ){
-    fprigen->SetGenerator(newValue);
+    fPriGen->SetGenerator(newValue);
   }
   if( cmd == fXminCmd ){
     G4double x = fXminCmd->GetNewDoubleValue(newValue);
-    fprigen->fXmin = x;
+    fPriGen->fXmin = x;
   }
   if( cmd == fXmaxCmd ){
     G4double x = fXmaxCmd->GetNewDoubleValue(newValue);
-    fprigen->fXmax = x;
+    fPriGen->fXmax = x;
   }
   if( cmd == fYminCmd ){
     G4double x = fYminCmd->GetNewDoubleValue(newValue);
-    fprigen->fYmin = x;
+    fPriGen->fYmin = x;
   }
   if( cmd == fYmaxCmd ){
     G4double x = fYmaxCmd->GetNewDoubleValue(newValue);
-    fprigen->fYmax = x;
+    fPriGen->fYmax = x;
   }
   if( cmd == fXsmearCmd ){
     G4double x = fXsmearCmd->GetNewDoubleValue(newValue);
-    fprigen->fXsmear = x;
+    fPriGen->fXsmear = x;
   }
   if( cmd == fYsmearCmd ){
     G4double x = fYsmearCmd->GetNewDoubleValue(newValue);
-    fprigen->fYsmear = x;
+    fPriGen->fYsmear = x;
   }
   if( cmd == fBeamECmd ){
     G4double x = fBeamECmd->GetNewDoubleValue(newValue);
-    fprigen->fBeamE = x;
+    fPriGen->fBeamE = x;
   }
   if( cmd == fEminCmd ){
     G4double x = fEminCmd->GetNewDoubleValue(newValue);
-    fprigen->fEmin = x;
+    fPriGen->fEmin = x;
   }
   if( cmd == fEmaxCmd ){
     G4double x = fEmaxCmd->GetNewDoubleValue(newValue);
-    fprigen->fEmax = x;
+    fPriGen->fEmax = x;
   }
   if( cmd == fthetaComMinCmd ){
     G4double x = fthetaComMinCmd->GetNewDoubleValue(newValue);
-    fprigen->fthetaComMin = x;
+    fPriGen->fthetaComMin = x;
   }
   if( cmd == fthetaComMaxCmd ){
     G4double x = fthetaComMaxCmd->GetNewDoubleValue(newValue);
-    fprigen->fthetaComMax = x;
+    fPriGen->fthetaComMax = x;
   }
   if( cmd == fthetaMinCmd ){
     G4double x = fthetaMinCmd->GetNewDoubleValue(newValue);
-    fprigen->fthetaMin = x;
+    fPriGen->fthetaMin = x;
   }
   if( cmd == fthetaMaxCmd ){
     G4double x = fthetaMaxCmd->GetNewDoubleValue(newValue);
-    fprigen->fthetaMax = x;
+    fPriGen->fthetaMax = x;
   }
   if( cmd == fphiMinCmd ){
     G4double x = fphiMinCmd->GetNewDoubleValue(newValue);
-    fprigen->fphiMin = x;
+    fPriGen->fphiMin = x;
   }
   if( cmd == fphiMaxCmd ){
     G4double x = fphiMaxCmd->GetNewDoubleValue(newValue);
-    fprigen->fphiMax = x;
+    fPriGen->fphiMax = x;
   }
   if( cmd == fXCmd ){
     G4double x = fXCmd->GetNewDoubleValue(newValue);
-    fprigen->fX = x;
+    fPriGen->fX = x;
   }
   if( cmd == fYCmd ){
     G4double x = fYCmd->GetNewDoubleValue(newValue);
-    fprigen->fY = x;
+    fPriGen->fY = x;
   }
   if( cmd == fZCmd ){
     G4double x = fZCmd->GetNewDoubleValue(newValue);
-    fprigen->fZ = x;
+    fPriGen->fZ = x;
   }
-  
+
   if( cmd == fBeamRotZXCmd ){
     G4double x = fBeamRotZXCmd->GetNewDoubleValue(newValue);
-    fprigen->fBeamRotZX = x;
+    fPriGen->fBeamRotZX = x;
   }
   if( cmd == fBeamRotZYCmd ){
     G4double x = fBeamRotZYCmd->GetNewDoubleValue(newValue);
-    fprigen->fBeamRotZY = x;
+    fPriGen->fBeamRotZY = x;
   }
+
+  if( cmd == fStepActKryptEdgeCmd ){
+    G4double x = fStepActKryptEdgeCmd->GetNewBoolValue(newValue);
+    fStepAct->SetMollerTracksOnly( x );
+  } else if( cmd == fTrackMollersOnlyCmd ){
+    G4double x = fTrackMollersOnlyCmd->GetNewBoolValue(newValue);
+    fStepAct->SetStepActKryptEdge( x );
+  }
+
 }

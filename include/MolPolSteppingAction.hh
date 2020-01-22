@@ -8,16 +8,17 @@ class MolPolSteppingAction : public G4UserSteppingAction
 {
   public:
     MolPolSteppingAction();
-    virtual ~MolPolSteppingAction(){};
 
+    virtual ~MolPolSteppingAction(){};
     virtual void UserSteppingAction(const G4Step*);
 
-  private:
-    G4bool drawFlag;
+    void    SetStepActKryptEdge(G4bool val);
+    void    SetMollerTracksOnly(G4bool val);
 
-  public:
-    inline void SetDrawFlag(G4bool val)
-    { drawFlag = val; };
+  private:
+    G4bool  fTrackMollersOnly;
+    G4bool  fStepActKryptEdge;
+
 };
 
 #endif//__MOLPOLSTEPPINGACTION_HH

@@ -31,22 +31,23 @@ class MolPolMessenger : public G4UImessenger {
        	~MolPolMessenger();
 
 	void SetIO( MolPolIO *io ){ fIO = io; }
-	void SetPriGen( MolPolPrimaryGeneratorAction *pg ){ fprigen = pg; }
-	void SetDetCon( MolPolDetectorConstruction *dc ){ fdetcon= dc; }
-	void SetEvAct( MolPolEventAction *ev ){ fevact = ev; }
+	void SetPriGen( MolPolPrimaryGeneratorAction *pg ){ fPriGen = pg; }
+	void SetDetCon( MolPolDetectorConstruction *dc ){ fDetCon= dc; }
+	void SetEvAct( MolPolEventAction *ev ){ fEvtAct = ev; }
 	void SetStepAct( MolPolSteppingAction *st ){ fStepAct = st; }
   //    void SetFieldSet( MolPolEMFieldSetup* fs ){ fFieldSet = fs; }
 
 	void SetNewValue(G4UIcommand* cmd, G4String newValue);
 
     private:
-	MolPolIO *fIO;
-	MolPolDetectorConstruction *fdetcon;
-	MolPolEventAction *fevact;
-	MolPolPrimaryGeneratorAction *fprigen;
-	MolPolSteppingAction *fStepAct;
+	MolPolIO *                      fIO;
+	MolPolDetectorConstruction *    fDetCon;
+	MolPolEventAction *             fEvtAct;
+	MolPolPrimaryGeneratorAction *  fPriGen;
+	MolPolSteppingAction *          fStepAct;
 
-        G4UIdirectory *fMolPolDir;
+  G4UIdirectory *fMolPolMainDir;
+  G4UIdirectory *fMolPolStepDir;
 
         //added in targpolcmd for testing/validation to avoid recompiling every time needed to change.
         G4UIcmdWithABool         *fLevchukEffectCmd;
@@ -85,6 +86,9 @@ class MolPolMessenger : public G4UImessenger {
 
     G4UIcmdWithADoubleAndUnit *fBeamRotZXCmd;
     G4UIcmdWithADoubleAndUnit *fBeamRotZYCmd;
+
+    G4UIcmdWithABool         *fStepActKryptEdgeCmd;
+    G4UIcmdWithABool         *fTrackMollersOnlyCmd;
 
 };
 
