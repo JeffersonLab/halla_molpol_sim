@@ -291,11 +291,11 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   }
 
   if( cmd == fStepActKryptEdgeCmd ){
-    G4double x = fStepActKryptEdgeCmd->GetNewBoolValue(newValue);
-    fStepAct->SetMollerTracksOnly( x );
-  } else if( cmd == fTrackMollersOnlyCmd ){
-    G4double x = fTrackMollersOnlyCmd->GetNewBoolValue(newValue);
+    G4bool x = fStepActKryptEdgeCmd->GetNewBoolValue(newValue);
     fStepAct->SetStepActKryptEdge( x );
+  } else if( cmd == fTrackMollersOnlyCmd ){
+    G4bool x = fTrackMollersOnlyCmd->GetNewBoolValue(newValue);
+    fStepAct->SetMollerTracksOnly( x );
   }
 
 }

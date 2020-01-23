@@ -21,7 +21,7 @@ void MolPolSteppingAction::UserSteppingAction(const G4Step *aStep) {
   G4String strPhysVolName = aTrack->GetVolume()->GetName();
 
   std::size_t foundVB = strPhysVolName.find("virtualBoundaryPhys_det");
-  if( foundVB != G4String::npos ) aTrack->SetTrackStatus(fStopAndKill);
+  if( foundVB != G4String::npos ){aTrack->SetTrackStatus(fStopAndKill);}
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Condition to track mollers only.
@@ -32,28 +32,16 @@ void MolPolSteppingAction::UserSteppingAction(const G4Step *aStep) {
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Condition to make kryptonite-like edges without kryptonite.
   if(fStepActKryptEdge){
-    if( aTrack->GetMaterial()->GetName() != "Vacuum" &&
-        aTrack->GetMaterial()->GetName() != "Air" &&
-        aTrack->GetMaterial()->GetName() != "scint" &&
-        aTrack->GetVolume()->GetName() != "Target"  &&
-        aTrack->GetVolume()->GetName() != "DipoleExitWindowR" &&
-        aTrack->GetVolume()->GetName() != "DipoleExitWindowL")
+    if(aTrack->GetMaterial()->GetName() != "MP_Vacuum" &&
+       aTrack->GetMaterial()->GetName() != "MP_Air" &&
+       aTrack->GetMaterial()->GetName() != "MP_Scint" &&
+       aTrack->GetVolume()->GetName() != "Target"  &&
+       aTrack->GetVolume()->GetName() != "DipoleExitWindowR" &&
+       aTrack->GetVolume()->GetName() != "DipoleExitWindowL")
     {
       aTrack->SetTrackStatus(fStopAndKill);
       return;
     }
   }
-
-}
-
-
-void    MolPolSteppingAction::SetStepActKryptEdge(G4bool val){
-
-
-}
-
-
-void    MolPolSteppingAction::SetMollerTracksOnly(G4bool val){
-
 
 }
