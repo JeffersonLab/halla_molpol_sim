@@ -1,6 +1,8 @@
 #include "MolPolDetectorConstruction.hh"
-#include "G4SystemOfUnits.hh"
+#include "MolPolEMFieldSetup.hh"
 #include "MolPolDetector.hh"
+
+#include "G4SystemOfUnits.hh"
 #include "G4SDManager.hh"
 #include "G4Material.hh"
 #include "G4MaterialTable.hh"
@@ -16,30 +18,55 @@
 #include "G4Para.hh"
 #include "G4Cons.hh"
 #include "G4Tubs.hh"
-#include "G4Trd.hh"
 #include "G4LogicalVolume.hh"
 #include "G4RotationMatrix.hh"
 #include "G4ThreeVector.hh"
 #include "G4Transform3D.hh"
 #include "G4PVPlacement.hh"
 #include "G4OpticalSurface.hh"
-#include "G4SubtractionSolid.hh"
 #include "G4VisAttributes.hh"
-#include "MolPolEMFieldSetup.hh"
+#include "G4RunManager.hh"
+#include "G4GenericMessenger.hh"
 
 MolPolDetectorConstruction::MolPolDetectorConstruction():
-  mEMFieldSetup(0), fCheckOverlaps(true),
-  fTargetMaterial(0), fTargetFullLength(0.)
+  mEMFieldSetup(0),
+  fCheckOverlaps(true),        //Check for overlaps, always.
+  fTargetMaterial(0),
+  fMessenger(nullptr),         //Prob not necessary since assigned in DefGeoCom() which is also run.
+  fLeadJawGapWidth(3.6*cm),    //Default jaw gap fully open.
+  fTargetFullLength(0.013*mm), //Default target width 13 microns.
+  fTargetFullRadius(15.0*mm),
+  fTargetBeamlinePx( 0.0*mm),
+  fTargetBeamlinePy( 0.0*mm),
+  fTargetBeamlinePz(67.4*mm)   //Default target-center position on beamline.
 {
+  DefineGeometryCommands();
 }
 
 MolPolDetectorConstruction::~MolPolDetectorConstruction(){
   if(mEMFieldSetup) delete mEMFieldSetup;
+  if(fMessenger) delete fMessenger;
 }
 
 G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
-  G4bool placeTargetAndWindows = true;//can be removed along with conditionals at target and T windows after we're confidient we will no longer need to ray test.
+  ConstructMaterials();
+
+  G4cout << " fLeadJawGapWidth: " << fLeadJawGapWidth << G4endl;
+  G4cout << "fTargetFullLength: " << fTargetFullLength << G4endl;
+  G4cout << "fTargetBeamlinePz: " << fTargetBeamlinePz << G4endl;
+
+  auto MolPol_Air       = G4Material::GetMaterial("MP_Air");
+  auto MolPol_Aluminum  = G4Material::GetMaterial("MP_Aluminum");
+  auto MolPol_Copper    = G4Material::GetMaterial("MP_Copper");
+  auto MolPol_Iron      = G4Material::GetMaterial("MP_Iron");
+  auto MolPol_Lead      = G4Material::GetMaterial("MP_Lead");
+  auto MolPol_Scint     = G4Material::GetMaterial("MP_Scint");
+  auto MolPol_SiliSteel = G4Material::GetMaterial("MP_SiliconSteel");
+  auto MolPol_Stainless = G4Material::GetMaterial("MP_StainlessSteel304");
+  auto MolPol_Titanium  = G4Material::GetMaterial("MP_Titanium");
+  auto MolPol_Vacuum    = G4Material::GetMaterial("MP_Vacuum");
+
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //// Define Visual Attributes
@@ -59,86 +86,10 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  //// Materials Setup
-  G4double a, z, density, pressure, temperature;
-  G4int nelements, natoms;
-
-  G4Element* N  = new G4Element("Nitrogen"  , "N" , z=7 , a=14.01*g/mole);
-  G4Element* O  = new G4Element("Oxygen"    , "O" , z=8 , a=16.00*g/mole);
-  //G4Element* H  = new G4Element("Hydrogen"  , "H" , z=1 , a=1.01 *g/mole); // Unneeded at this time
-  G4Element* C  = new G4Element("Carbon"    , "C" , z=6 , a=12.01*g/mole);
-
-  // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
-  G4Element* P  = new G4Element("Phosphorus", "P" , z=15, a=30.974*g/mole);
-  G4Element* S  = new G4Element("Sulfur"    , "S" , z=16, a=32.06 *g/mole);
-
-  G4Element* Al = new G4Element("Aluminum"  , "Al", z=13, a=26.98 *g/mole);
-  G4Element* Fe = new G4Element("Iron"      , "Fe", z=26, a=55.845*g/mole);
-  G4Element* Si = new G4Element("Silicon"   , "Si", z=14, a=28.09 *g/mole);
-  //G4Element* Pb = new G4Element("Lead"      , "Pb", z=82, a=207.19*g/mole); // Unneeded at this time
-
-  // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
-  G4Element* Mn = new G4Element("Manganese" , "Mn", z=25, a=54.938*g/mole);
-  G4Element* Cr = new G4Element("Chromium"  , "Cr", z=24, a=51.966*g/mole);
-  G4Element* Ni = new G4Element("Nickel"    , "Ni", z=28, a=58.693*g/mole);
-  G4Element* Mo = new G4Element("Molybdenum", "Mo", z=42, a=95.95 *g/mole);
-
-  // INFORMATION FROM SANGHWA
-  density = 7.93 *g/cm3;
-  G4Material* stainlesssteel304 = new G4Material("StainlessSteel304", density, 9);
-  // AddElement(elementPointer,weightedRatio)
-  stainlesssteel304->AddElement(Fe, 0.65);
-  stainlesssteel304->AddElement(Cr, 0.19);
-  stainlesssteel304->AddElement(Ni, 0.10);
-  stainlesssteel304->AddElement(Mn, 0.02);
-  stainlesssteel304->AddElement(Si, 0.01);
-  stainlesssteel304->AddElement(Mo, 0.0284);
-  stainlesssteel304->AddElement(C,  0.0008);
-  stainlesssteel304->AddElement(P,  0.0005);
-  stainlesssteel304->AddElement(S,  0.0003);
-
-  density = 7.87 * g/cm3;
-  a = 55.847 * g /mole;
-  G4Material* iron = new G4Material("iron", z=26, a, density);
-
-  density = 7.65 *g/cm3;
-  G4Material* siliconsteel = new G4Material("SiliconSteel", density, nelements=2);
-  siliconsteel->AddElement(Fe, natoms=11);
-  siliconsteel->AddElement(Si, natoms=1);
-
-  density = 2.70 *g/cm3;
-  G4Material* aluminum = new G4Material("aluminum", density, nelements=1);
-  aluminum->AddElement(Al, natoms=1);
-
-  density = 11.35*g/cm3;
-  a = 207.19*g/mole;
-  G4Material* lead = new G4Material("lead", z=82, a, density);
-
-  density = 8.960*g/cm3;
-  a = 63.55*g/mole;
-  G4Material* Cu = new G4Material("Copper" , z=29., a, density);
-
-  density = 1.032*g/cm3;
-  a = 12.01*g/mole;
-  G4Material* scint = new G4Material("scint", z=6., a, density);
-
-  density = 1.e-6/760.0 * 1.29*mg/cm3; //0.001 of air density
-  pressure = 1.e-6/760.0 *atmosphere;
-  temperature = 293.15 *kelvin;  //room temperature
-  a = 28.97 *g/mole;
-
-  G4Material* titanium = new G4Material("titanium", 22, 47.867*g/mole, 4.54*g/cm3);
-
-  G4Material* Vacuum = new G4Material("Vacuum",z=1,a,density,kStateGas,temperature,pressure);
-  G4Material* Air    = new G4Material("Air",    density=1.29*mg/cm3, nelements=2);
-  Air->AddElement(N, 79.0*perCent);
-  Air->AddElement(O, 21.0*perCent);
-
-  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Build world
   G4double world_x = 10*m;  G4double world_y = 10*m;  G4double world_z = 10*m;
   G4Box* world_box = new G4Box("World",world_x,world_y,world_z);
-  G4LogicalVolume* world_log = new G4LogicalVolume(world_box,Vacuum,"World",0,0,0);
+  G4LogicalVolume* world_log = new G4LogicalVolume(world_box,MolPol_Vacuum,"World",0,0,0);
   world_log->SetVisAttributes(G4VisAttributes::Invisible);
   G4VPhysicalVolume* world_phys = new G4PVPlacement(0,G4ThreeVector(),world_log,"World",0,false,fCheckOverlaps);
 
@@ -156,12 +107,12 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // HELMHOLTZ COIL Magnetic Volume
-  G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 49.53 * cm;  G4double pQ6Pos_z=   6.9 * cm;//49.53*cm is half-length of solenoid map
+  G4double pQ6Rin  =  0    * cm;  G4double pQ6Rout =  25.4 * cm;  G4double pQ6HL   = 49.53 * cm;  fHelmCoilBeamPosZ = 6.9 * cm;//49.53*cm is half-length of solenoid map
   G4VSolid* Q6MagSolid = new G4Tubs( "Q6MagTubs", pQ6Rin, pQ6Rout, pQ6HL, 0.0, 360.0 * deg);
-  G4LogicalVolume* Q6MagLogical = new G4LogicalVolume(Q6MagSolid, Vacuum, "Q6Mag", 0,0,0);
+  G4LogicalVolume* Q6MagLogical = new G4LogicalVolume(Q6MagSolid, MolPol_Vacuum, "Q6Mag", 0,0,0);
   Q6MagLogical->SetFieldManager(Q6FieldManager, allLocal);
   Q6MagLogical->SetVisAttributes(VacVisAtt);
-  new G4PVPlacement(0, G4ThreeVector(0, 0, pQ6Pos_z), Q6MagLogical, "SolenoidMag", world_log, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(0, 0, fHelmCoilBeamPosZ), Q6MagLogical, "SolenoidMag", world_log, 0, 0, fCheckOverlaps);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -170,9 +121,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pBPRout = 5.08 * cm;
   G4VSolid * BPITAlum = new G4Tubs( "BPITAlum", 0., pBPRout, pQ6HL, 0.0 * deg, 360.0 * deg );
   G4VSolid * BPITVac  = new G4Tubs( "BPITVacm", 0., pBPRin,  pQ6HL, 0.0 * deg, 360.0 * deg );
-  G4LogicalVolume * BPITLogical = new G4LogicalVolume(BPITAlum, aluminum, "BPalum_Targ", 0, 0, 0);
+  G4LogicalVolume * BPITLogical = new G4LogicalVolume(BPITAlum, MolPol_Aluminum, "BPalum_Targ", 0, 0, 0);
   BPITLogical->SetVisAttributes(BPVisAtt);
-  G4LogicalVolume * BPVTLogical = new G4LogicalVolume(BPITVac,  Vacuum,   "BPvacm_Targ",  0, 0, 0);
+  G4LogicalVolume * BPVTLogical = new G4LogicalVolume(BPITVac,  MolPol_Vacuum,   "BPvacm_Targ",  0, 0, 0);
   BPVTLogical->SetVisAttributes(BPVisAtt);
   new G4PVPlacement(0,G4ThreeVector(0,0,0),BPITLogical, "BeamPipeAlmnum_Targ", Q6MagLogical, 0, 0, fCheckOverlaps);
   new G4PVPlacement(0,G4ThreeVector(0,0,0),BPVTLogical, "BeamPipeVacuum_Targ", BPITLogical, 0, 0, fCheckOverlaps);
@@ -180,34 +131,33 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Target
-  G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm; G4double pMTATHLZ = 0.0062 * mm;
-  G4double pMTATPos_X = 0.0 * cm; G4double pMTATPos_Y = 0.0 * cm; G4double pMTATPos_Z = 6.9 * cm;
-  G4VSolid* MTATSolid = new G4Tubs( "MTATTube", pMTATRin, pMTATRout, pMTATHLZ, 0.0, 360.0 * deg );
+  //G4double pMTATRin   = 0.0 * cm; G4double pMTATRout  = 1.5 * cm; G4double pMTATHLZ = 0.0062 * mm;/*Moved to method objects since modifiable*/
+  //G4double pMTATPos_X = 0.0 * cm; G4double pMTATPos_Y = 0.0 * cm; G4double pMTATPos_Z = 6.9 * cm;/*Moved to method objects since modifiable*/
+  fTargetVSolidTubs = new G4Tubs( "MTATTube", 0.0*cm, fTargetFullRadius, (fTargetFullLength / 2.0), 0.0*deg, 360.0 * deg );
 
-  G4LogicalVolume* TargetLogical = new G4LogicalVolume(MTATSolid, iron, "Target", 0, 0, 0);
+  G4LogicalVolume* TargetLogical = new G4LogicalVolume(fTargetVSolidTubs, MolPol_Iron, "Target", 0, 0, 0);
   TargetLogical->SetVisAttributes(IronVisAtt);
-  if(placeTargetAndWindows) new G4PVPlacement(0, G4ThreeVector(pMTATPos_X,pMTATPos_Y,pMTATPos_Z - pQ6Pos_z), TargetLogical, "Target", BPVTLogical, 0, 0, fCheckOverlaps);
 
-  fTargetFullLength = pMTATHLZ * 2;
-  fTargetMaterial = TargetLogical->GetMaterial();
+  fTargetPhysVolume = new G4PVPlacement(0, G4ThreeVector(fTargetBeamlinePx,fTargetBeamlinePy,fTargetBeamlinePz - fHelmCoilBeamPosZ), TargetLogical, "Target", BPVTLogical, 0, 0, fCheckOverlaps);
 
+  fTargetMaterial   = TargetLogical->GetMaterial();
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Helmholtz Coil 'Physical' Volume
-  G4double pHLMZRin = 5.10 * cm;   G4double pHLMZRout = 15.0 * cm;   G4double pHLMZHLZ = 5.0 * cm;
-  G4double pHLMZ1Pos_X = 0.0 * cm;   G4double pHLMZ1Pos_Y = 0.0 * cm;   G4double pHLMZ1Pos_Z = -5.7 * cm;
-  G4double pHLMZ2Pos_X = 0.0 * cm;   G4double pHLMZ2Pos_Y = 0.0 * cm;   G4double pHLMZ2Pos_Z = 19.5 * cm;
+  G4double pHLMZRin    = 5.10 *cm;   G4double pHLMZRout  = 15.0 * cm;   G4double pHLMZHLZ    = 5.0 * cm;
+  G4double pHLMZ1Pos_X = 0.0 * cm;   G4double pHLMZ1Pos_Y = 0.0 * cm;   G4double pHLMZ1Pos_Z =-5.7 * cm;
+  G4double pHLMZ2Pos_X = 0.0 * cm;   G4double pHLMZ2Pos_Y = 0.0 * cm;   G4double pHLMZ2Pos_Z =19.5 * cm;
 
   G4VSolid* HLMZ1Solid = new G4Tubs( "HLMZ1Tube", pHLMZRin, pHLMZRout, pHLMZHLZ, 0.0, 360.0 * deg );
   G4VSolid* HLMZ2Solid = new G4Tubs( "HLMZ2Tube", pHLMZRin, pHLMZRout, pHLMZHLZ, 0.0, 360.0 * deg );
 
-  G4LogicalVolume* HLMZ1Logical = new G4LogicalVolume(HLMZ1Solid, Cu, "Helmholtz1", 0, 0, 0);
-  G4LogicalVolume* HLMZ2Logical = new G4LogicalVolume(HLMZ2Solid, Cu, "Helmholtz2", 0, 0, 0);
+  G4LogicalVolume* HLMZ1Logical = new G4LogicalVolume(HLMZ1Solid, MolPol_Copper, "Helmholtz1", 0, 0, 0);
+  G4LogicalVolume* HLMZ2Logical = new G4LogicalVolume(HLMZ2Solid, MolPol_Copper, "Helmholtz2", 0, 0, 0);
   HLMZ1Logical->SetVisAttributes(CuVisAtt);
   HLMZ2Logical->SetVisAttributes(CuVisAtt);
 
-  new G4PVPlacement(0, G4ThreeVector(pHLMZ1Pos_X, pHLMZ1Pos_Y, pHLMZ1Pos_Z - pQ6Pos_z), HLMZ1Logical, "Helmholtz1", Q6MagLogical, 0, 0, fCheckOverlaps);
-  new G4PVPlacement(0, G4ThreeVector(pHLMZ2Pos_X, pHLMZ2Pos_Y, pHLMZ2Pos_Z - pQ6Pos_z), HLMZ2Logical, "Helmholtz2", Q6MagLogical, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(pHLMZ1Pos_X, pHLMZ1Pos_Y, pHLMZ1Pos_Z - fHelmCoilBeamPosZ), HLMZ1Logical, "Helmholtz1", Q6MagLogical, 0, 0, fCheckOverlaps);
+  new G4PVPlacement(0, G4ThreeVector(pHLMZ2Pos_X, pHLMZ2Pos_Y, pHLMZ2Pos_Z - fHelmCoilBeamPosZ), HLMZ2Logical, "Helmholtz2", Q6MagLogical, 0, 0, fCheckOverlaps);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -226,14 +176,14 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* Q3MagSolid = new G4Tubs( "Q3MagTubs", 0., pQ3Rin, pQ3HL, 0.0, 360.0 * deg );
   G4VSolid* Q4MagSolid = new G4Tubs( "Q4MagTubs", 0., pQ4Rin, pQ4HL, 0.0, 360.0 * deg );
 
-  G4LogicalVolume* Q1Logical = new G4LogicalVolume(Q1Solid,siliconsteel,"Q1Logical",0,0,0);
-  G4LogicalVolume* Q2Logical = new G4LogicalVolume(Q2Solid,siliconsteel,"Q2Logical",0,0,0);
-  G4LogicalVolume* Q3Logical = new G4LogicalVolume(Q3Solid,siliconsteel,"Q3Logical",0,0,0);
-  G4LogicalVolume* Q4Logical = new G4LogicalVolume(Q4Solid,siliconsteel,"Q4Logical",0,0,0);
-  G4LogicalVolume* Q1MagLogical = new G4LogicalVolume(Q1MagSolid,Vacuum,"Q1MagLogical",0,0,0);
-  G4LogicalVolume* Q2MagLogical = new G4LogicalVolume(Q2MagSolid,Vacuum,"Q2MagLogical",0,0,0);
-  G4LogicalVolume* Q3MagLogical = new G4LogicalVolume(Q3MagSolid,Vacuum,"Q3MagLogical",0,0,0);
-  G4LogicalVolume* Q4MagLogical = new G4LogicalVolume(Q4MagSolid,Vacuum,"Q4MagLogical",0,0,0);
+  G4LogicalVolume* Q1Logical = new G4LogicalVolume(Q1Solid,MolPol_SiliSteel,"Q1Logical",0,0,0);
+  G4LogicalVolume* Q2Logical = new G4LogicalVolume(Q2Solid,MolPol_SiliSteel,"Q2Logical",0,0,0);
+  G4LogicalVolume* Q3Logical = new G4LogicalVolume(Q3Solid,MolPol_SiliSteel,"Q3Logical",0,0,0);
+  G4LogicalVolume* Q4Logical = new G4LogicalVolume(Q4Solid,MolPol_SiliSteel,"Q4Logical",0,0,0);
+  G4LogicalVolume* Q1MagLogical = new G4LogicalVolume(Q1MagSolid,MolPol_Vacuum,"Q1MagLogical",0,0,0);
+  G4LogicalVolume* Q2MagLogical = new G4LogicalVolume(Q2MagSolid,MolPol_Vacuum,"Q2MagLogical",0,0,0);
+  G4LogicalVolume* Q3MagLogical = new G4LogicalVolume(Q3MagSolid,MolPol_Vacuum,"Q3MagLogical",0,0,0);
+  G4LogicalVolume* Q4MagLogical = new G4LogicalVolume(Q4MagSolid,MolPol_Vacuum,"Q4MagLogical",0,0,0);
 
   Q1Logical->SetVisAttributes(SteelVisAtt);
   Q2Logical->SetVisAttributes(SteelVisAtt);
@@ -270,7 +220,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* DMagSolid = new G4Box ( "DMagBox" , pDMagHLX , pDMagHLY , pDMagHLZ );
 
   /*NEEDS SUB4 VOLUME SUBTRACTED FROM THIS SPACE
-   *G4LogicalVolume* DLogical = new G4LogicalVolume ( DMagSolid, Vacuum, "DipoleMag", 0, 0, 0);
+   *G4LogicalVolume* DLogical = new G4LogicalVolume ( DMagSolid, MolPol_Vacuum, "DipoleMag", 0, 0, 0);
    *DLogical->SetFieldManager(DFieldManager,allLocal);
    *DLogical->SetVisAttributes(VacVisAtt);
    *new G4PVPlacement(0,G4ThreeVector(pDMagPos_X, pDMagPos_Y - 9*cm, pDMagPos_Z), DLogical,"DipoleMag",world_log,0,0,fCheckOverlaps);*/
@@ -281,9 +231,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pDBI1HLX =  6.0   * cm;  G4double pDBI1HLY = 16.5 * cm;  G4double pDBI1HLZ = 98.5  * cm;
   G4double pDBV1HLX =  5.295 * cm;  G4double pDBV1HLY = 16.0 * cm;  G4double pDBV1HLZ = 98.5  * cm;
   G4double pDBW1HLX = 11.66  * cm;  G4double pDBW1HLY = 21.4 * cm;  G4double pDBW1HLZ =  0.64 * cm;
-  G4double pDBW2Rin =  0.0   * cm;  G4double pDBW2Rout=  3.0 * cm;  G4double pDBW2HL  =  0.75 * cm;//increased from 0.64 to 0.75*cm
-  G4double pDBW3HLX =  1.18  * cm;  G4double pDBW3HLY =  8.0 * cm;  G4double pDBW3HLZ =  0.75 * cm;//increased from 0.64 to 0.75*cm
-  G4double pDBW4HLX =  1.18  * cm;  G4double pDBW4HLY =  8.0 * cm;  G4double pDBW4HLZ =  0.75 * cm;//increased from 0.64 to 0.75*cm
+  G4double pDBW2Rin =  0.0   * cm;  G4double pDBW2Rout=  3.0 * cm;  G4double pDBW2HL  =  0.75 * cm;
+  G4double pDBW3HLX =  1.18  * cm;  G4double pDBW3HLY =  8.0 * cm;  G4double pDBW3HLZ =  0.75 * cm;
+  G4double pDBW4HLX =  1.18  * cm;  G4double pDBW4HLY =  8.0 * cm;  G4double pDBW4HLZ =  0.75 * cm;
   G4double pDBT3HLX =  1.18  * cm;  G4double pDBT3HLY =  8.0 * cm;  G4double pDBT3HLZ =  0.005* cm;
   G4double pDBT4HLX =  1.18  * cm;  G4double pDBT4HLY =  8.0 * cm;  G4double pDBT4HLZ =  0.005* cm;
   G4double pDMS1HLX =  3.0   * cm;  G4double pDMS1HLY = 15.0 * cm;  G4double pDMS1HLZ = 96.2  * cm;
@@ -296,8 +246,6 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pDBW2Pos_X =  0.0   * cm;  G4double pDBW2Pos_Y =  9.0 * cm;  G4double pDBW2Pos_Z =  0.0  * cm;
   G4double pDBW3Pos_X = -4.13  * cm;  G4double pDBW3Pos_Y = -7.0 * cm;  G4double pDBW3Pos_Z =  0.0  * cm;
   G4double pDBW4Pos_X =  4.13  * cm;  G4double pDBW4Pos_Y = -7.0 * cm;  G4double pDBW4Pos_Z =  0.0  * cm;
-  //G4double pDBT3Pos_X =  0.0   * cm;  G4double pDBT3Pos_Y =  0.0 * cm;  G4double pDBT3Pos_Z =  0.0  * cm; //Unneeded as geometry is constructed
-  //G4double pDBT4Pos_X =  0.0   * cm;  G4double pDBT4Pos_Y =  0.0 * cm;  G4double pDBT4Pos_Z =  0.0  * cm; //Unneeded as geometry is constructed
   G4double pDMS1Pos_X =  0.0   * cm;  G4double pDMS1Pos_Y =  0.0 * cm;  G4double pDMS1Pos_Z =  0.0  * cm;
   G4double pDMBHPos_X =  0.0   * cm;  G4double pDMBHPos_Y =  9.0 * cm;  G4double pDMBHPos_Z =  0.0  * cm;
   G4double pDMFRPos_X =  0.0   * cm;  G4double pDMFRPos_Y =  0.0 * cm;  G4double pDMFRPos_Z =-87.2  * cm;
@@ -333,51 +281,58 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   // Create Sub0 which subtracts the sub4 volume from the DMagSolid Volume, create DLogical from sub0, and place as before.
   G4SubtractionSolid* sub0 = new G4SubtractionSolid("sub0", DMagSolid , sub4 , 0 , G4ThreeVector (0,0,0));
-  G4LogicalVolume* DLogical = new G4LogicalVolume ( sub0, Vacuum, "DipoleMag", 0, 0, 0);
+  G4LogicalVolume* DLogical = new G4LogicalVolume ( sub0, MolPol_Vacuum, "DipoleMag", 0, 0, 0);
   DLogical->SetFieldManager(DFieldManager,allLocal);
   DLogical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0,G4ThreeVector(pDMagPos_X, pDMagPos_Y - 9*cm, pDMagPos_Z), DLogical,"DipoleMag",world_log,0,0,fCheckOverlaps);
   //Create the sub4 logical volume and place this in the WORLD_LOG not the DipoleMag volume.
-  G4LogicalVolume* sub4Logical = new G4LogicalVolume ( sub4, siliconsteel, "DipoleVacuumBox", 0, 0, 0);
+  G4LogicalVolume* sub4Logical = new G4LogicalVolume ( sub4, MolPol_SiliSteel, "DipoleVacuumBox", 0, 0, 0);
   sub4Logical->SetVisAttributes(SteelVisAtt);
   new G4PVPlacement(0,G4ThreeVector(pDBI1Pos_X, pDBI1Pos_Y, pDBI1Pos_Z),sub4Logical,"DipoleVacuumBox",world_log,0,0,fCheckOverlaps);
   //This is the back dipole window. Start with the steel plate, take out the windows (DBW3/4), cut out the beampipe hole (DBW2)
   G4SubtractionSolid* sub9  = new G4SubtractionSolid("sub9" , DBW1Solid, DBW2Solid, 0, G4ThreeVector(pDBW2Pos_X, pDBW2Pos_Y, pDBW2Pos_Z) );
   G4SubtractionSolid* sub10 = new G4SubtractionSolid("sub10", sub9     , DBW3Solid, 0, G4ThreeVector(pDBW3Pos_X, pDBW3Pos_Y, pDBW3Pos_Z) );
   G4SubtractionSolid* sub11 = new G4SubtractionSolid("sub11", sub10    , DBW4Solid, 0, G4ThreeVector(pDBW4Pos_X, pDBW4Pos_Y, pDBW4Pos_Z) );
-  G4LogicalVolume* sub11Logical = new G4LogicalVolume ( sub11, siliconsteel, "sub13Logical", 0, 0, 0);
+  G4LogicalVolume* sub11Logical = new G4LogicalVolume ( sub11, MolPol_SiliSteel, "sub13Logical", 0, 0, 0);
   sub11Logical->SetVisAttributes(SteelVisAtt);
   new G4PVPlacement(0,G4ThreeVector(pDBW1Pos_X, pDBW1Pos_Y, pDBW1Pos_Z),sub11Logical,"DipoleVacuumBox",world_log,0,0,fCheckOverlaps);
   //Thin titanium windows for the dipole exit windows, must be placed at z = pDBW1Pos_Z and place at the positions of the cutouts (pDBW3/4) plus the dipole vacuum box Y offset
-  G4LogicalVolume* DipoleExitWindowLLogical = new G4LogicalVolume ( DBT3Solid, titanium, "DipoleExitWindowL", 0, 0, 0);
-  G4LogicalVolume* DipoleExitWindowRLogical = new G4LogicalVolume ( DBT4Solid, titanium, "DipoleExitWindowR", 0, 0, 0);
-  if(placeTargetAndWindows) new G4PVPlacement(0,G4ThreeVector(pDBW3Pos_X, pDBW3Pos_Y + pDBI1Pos_Y, pDBW1Pos_Z),DipoleExitWindowLLogical,"DipoleExitWindowL",world_log,0,0,fCheckOverlaps);
-  if(placeTargetAndWindows) new G4PVPlacement(0,G4ThreeVector(pDBW4Pos_X, pDBW4Pos_Y + pDBI1Pos_Y, pDBW1Pos_Z),DipoleExitWindowRLogical,"DipoleExitWindowR",world_log,0,0,fCheckOverlaps);
+  G4LogicalVolume* DipoleExitWindowLLogical = new G4LogicalVolume ( DBT3Solid, MolPol_Titanium, "DipoleExitWindowL", 0, 0, 0);
+  G4LogicalVolume* DipoleExitWindowRLogical = new G4LogicalVolume ( DBT4Solid, MolPol_Titanium, "DipoleExitWindowR", 0, 0, 0);
+  new G4PVPlacement(0,G4ThreeVector(pDBW3Pos_X, pDBW3Pos_Y + pDBI1Pos_Y, pDBW1Pos_Z),DipoleExitWindowLLogical,"DipoleExitWindowL",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(pDBW4Pos_X, pDBW4Pos_Y + pDBI1Pos_Y, pDBW1Pos_Z),DipoleExitWindowRLogical,"DipoleExitWindowR",world_log,0,0,fCheckOverlaps);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // COLLIMATORS
-  G4double pDCOLHLX = 1.00   * cm;  G4double pDCOLHLY = 4.00 * cm;  G4double pDCOLHLZ = 3.00  * cm;
-  G4double pDSLOHLX = 1.00   * cm;  G4double pDSLOHLY = 1.80 * cm;  G4double pDSLOHLZ = 3.00  * cm;
-  G4double pDCOLPos_X =-4.00   * cm;  G4double pDCOLPos_Y = 9.00 * cm;  G4double pDCOLPos_Z =-92.00  * cm;
-  G4double pDSLOPos_X = 0.00   * cm;  G4double pDSLOPos_Y = 0.00 * cm;  G4double pDSLOPos_Z =  0.00  * cm;
+  // DIPOLE LEAD COLLIMATOR JAWS
+  G4double pDCOLHLX   =  1.00 * cm;  G4double pDCOLHLY   = 2.00 * cm;  G4double pDCOLHLZ   =  3.00  * cm;
+  G4double pDCOLPos_X = -4.00 * cm;  G4double pDCOLPos_Y = 9.00 * cm;  G4double pDCOLPos_Z =-92.00  * cm;
   G4VSolid* DCOLSolid = new G4Box ( "DCOLBox" , pDCOLHLX , pDCOLHLY  , pDCOLHLZ );
-  G4VSolid* DSLOSolid = new G4Box ( "DSLOBox" , pDSLOHLX , pDSLOHLY  , pDSLOHLZ );
-  G4SubtractionSolid* subcol = new G4SubtractionSolid("subcol", DCOLSolid, DSLOSolid, 0, G4ThreeVector(pDSLOPos_X,pDSLOPos_Y,pDSLOPos_Z) );
-  G4LogicalVolume* subcolLogical = new G4LogicalVolume ( subcol, lead, "Collimator", 0, 0, 0);
-  subcolLogical ->SetVisAttributes(LeadVisAtt);
-  new G4PVPlacement(0,G4ThreeVector( pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X,
-                                     pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y,
-                                     pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"CollimatorR",world_log,0,0,fCheckOverlaps);
-  new G4PVPlacement(0,G4ThreeVector(-pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X,
-                                     pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y,
-                                     pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z),subcolLogical,"CollimatorL",world_log,0,0,fCheckOverlaps);
+  G4LogicalVolume * fLeadJawsLogicalLT = new G4LogicalVolume ( DCOLSolid, MolPol_Lead, "CollimatorLT", 0, 0, 0);
+  G4LogicalVolume * fLeadJawsLogicalLB = new G4LogicalVolume ( DCOLSolid, MolPol_Lead, "CollimatorLB", 0, 0, 0);
+  G4LogicalVolume * fLeadJawsLogicalRT = new G4LogicalVolume ( DCOLSolid, MolPol_Lead, "CollimatorRT", 0, 0, 0);
+  G4LogicalVolume * fLeadJawsLogicalRB = new G4LogicalVolume ( DCOLSolid, MolPol_Lead, "CollimatorRB", 0, 0, 0);
+
+  fLeadJawsLogicalLT ->SetVisAttributes(LeadVisAtt);
+  fLeadJawsLogicalLB ->SetVisAttributes(LeadVisAtt);
+  fLeadJawsLogicalRT ->SetVisAttributes(LeadVisAtt);
+  fLeadJawsLogicalRB ->SetVisAttributes(LeadVisAtt);
+
+  fLeadJawsHLength = pDCOLHLY;
+  fLeadJawsZOrigin = pDCOLPos_Z + pDBV1Pos_Z + pDBI1Pos_Z;
+  fLeadJawsYOrigin = pDCOLPos_Y + pDBV1Pos_Y + pDBI1Pos_Y;
+  fLeadJawsXOrigin = pDCOLPos_X + pDBV1Pos_X + pDBI1Pos_X;
+
+  fLeadJawsPhysicalLT = new G4PVPlacement(0,G4ThreeVector(-fLeadJawsXOrigin, (fLeadJawsYOrigin + (fLeadJawsHLength + (fLeadJawGapWidth/2.0))), fLeadJawsZOrigin),fLeadJawsLogicalLT,"CollimatorLT",world_log,0,0,fCheckOverlaps);
+  fLeadJawsPhysicalLB = new G4PVPlacement(0,G4ThreeVector(-fLeadJawsXOrigin, (fLeadJawsYOrigin - (fLeadJawsHLength + (fLeadJawGapWidth/2.0))), fLeadJawsZOrigin),fLeadJawsLogicalLB,"CollimatorLB",world_log,0,0,fCheckOverlaps);
+  fLeadJawsPhysicalRT = new G4PVPlacement(0,G4ThreeVector( fLeadJawsXOrigin, (fLeadJawsYOrigin + (fLeadJawsHLength + (fLeadJawGapWidth/2.0))), fLeadJawsZOrigin),fLeadJawsLogicalRT,"CollimatorRT",world_log,0,0,fCheckOverlaps);
+  fLeadJawsPhysicalRB = new G4PVPlacement(0,G4ThreeVector( fLeadJawsXOrigin, (fLeadJawsYOrigin - (fLeadJawsHLength + (fLeadJawGapWidth/2.0))), fLeadJawsZOrigin),fLeadJawsLogicalRB,"CollimatorRB",world_log,0,0,fCheckOverlaps);
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // Upstream Flange attached to dipole box
+  // UPSTREAM FLANGE ATTACHED TO DIPOLE BOX
   G4double pDUPFLRin = 0.5 * 10.16 * cm;  G4double pDUPFLRout = 0.5 * 17.145 * cm;  G4double pDUPFLHLZ = 0.5 * 2.1336 * cm;
   G4VSolid * DUpstreamFlange = new G4Tubs( "DUpstreamFlange", pDUPFLRin , pDUPFLRout , pDUPFLHLZ  , 0.0, 360.0 * deg );
-  G4LogicalVolume * DUpstreamFlangeLogical = new G4LogicalVolume(DUpstreamFlange,stainlesssteel304,"DUpstreamFlangeLogical",0,0,0);
+  G4LogicalVolume * DUpstreamFlangeLogical = new G4LogicalVolume(DUpstreamFlange,MolPol_Stainless,"DUpstreamFlangeLogical",0,0,0);
   DUpstreamFlangeLogical->SetVisAttributes(LeadVisAtt);
   new G4PVPlacement(0,G4ThreeVector( 0 , 0 , pDBI1Pos_Z - pDBI1HLZ - pDUPFLHLZ ),DUpstreamFlangeLogical,"DipoleUpstreamFlange",world_log,0,0,fCheckOverlaps);
 
@@ -387,7 +342,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pDHLX   = 10.00 * cm;  G4double pDHLY   = 40.00 * cm;  G4double pDHLZ   = 76.00 * cm;
   G4double pD1Pos_X=-16.00 * cm;  G4double pD2Pos_X= 16.00 * cm;  G4double pDPos_Y = -9.00 * cm;  G4double pDPos_Z =422.80 * cm;
   G4VSolid* DSolid  = new G4Box ( "DBox"  , pDHLX , pDHLY  , pDHLZ );
-  G4LogicalVolume* DMagLogical  = new G4LogicalVolume(DSolid ,siliconsteel, "DMagLogical" ,0,0,0);
+  G4LogicalVolume* DMagLogical  = new G4LogicalVolume(DSolid ,MolPol_SiliSteel, "DMagLogical" ,0,0,0);
   DMagLogical->SetVisAttributes(DipVisAtt);
 
   new G4PVPlacement(0,G4ThreeVector(pD1Pos_X,pDPos_Y,pDPos_Z),DMagLogical,"Dipole1",world_log,0,0,0);
@@ -395,8 +350,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // Beam pipe - Alternative setup from solenoid to dipole box
-  G4double pBPpos[10] = {pQ6Pos_z + pQ6HL,      //end of solenoid (world coord's)
+  // BEAM PIPE, BUILDS SEGMENTS FROM SOLENOID THROUGH QUADS TO G3 SPECIFIED END AT DIPOLE ENTRANCE
+  G4double pBPpos[10] = {fHelmCoilBeamPosZ + pQ6HL,      //end of solenoid (world coord's)
                          pQ1Pos_Z - pQ1HL,      //begin Q1 (world coord's)
                          pQ1Pos_Z + pQ1HL,      //end Q1   (world coord's)
                          pQ2Pos_Z - pQ2HL,      //begin Q2 (world coord's)
@@ -420,9 +375,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
     BPUpstreamVac[i]   = new G4Tubs( vacName,   0.*cm, pBPRin,  (pBPpos[i+1] - pBPpos[i]) / 2., 0.0 * deg, 360.0 * deg );
     G4String solidLogName = "BPalum_logical_" + std::to_string(i);
     G4String vacLogName   = "BPvacm_logical_" + std::to_string(i);
-    BPAlLogVol[i]         = new G4LogicalVolume( BPUpstreamAlum[i], aluminum, solidLogName , 0, 0, 0);
+    BPAlLogVol[i]         = new G4LogicalVolume( BPUpstreamAlum[i], MolPol_Aluminum, solidLogName , 0, 0, 0);
     BPAlLogVol[i]->SetVisAttributes(BPVisAtt);
-    BPVacLogVol[i]        = new G4LogicalVolume( BPUpstreamVac[i] , Vacuum,   vacLogName, 0, 0, 0);
+    BPVacLogVol[i]        = new G4LogicalVolume( BPUpstreamVac[i] , MolPol_Vacuum,   vacLogName, 0, 0, 0);
     BPVacLogVol[i]->SetVisAttributes(BPVisAtt);
     G4String solidPVName  = "BeamPipeAlmnum_" + std::to_string(i);
     G4String vacPVName    = "BeamPipeVacuum_" + std::to_string(i);
@@ -456,15 +411,15 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double         VBSolidHLZ = 0.00001*mm;
   G4double         VBSolidRad = 4.78*cm;
   G4VSolid*        VBSolid   = new G4Tubs("VBSolid",0,VBSolidRad, VBSolidHLZ ,0.0,360.0*deg);
-  G4LogicalVolume* Q1ENLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q1ENLogical",0,0,0);
-  G4LogicalVolume* Q1EXLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q1EXLogical",0,0,0);
-  G4LogicalVolume* Q2ENLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q2ENLogical",0,0,0);
-  G4LogicalVolume* Q2EXLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q2EXLogical",0,0,0);
-  G4LogicalVolume* Q3ENLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q3ENLogical",0,0,0);
-  G4LogicalVolume* Q3EXLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q3EXLogical",0,0,0);
-  G4LogicalVolume* Q4ENLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q4ENLogical",0,0,0);
-  G4LogicalVolume* Q4EXLogical = new G4LogicalVolume(VBSolid, Vacuum, "Q4EXLogical",0,0,0);
-  G4LogicalVolume* DipELogical = new G4LogicalVolume(VBSolid, Vacuum, "DIPELogical",0,0,0);
+  G4LogicalVolume* Q1ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q1ENLogical",0,0,0);
+  G4LogicalVolume* Q1EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q1EXLogical",0,0,0);
+  G4LogicalVolume* Q2ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q2ENLogical",0,0,0);
+  G4LogicalVolume* Q2EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q2EXLogical",0,0,0);
+  G4LogicalVolume* Q3ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q3ENLogical",0,0,0);
+  G4LogicalVolume* Q3EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q3EXLogical",0,0,0);
+  G4LogicalVolume* Q4ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q4ENLogical",0,0,0);
+  G4LogicalVolume* Q4EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q4EXLogical",0,0,0);
+  G4LogicalVolume* DipELogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "DIPELogical",0,0,0);
 
   Q1ENLogical->SetVisAttributes(VacVisAtt);
   Q1EXLogical->SetVisAttributes(VacVisAtt);
@@ -548,7 +503,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = -9.00  * cm;  G4double pVP3Pos_Z = (537.0*cm - 14.0*cm - pVP2HLZ);
 
   G4VSolid* VP3Solid  = new G4Box( "VP3BOX",  pVP2HLX, pVP2HLY, pVP2HLZ );
-  G4LogicalVolume* VP3Logical = new G4LogicalVolume(VP3Solid, Vacuum, "VP3Logical", 0,0,0);
+  G4LogicalVolume* VP3Logical = new G4LogicalVolume(VP3Solid, MolPol_Vacuum, "VP3Logical", 0,0,0);
   VP3Logical->SetSensitiveDetector( DPOUT );
   VP3Logical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0,G4ThreeVector(pVP3Pos_X, pVP3Pos_Y, pVP3Pos_Z), VP3Logical, "VP.Dp.Exit", world_log, 0,0, fCheckOverlaps);
@@ -565,26 +520,26 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double DPIzloc[10] = {-82.*cm,-63.*cm,-45.*cm,-27.*cm,-9.*cm,9.*cm,27.*cm,45.*cm,63.*cm,82.*cm};
   G4double DPIyloc = 0.0 * cm;
   G4VSolid * DPIVPbox = new G4Box("DipoleInternalVPlane",DPIVPHLX,DPIVPHLY,DPIVPHLZ);
-  G4LogicalVolume* DP0L = new G4LogicalVolume(DPIVPbox, Vacuum, "DP0L",0,0,0);
-  G4LogicalVolume* DP0R = new G4LogicalVolume(DPIVPbox, Vacuum, "DP0R",0,0,0);
-  G4LogicalVolume* DP1L = new G4LogicalVolume(DPIVPbox, Vacuum, "DP1L",0,0,0);
-  G4LogicalVolume* DP1R = new G4LogicalVolume(DPIVPbox, Vacuum, "DP1R",0,0,0);
-  G4LogicalVolume* DP2L = new G4LogicalVolume(DPIVPbox, Vacuum, "DP2L",0,0,0);
-  G4LogicalVolume* DP2R = new G4LogicalVolume(DPIVPbox, Vacuum, "DP2R",0,0,0);
-  G4LogicalVolume* DP3L = new G4LogicalVolume(DPIVPbox, Vacuum, "DP3L",0,0,0);
-  G4LogicalVolume* DP3R = new G4LogicalVolume(DPIVPbox, Vacuum, "DP3R",0,0,0);
-  G4LogicalVolume* DP4L = new G4LogicalVolume(DPIVPbox, Vacuum, "DP4L",0,0,0);
-  G4LogicalVolume* DP4R = new G4LogicalVolume(DPIVPbox, Vacuum, "DP4R",0,0,0);
-  G4LogicalVolume* DP5L = new G4LogicalVolume(DPIVPbox, Vacuum, "DP5L",0,0,0);
-  G4LogicalVolume* DP5R = new G4LogicalVolume(DPIVPbox, Vacuum, "DP5R",0,0,0);
-  G4LogicalVolume* DP6L = new G4LogicalVolume(DPIVPbox, Vacuum, "DP6L",0,0,0);
-  G4LogicalVolume* DP6R = new G4LogicalVolume(DPIVPbox, Vacuum, "DP6R",0,0,0);
-  G4LogicalVolume* DP7L = new G4LogicalVolume(DPIVPbox, Vacuum, "DP7L",0,0,0);
-  G4LogicalVolume* DP7R = new G4LogicalVolume(DPIVPbox, Vacuum, "DP7R",0,0,0);
-  G4LogicalVolume* DP8L = new G4LogicalVolume(DPIVPbox, Vacuum, "DP8L",0,0,0);
-  G4LogicalVolume* DP8R = new G4LogicalVolume(DPIVPbox, Vacuum, "DP8R",0,0,0);
-  G4LogicalVolume* DP9L = new G4LogicalVolume(DPIVPbox, Vacuum, "DP9L",0,0,0);
-  G4LogicalVolume* DP9R = new G4LogicalVolume(DPIVPbox, Vacuum, "DP9R",0,0,0);
+  G4LogicalVolume* DP0L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP0L",0,0,0);
+  G4LogicalVolume* DP0R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP0R",0,0,0);
+  G4LogicalVolume* DP1L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP1L",0,0,0);
+  G4LogicalVolume* DP1R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP1R",0,0,0);
+  G4LogicalVolume* DP2L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP2L",0,0,0);
+  G4LogicalVolume* DP2R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP2R",0,0,0);
+  G4LogicalVolume* DP3L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP3L",0,0,0);
+  G4LogicalVolume* DP3R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP3R",0,0,0);
+  G4LogicalVolume* DP4L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP4L",0,0,0);
+  G4LogicalVolume* DP4R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP4R",0,0,0);
+  G4LogicalVolume* DP5L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP5L",0,0,0);
+  G4LogicalVolume* DP5R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP5R",0,0,0);
+  G4LogicalVolume* DP6L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP6L",0,0,0);
+  G4LogicalVolume* DP6R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP6R",0,0,0);
+  G4LogicalVolume* DP7L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP7L",0,0,0);
+  G4LogicalVolume* DP7R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP7R",0,0,0);
+  G4LogicalVolume* DP8L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP8L",0,0,0);
+  G4LogicalVolume* DP8R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP8R",0,0,0);
+  G4LogicalVolume* DP9L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP9L",0,0,0);
+  G4LogicalVolume* DP9R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP9R",0,0,0);
   DP0L->SetVisAttributes(VacVisAtt);
   DP0R->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0,G4ThreeVector(-DPIxloc,DPIyloc,DPIzloc[0]),DP0L,"DP0L",DLogical,0,0,fCheckOverlaps);
@@ -730,9 +685,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4SubtractionSolid* subSHL2 = new G4SubtractionSolid("subSHL2", subSHL1, S1H2Solid, pRot9, G4ThreeVector(pS1H2Pos_X, pS1H2Pos_Y, pS1H2Pos_Z) );
   G4SubtractionSolid* subSHL3 = new G4SubtractionSolid("subSHL3", S21BSolid, S21HSolid, 0, G4ThreeVector(pS21HPos_X, pS21HPos_Y, pS21HPos_Z) );
 
-  G4LogicalVolume* SHL1Logical = new G4LogicalVolume(subSHL2,   lead, "Shield1", 0,0,0);
-  G4LogicalVolume* SHL2Logical = new G4LogicalVolume(S2LDSolid, lead, "Shield2", 0,0,0);
-  G4LogicalVolume* SHL3Logical = new G4LogicalVolume(subSHL3,   aluminum, "Shield3", 0,0,0);
+  G4LogicalVolume* SHL1Logical = new G4LogicalVolume(subSHL2,   MolPol_Lead, "Shield1", 0,0,0);
+  G4LogicalVolume* SHL2Logical = new G4LogicalVolume(S2LDSolid, MolPol_Lead, "Shield2", 0,0,0);
+  G4LogicalVolume* SHL3Logical = new G4LogicalVolume(subSHL3,   MolPol_Aluminum, "Shield3", 0,0,0);
   SHL1Logical->SetVisAttributes(LeadVisAtt);
   SHL2Logical->SetVisAttributes(LeadVisAtt);
   SHL3Logical->SetVisAttributes(AlumVisAtt);
@@ -741,7 +696,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   new G4PVPlacement(0, G4ThreeVector(pS2LDPos_X, pS2LDPos_Y, pS2LDPos_Z), SHL2Logical, "Shield2", world_log, 0,0,fCheckOverlaps);
   new G4PVPlacement(0, G4ThreeVector(pS21BPos_X, pS21BPos_Y, pS21BPos_Z), SHL3Logical, "Shield3", world_log, 0,0,fCheckOverlaps);
 
-  //G4LogicalVolume* SHL4Logical = new G4LogicalVolume(S3LDSolid, lead, "Shield4", 0,0,0);
+  //G4LogicalVolume* SHL4Logical = new G4LogicalVolume(S3LDSolid, MolPol_Lead, "Shield4", 0,0,0);
   //SHL4Logical->SetVisAttributes(LeadVisAtt);
   //new G4PVPlacement(0, G4ThreeVector(pS3LDPos_X, pS3LDPos_Y, pS3LDPos_Z), SHL4Logical, "Shield4", world_log, 0,0,fCheckOverlaps);
 
@@ -768,46 +723,59 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pMDBXHLX   = 37.00 * cm;  G4double pMDBXHLY   = 47.10 * cm;  G4double pMDBXHLZ   = 61.20 * cm;
   G4double pMDBAHLX   = 18.50 * cm;  G4double pMDBAHLY   = 29.80 * cm;  G4double pMDBAHLZ   = 40.00 * cm;
   G4double pMDBWHLX   = 14.60 * cm;  G4double pMDBWHLY   = 11.50 * cm;  G4double pMDBWHLZ   = 6.305 * cm;
-  G4double pMDBWalpha =  6.0  *deg;  G4double pMDBWtheta = 0.0  *deg;   G4double pMDBWphi   =  0.0  *deg;
+  G4double pMDBWalpha =  6.0  *deg;  G4double pMDBWtheta = 0.0   *deg;  G4double pMDBWphi   =  0.0  *deg;
   G4double pMDBLHLX   = 14.60 * cm;  G4double pMDBLHLY   = 11.50 * cm;  G4double pMDBLHLZ   = 6.305 * cm;
-  G4double pMDBLalpha = 10.0  *deg;  G4double pMDBLtheta = 0.0  *deg;   G4double pMDBLphi   =  0.0  *deg;
+  G4double pMDBLalpha = 10.0  *deg;  G4double pMDBLtheta = 0.0   *deg;  G4double pMDBLphi   =  0.0  *deg;
   G4double pMDETHLX   =  9.20 * cm;  G4double pMDETHLY   = 17.00 * cm;  G4double pMDETHLZ   = 34.00 * cm;
-  G4double pDLGBHLX   =  8.20 * cm;  G4double pDLGBHLY   = 16.20 * cm;  G4double pDLGBHLZ   = 20.10 * cm;
+  G4double pDLGBHLX   =  9.20 * cm;  G4double pDLGBHLY   = 16.20 * cm;  G4double pDLGBHLZ   = 20.10 * cm;
+  G4double pSPCLHLX   =  9.00 * cm;  G4double pSPCLHLY   = 15.00 * cm;  G4double pSPCLHLZ   = 15.00 * cm;
 
   G4double pMDBXPos_X   =  0.055 * cm; G4double pMDBXPos_Y  = -46.70 * cm;  G4double pMDBXPos_Z   =723.20 * cm;//Adjusted for 2019 survey
   G4double pMDBAPos_X   =  0.00 * cm;  G4double pMDBAPos_Y   =  1.10 * cm;  G4double pMDBAPos_Z   =  1.80 * cm;
   G4double pMDBWPos_X   =  0.00 * cm;  G4double pMDBWPos_Y   =  8.49 * cm;  G4double pMDBWPos_Z   =-49.70 * cm;
   G4double pMDBLPos_X   =  0.00 * cm;  G4double pMDBLPos_Y   =  7.67 * cm;  G4double pMDBLPos_Z   =-49.70 * cm;
-  G4double pMDETPos_X   =  0.46 * cm;  G4double pMDETPos_Y   =  2.46 * cm;  G4double pMDETPos_Z   = -4.08 * cm;
-  G4double pDLGBPos_X   =  0.00 * cm;  G4double pDLGBPos_Y   =  0.00 * cm;  G4double pDLGBPos_Z   =-11.00 * cm;
+  G4double pMDETPos_X   =  0.405* cm;  G4double pMDETPos_Y   =  2.46 * cm;  G4double pMDETPos_Z   = -4.08 * cm;
+  G4double pDLGBPos_X   =  0.00 * cm;  G4double pDLGBPos_Y   =  0.00 * cm;  G4double pDLGBPos_Z   =-11.00 * cm;//Calorimeter Case
+  G4double pSPCLPos_X   =  0.00 * cm;  G4double pSPCLPos_Y   =  0.00 * cm;  G4double pSPCLPos_Z   =  -5.1 * cm;//Calorimeter Block
 
   G4VSolid* MDBXSolid  = new G4Box ( "MDBXBox"  , pMDBXHLX, pMDBXHLY, pMDBXHLZ );
   G4VSolid* MDBASolid  = new G4Box ( "MDBABox"  , pMDBAHLX, pMDBAHLY, pMDBAHLZ );
   G4VSolid* MDBWSolid  = new G4Para( "MDBWPara" , pMDBWHLX, pMDBWHLY, pMDBWHLZ, pMDBWalpha, pMDBWtheta, pMDBWphi);
   G4VSolid* MDBLSolid  = new G4Para( "MDBLPara" , pMDBLHLX, pMDBLHLY, pMDBLHLZ, pMDBLalpha, pMDBLtheta, pMDBLphi);
   G4VSolid* MDETSolid  = new G4Box ( "MDETBox"  , pMDETHLX, pMDETHLY, pMDETHLZ );
+  //DLGB is the case which holds the spaghetti calorimeter; this is made of aluminum
+  //Spaghetti calorimeter [SPCL] is of the dimensions specified in the Manual[2019].
   G4VSolid* DLGBSolid  = new G4Box ( "DLGBBox"  , pDLGBHLX, pDLGBHLY, pDLGBHLZ );
+  G4VSolid* SPCLSolid  = new G4Box ( "SPCLBox"  , pSPCLHLX, pSPCLHLY, pSPCLHLZ );
 
   G4SubtractionSolid* sub5 = new G4SubtractionSolid("sub5", MDBXSolid, MDBASolid, 0    , G4ThreeVector(pMDBAPos_X, pMDBAPos_Y, pMDBAPos_Z) );
   G4SubtractionSolid* sub6 = new G4SubtractionSolid("sub6", sub5     , MDBWSolid, pRot9, G4ThreeVector(pMDBWPos_X, pMDBWPos_Y, pMDBWPos_Z) );
   G4SubtractionSolid* sub7 = new G4SubtractionSolid("sub7", sub6     , MDBLSolid, pRot9, G4ThreeVector(pMDBLPos_X, pMDBLPos_Y, pMDBLPos_Z) );
-  G4LogicalVolume* MDBXLogical = new G4LogicalVolume ( sub7, lead, "Detector_MDBX", 0, 0, 0);
+  G4LogicalVolume* MDBXLogical = new G4LogicalVolume ( sub7, MolPol_Lead, "Detector_MDBX", 0, 0, 0);
   G4VisAttributes *MDBXVisAtt(PbVisAtt);
   MDBXVisAtt->SetForceWireframe(true);
   MDBXLogical->SetVisAttributes(MDBXVisAtt);
   new G4PVPlacement(0 , G4ThreeVector(pMDBXPos_X, pMDBXPos_Y, pMDBXPos_Z) , MDBXLogical , "Detector_MDBX" , world_log , 0 , 0 , fCheckOverlaps);
 
   //This is the 'MDET' volume in G3. It's the mother volume for all the detector pieces which will be placed and then rotated by the 7.3*deg as a whole.
-  //This must be positioned at the MDBA positions (In G3 this was just a daughter volume, in G4 it's part of a boolean subtraction.
-  G4LogicalVolume * MDETLogical = new G4LogicalVolume( MDETSolid , Air , "DetectorContainer" , 0 , 0 , 0);
+  //This must be positioned at the MDBA positions (In G3 this was just a daughter volume, in G4 it's part of a boolean subtraction).
+  G4LogicalVolume * MDETLogical = new G4LogicalVolume( MDETSolid , MolPol_Air , "DetectorContainer" , 0 , 0 , 0);
   MDETLogical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(pRot7 , G4ThreeVector(pMDBAPos_X+pMDETPos_X+pMDBXPos_X,
                                           pMDBAPos_Y+pMDETPos_Y+pMDBXPos_Y,
                                           pMDBAPos_Z+pMDETPos_Z+pMDBXPos_Z), MDETLogical , "Detector_MDET" , world_log , 0 , 0 , fCheckOverlaps);
 
-  G4LogicalVolume* DETLogical = new G4LogicalVolume(DLGBSolid, Vacuum, "DETLogical",0,0,0);
-  DETLogical->SetSensitiveDetector(DETSD);
-  new G4PVPlacement(0 , G4ThreeVector(pDLGBPos_X, pDLGBPos_Y, pDLGBPos_Z) , DETLogical , "Detector_DLGB" , MDETLogical , 0 , 0 , fCheckOverlaps);
+  G4LogicalVolume* DLGBLogical = new G4LogicalVolume(DLGBSolid, MolPol_Aluminum, "DLGBLogical",0,0,0);
+  new G4PVPlacement(0 , G4ThreeVector(pDLGBPos_X, pDLGBPos_Y, pDLGBPos_Z) , DLGBLogical , "Detector_CAL_CASE" , MDETLogical , 0 , 0 , fCheckOverlaps);
+
+  G4LogicalVolume* SPCLLogical = new G4LogicalVolume(SPCLSolid, MolPol_Vacuum, "SPCLLogical",0,0,0);
+  new G4PVPlacement(0 , G4ThreeVector(pSPCLPos_X, pSPCLPos_Y, pSPCLPos_Z ) , SPCLLogical , "Detector_SpagCalor" , DLGBLogical , 0 , 0 , fCheckOverlaps);
+  //Place virtual plane at the very front of calorimeter as a daughter volume for now and let that be sensitive detector #9
+  G4double CalVPHLZ = 0.00001 * cm;
+  G4VSolid* SpagCalVPSolid  = new G4Box ( "SpagCalVPSolid"  , pSPCLHLX, pSPCLHLY, CalVPHLZ );
+  G4LogicalVolume* SpagCalVpLogical = new G4LogicalVolume(SpagCalVPSolid, MolPol_Vacuum, "SpagCalVpLogical",0,0,0);
+  SpagCalVpLogical->SetSensitiveDetector(DETSD);
+  new G4PVPlacement(0 , G4ThreeVector(0. , 0. , -1.*pSPCLHLZ + CalVPHLZ ) , SpagCalVpLogical , "SpagCalor_VP" , SPCLLogical , 0 , 0 , fCheckOverlaps);
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -822,9 +790,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
    * G4VSolid* HOD1Solid = new G4Box( "HOD1Box", pHOD1HLX, pHOD1HLY, pHOD1HLZ );
    * G4VSolid* HOD2Solid = new G4Box( "HOD2Box", pHOD2HLX, pHOD2HLY, pHOD2HLZ );
    * G4VSolid* HOD3Solid = new G4Box( "HOD3Box", pHOD3HLX, pHOD3HLY, pHOD3HLZ );
-   * G4LogicalVolume* HOD1Logical = new G4LogicalVolume(HOD1Solid, Air,      "DETLogical", 0, 0, 0);
-   * G4LogicalVolume* HOD2Logical = new G4LogicalVolume(HOD2Solid, aluminum, "DETLogical", 0, 0, 0);
-   * G4LogicalVolume* HOD3Logical = new G4LogicalVolume(HOD3Solid, Air,      "DETLogical", 0, 0, 0);
+   * G4LogicalVolume* HOD1Logical = new G4LogicalVolume(HOD1Solid, MolPol_Air,      "DETLogical", 0, 0, 0);
+   * G4LogicalVolume* HOD2Logical = new G4LogicalVolume(HOD2Solid, MolPol_Aluminum, "DETLogical", 0, 0, 0);
+   * G4LogicalVolume* HOD3Logical = new G4LogicalVolume(HOD3Solid, MolPol_Air,      "DETLogical", 0, 0, 0);
    * new G4PVPlacement(0, G4ThreeVector(pHOD1Pos_X,pHOD1Pos_Y,pHOD1Pos_Z), HOD1Logical, "Detector_HOD1", MDETLogical, 0,0, fCheckOverlaps);
    * new G4PVPlacement(0, G4ThreeVector(pHOD2Pos_X,pHOD2Pos_Y,pHOD2Pos_Z), HOD2Logical, "Detector_HOD2", MDETLogical, 0,0, fCheckOverlaps);
    * new G4PVPlacement(0, G4ThreeVector(pHOD3Pos_X,pHOD3Pos_Y,pHOD3Pos_Z), HOD3Logical, "Detector_HOD3", MDETLogical, 0,0, fCheckOverlaps);
@@ -834,10 +802,10 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pAPP1Pos_X = 4.4 * cm;   G4double pAPP1Pos_Y = 0.0 * cm;    G4double pAPP1Pos_Z = -32.5 * cm;
   G4VSolid* APP1LSolid = new G4Box( "APP1LBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
   G4VSolid* APP1RSolid = new G4Box( "APP1RBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
-  G4LogicalVolume* APP1LLogical = new G4LogicalVolume(APP1LSolid, scint, "APP1LLogical", 0,0,0);
+  G4LogicalVolume* APP1LLogical = new G4LogicalVolume(APP1LSolid, MolPol_Scint, "APP1LLogical", 0,0,0);
   // APP1LLogical->SetSensitiveDetector(APPSD1);
   APP1LLogical->SetVisAttributes(ScintVisAtt);
-  G4LogicalVolume* APP1RLogical = new G4LogicalVolume(APP1RSolid, scint, "APP1RLogical", 0,0,0);
+  G4LogicalVolume* APP1RLogical = new G4LogicalVolume(APP1RSolid, MolPol_Scint, "APP1RLogical", 0,0,0);
   // APP1RLogical->SetSensitiveDetector(APPSD2);
   APP1RLogical->SetVisAttributes(ScintVisAtt);
   new G4PVPlacement(0, G4ThreeVector(    pAPP1Pos_X,pAPP1Pos_Y,pAPP1Pos_Z), APP1LLogical, "Detector_APP1L", MDETLogical, 0,0, fCheckOverlaps);
@@ -846,10 +814,10 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double  pVPHODHLZ = 0.0001 * cm;
   G4VSolid* VPHOD1Solid = new G4Box( "VPHOD1", pAPP1HLX, pAPP1HLY, pVPHODHLZ);
   G4VSolid* VPHOD2Solid = new G4Box( "VPHOD2", pAPP1HLX, pAPP1HLY, pVPHODHLZ);
-  G4LogicalVolume* VPHOD1Logical = new G4LogicalVolume(VPHOD1Solid, Vacuum, "VPHOD1Logical", 0,0,0);
+  G4LogicalVolume* VPHOD1Logical = new G4LogicalVolume(VPHOD1Solid, MolPol_Vacuum, "VPHOD1Logical", 0,0,0);
   VPHOD1Logical->SetSensitiveDetector(APPSD1);
   VPHOD1Logical->SetVisAttributes(VacVisAtt);
-  G4LogicalVolume* VPHOD2Logical = new G4LogicalVolume(VPHOD2Solid, Vacuum, "VPHOD2Logical", 0,0,0);
+  G4LogicalVolume* VPHOD2Logical = new G4LogicalVolume(VPHOD2Solid, MolPol_Vacuum, "VPHOD2Logical", 0,0,0);
   VPHOD2Logical->SetSensitiveDetector(APPSD2);
   VPHOD2Logical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0, G4ThreeVector(    pAPP1Pos_X,pAPP1Pos_Y,pAPP1Pos_Z-pAPP1HLZ-pVPHODHLZ), VPHOD1Logical, "APP1L-VP", MDETLogical, 0,0, fCheckOverlaps);
@@ -860,13 +828,169 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pVP1HLX    = 37.00 * cm;  G4double pVP1HLY   = 50.00 * cm;  G4double pVP1HLZ   = 0.0001   * cm;
   G4double pVP1Pos_X  = 0.00  * cm;  G4double pVP1Pos_Y = -46.86* cm;  //G4double pVP1Pos_Z = 660.0 * cm;--Unneeded as it is 'pasted' onto the front of the Detector Box
   G4VSolid* VP1Solid  = new G4Box( "VP1BOX",  pVP1HLX, pVP1HLY, pVP1HLZ );
-  G4LogicalVolume* VP1Logical = new G4LogicalVolume(VP1Solid, Vacuum, "VPDetector", 0,0,0);
+  G4LogicalVolume* VP1Logical = new G4LogicalVolume(VP1Solid, MolPol_Vacuum, "VPDetector", 0,0,0);
   VP1Logical->SetSensitiveDetector( DETVP );
-  VP1Logical->SetVisAttributes(VacVisAtt);
+  VP1Logical->SetVisAttributes( VacVisAtt );
   new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pMDBXPos_Z - pMDBXHLZ - pVP1HLZ ), VP1Logical, "VP.Detector.Entr", world_log, 0,0, fCheckOverlaps);
 
   G4cout << "Z-position of DetectorBox Virtual Plane " << pMDBXPos_Z - pMDBXHLZ - pVP1HLZ << G4endl;
 
 
   return world_phys;
+}
+
+void MolPolDetectorConstruction::ConstructMaterials(){
+  G4double a, z, density, pressure, temperature;
+  G4int nelements, natoms;
+
+  G4Element* N  = new G4Element("Nitrogen"  , "N" , z=7 , a=14.01*g/mole);
+  G4Element* O  = new G4Element("Oxygen"    , "O" , z=8 , a=16.00*g/mole);
+  //G4Element* H  = new G4Element("Hydrogen"  , "H" , z=1 , a=1.01 *g/mole); // Unneeded at this time
+  G4Element* C  = new G4Element("Carbon"    , "C" , z=6 , a=12.01*g/mole);
+
+  // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
+  G4Element* P  = new G4Element("Phosphorus", "P" , z=15, a=30.974*g/mole);
+  G4Element* S  = new G4Element("Sulfur"    , "S" , z=16, a=32.06 *g/mole);
+
+  G4Element* Al = new G4Element("Aluminum"  , "Al", z=13, a=26.98 *g/mole);
+  G4Element* Fe = new G4Element("Iron"      , "Fe", z=26, a=55.845*g/mole);
+  G4Element* Si = new G4Element("Silicon"   , "Si", z=14, a=28.09 *g/mole);
+  //G4Element* Pb = new G4Element("Lead"      , "Pb", z=82, a=207.19*g/mole); // Unneeded at this time
+
+  // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
+  G4Element* Mn = new G4Element("Manganese" , "Mn", z=25, a=54.938*g/mole);
+  G4Element* Cr = new G4Element("Chromium"  , "Cr", z=24, a=51.966*g/mole);
+  G4Element* Ni = new G4Element("Nickel"    , "Ni", z=28, a=58.693*g/mole);
+  G4Element* Mo = new G4Element("Molybdenum", "Mo", z=42, a=95.95 *g/mole);
+
+  // INFORMATION FROM SANGHWA
+  density = 7.93 *g/cm3;
+  G4Material* ss304 = new G4Material("MP_StainlessSteel304", density, 9);
+  ss304->AddElement(Fe, 0.65);
+  ss304->AddElement(Cr, 0.19);
+  ss304->AddElement(Ni, 0.10);
+  ss304->AddElement(Mn, 0.02);
+  ss304->AddElement(Si, 0.01);
+  ss304->AddElement(Mo, 0.0284);
+  ss304->AddElement(C,  0.0008);
+  ss304->AddElement(P,  0.0005);
+  ss304->AddElement(S,  0.0003);
+
+  density = 7.87 * g/cm3;
+  a = 55.847 * g /mole;
+  //G4Material* iron = new G4Material("MP_Iron", z=26, a, density);
+  new G4Material("MP_Iron", z=26, a, density);
+
+  density = 7.65 *g/cm3;
+  G4Material* siliconsteel = new G4Material("MP_SiliconSteel", density, nelements=2);
+  siliconsteel->AddElement(Fe, natoms=11);
+  siliconsteel->AddElement(Si, natoms=1);
+
+  density = 2.70 *g/cm3;
+  G4Material* aluminum = new G4Material("MP_Aluminum", density, nelements=1);
+  aluminum->AddElement(Al, natoms=1);
+
+  density = 11.35*g/cm3;
+  a = 207.19*g/mole;
+  //G4Material* lead = new G4Material("MP_Lead", z=82, a, density);
+  new G4Material("MP_Lead", z=82, a, density);
+
+  density = 8.960*g/cm3;
+  a = 63.55*g/mole;
+  //G4Material* Cu = new G4Material("MP_Copper" , z=29., a, density);
+  new G4Material("MP_Copper" , z=29., a, density);
+
+  density = 1.032*g/cm3;
+  a = 12.01*g/mole;
+  //G4Material* scint = new G4Material("MP_Scint", z=6., a, density);
+  new G4Material("MP_Scint", z=6., a, density);
+
+  density = 1.e-6/760.0 * 1.29*mg/cm3; //0.001 of air density
+  pressure = 1.e-6/760.0 *atmosphere;
+  temperature = 293.15 *kelvin;
+  a = 28.97 *g/mole;
+
+  //G4Material* titanium = new G4Material("MP_Titanium", 22, 47.867*g/mole, 4.54*g/cm3);
+  new G4Material("MP_Titanium", 22, 47.867*g/mole, 4.54*g/cm3);
+
+  //G4Material* Vacuum = new G4Material("MP_Vacuum",z=1,a,density,kStateGas,temperature,pressure);
+  new G4Material("MP_Vacuum",z=1,a,density,kStateGas,temperature,pressure);
+
+  G4Material* Air    = new G4Material("MP_Air",    density=1.29*mg/cm3, nelements=2);
+  Air->AddElement(N, 79.0*perCent);
+  Air->AddElement(O, 21.0*perCent);
+
+  G4cout << G4endl << "The materials defined are : " << G4endl << G4endl;
+  G4cout << *(G4Material::GetMaterialTable()) << G4endl;
+}
+
+
+void MolPolDetectorConstruction::SetTargetThickness(G4double val){
+
+  fTargetFullLength = val;
+  fTargetVSolidTubs->SetZHalfLength( val / 2.0 );
+
+  if (!( fTargetPhysVolume )) {
+      G4cerr << "Target has not yet been constructed." << G4endl;
+      return;
+  }
+
+  // tell G4RunManager that we change the geometry
+  //G4RunManager::GetRunManager()->ReinitializeGeometry();  // THIS RESETS EVERYTHING, USE IF NEXT IS NOT SUFFICIENT
+  G4RunManager::GetRunManager()->GeometryHasBeenModified(); // IS THIS SUFFICIENT FOR SOLID CHANGE...???
+}
+
+
+void MolPolDetectorConstruction::SetTargetZPosition(G4double val){
+  fTargetBeamlinePz = val;
+
+  if (!( fTargetPhysVolume )) { //Check one of the jaws.
+      G4cerr << "Target has not yet been constructed." << G4endl;
+      return;
+  }
+
+  fTargetPhysVolume->SetTranslation( G4ThreeVector(fTargetBeamlinePx,fTargetBeamlinePy,fTargetBeamlinePz - fHelmCoilBeamPosZ) );
+  G4cout << "fTargetBeamlinePz: " << fTargetBeamlinePz << ", fHelmCoilBeamPosZ: " << fHelmCoilBeamPosZ << " [should be 6.9*cm]" << G4endl;
+
+  // tell G4RunManager that we changed the geometry
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+}
+
+
+void MolPolDetectorConstruction::SetDipolePbJawsGap(G4double val){
+  fLeadJawGapWidth = val;
+
+  if (!( fLeadJawsPhysicalLT && fLeadJawsPhysicalLB && fLeadJawsPhysicalRT && fLeadJawsPhysicalRB )) {
+      G4cerr << "Jaws have not yet been constructed." << G4endl;
+      return;
+  }
+
+  fLeadJawsPhysicalLT->SetTranslation( G4ThreeVector(-fLeadJawsXOrigin, (fLeadJawsYOrigin + (fLeadJawsHLength + (fLeadJawGapWidth/2.0))), fLeadJawsZOrigin) );
+  fLeadJawsPhysicalLB->SetTranslation( G4ThreeVector(-fLeadJawsXOrigin, (fLeadJawsYOrigin - (fLeadJawsHLength + (fLeadJawGapWidth/2.0))), fLeadJawsZOrigin) );
+  fLeadJawsPhysicalRT->SetTranslation( G4ThreeVector( fLeadJawsXOrigin, (fLeadJawsYOrigin + (fLeadJawsHLength + (fLeadJawGapWidth/2.0))), fLeadJawsZOrigin) );
+  fLeadJawsPhysicalRB->SetTranslation( G4ThreeVector( fLeadJawsXOrigin, (fLeadJawsYOrigin - (fLeadJawsHLength + (fLeadJawGapWidth/2.0))), fLeadJawsZOrigin) );
+
+  // tell G4RunManager that we change the geometry
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+}
+
+
+void MolPolDetectorConstruction::DefineGeometryCommands(){
+  fMessenger = new G4GenericMessenger(this,"/MolPol/Geo/","Geometry control");
+
+  // jaw width command
+  auto& dipolePbJawWidthCmd = fMessenger->DeclareMethodWithUnit("jawWidth","mm", &MolPolDetectorConstruction::SetDipolePbJawsGap, "Set Pb Jaw Width at Dipole Entrance in cm.");
+  dipolePbJawWidthCmd.SetParameterName("jawWidth", true);
+  dipolePbJawWidthCmd.SetRange("jawWidth >= 0 && jawWidth <=38 ");//BETWEEN 0 and 36mm
+
+  // target position command
+  auto& targetPositionZCmd  = fMessenger->DeclareMethodWithUnit("targetPosition","mm", &MolPolDetectorConstruction::SetTargetZPosition, "Sets target position according to the /MolPol/fz");
+  targetPositionZCmd.SetParameterName("targetPosition", true);
+  targetPositionZCmd.SetRange("targetPosition>=50 && targetPosition<=80"); //BETWEEN 66 and 70 mm
+
+  // target thickness command
+  auto& targetThicknessCmd  = fMessenger->DeclareMethodWithUnit("targetThickness","mm", &MolPolDetectorConstruction::SetTargetThickness, "Set Pb Jaw Width at Dipole Entrance in cm.");
+  targetThicknessCmd.SetParameterName("targetThickness", true);
+  targetThicknessCmd.SetRange("targetThickness >= 0. && targetThickness < 100");//TODO: SET LIMIT BETWEEN 1 and 100 microns AFTER TESTING
+
 }
