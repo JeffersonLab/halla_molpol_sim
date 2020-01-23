@@ -31,6 +31,11 @@
 /MolPol/beamRotZY         0.0     rad
 /MolPol/beamE             2.2     GeV
 
+#GEOMETRY MODIFIABLES
+/MolPol/Geo/jawWidth           0.6   cm
+/MolPol/Geo/targetPosition    64.7   mm
+/MolPol/Geo/targetThickness    0.01  mm
+
 #FIELD INFORMATION
 /field/MagSourceMode      1
 /field/setQ1T             0.28
