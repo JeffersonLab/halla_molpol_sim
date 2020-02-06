@@ -14,11 +14,7 @@ root 5.31 or better
 
 _Additional packages may be required for your system or particular options selected during Geant4 or Root installations._
 
-Program can be cloned from github with _git clone_ command from command line.
-
-After being downloaded you can enter the *halla_molpol_sim* and do the following.
-
-Create a build directory, use cmake & make to build the Geant4 application.
+Program can be cloned from github with _git clone_ command from command line. After being downloaded you can enter the *halla_molpol_sim* and do the following. Create a build directory, use cmake & make to build the Geant4 application.
 
 *mkdir build*
 *cd build*
@@ -34,15 +30,7 @@ To run in batch mode perform the following:
 ### Run With Visualization 
 ***
 
-To run with visualization, simply execute the MolPol program.
-
-_./MolPol_
-
-This will bring up the Qt/OGL Display.
-
-From here, as standard with G4 you can execute a macro with
-
-_control/execute yourMacro_
+To run with visualization, simply execute the MolPol program _./MolPol_ and this will bring up the Qt/OGL Display. From here, as standard with G4 you can execute a macro with _control/execute yourMacro_
 
 **Note: You shouldn't run with an excessive amount of events in visualization mode. It would be advisable to use custom MolPol macro options such as _krypteffect_ and _onlymollers_ to cut down on the number of rays which need to be drawn.** 
 
@@ -78,8 +66,8 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | /MolPol/xsmear   | Dbl w/ Unit | X Sigma of gaussian smear in beam profile. | 
 | /MolPol/ysmear   | Dbl w/ Unit | Y Sigma of gaussian smear in beam profile. | 
 | /MolPol/beamRotZX   | Dbl w/ Unit | Small angle beam-kick from Z->X in radians or degrees. | 
-| /MolPol/beamRotZY   Dbl w/ Unit |  | 
-| /MolPol/beamE  |  Dbl w/ Unit |  | 
+| /MolPol/beamRotZY | Dbl w/ Unit | Small angle beam-kick from Z->Y in radians or degrees. | 
+| /MolPol/beamE  |  Dbl w/ Unit | Beam energy (for 'beam' simulation or 'moller') | 
 | **GEOMETRY MODIFIABLES** | | | 
 | /MolPol/Geo/jawWidth  | Double w/ Unit | Total Pb jaw opening width | 
 | /MolPol/Geo/targetPosition  | Double w/ Unit | Target position on the beamline | 
