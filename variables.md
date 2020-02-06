@@ -27,7 +27,7 @@ To extract the information about the Z position of the vertex for the who partic
 
 ## Hit Data
 
-**_hitN_** is a scalar that defines (to you) the size of each of the arrays that contain information about a particle as it passed through a flux plane or hit a detector. Let's suppose two particles passed through 14 planes and each hit the detector; in this case, there would be 15 entries for each particle so **_hitN_** would be 30. Each recorded hit will tell you which detector **_hitDet_** and the information about the particle as it passed through that detector or flux plane.
+**_hitN_** is a scalar that defines (to you) the size of each of the arrays that contain information about a particle as it passed through a flux plane or hit a detector. Let's suppose two particles passed through 14 planes and each hit the detector; in this case, there would be 15 entries for each particle so **_hitN_** would be 30. Each recorded hit will tell you which detector **_hitDet_** and the information about the particle as it passed through a particular detector or flux plane.
 
 | Branch Name | Description |
 |:--------|:---------|
