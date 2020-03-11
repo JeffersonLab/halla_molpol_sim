@@ -1,6 +1,15 @@
 # Jefferson Lab Hall A Moller Polarimeter Simulation
 
-Simulation of the Thomas Jefferson National Accelerator Facility's Hall A Moller Polarimeter. 
+Simulation of the Thomas Jefferson National Accelerator Facility's Hall A Moller Polarimeter.
+
+## IMPORTANT NOTE FOR COMPILING THIS APPLICATION 
+
+This Geant4 application must be compiled with an up-to-date version of GCC. If running on the iFarm you __MUST__ do the following in order to be establish the proper software environment to compile the MolPol application.
+
+*source /apps/root/6.18.00/setroot_CUE*
+*source /site/12gev_phys/softenv.csh devel*
+
+You can then proceed as usual.  --Eric King  3/11/2020  (Thanks to Sakib Rahman who instructed me on how to get the proper gcc to compile something with c++17 syntax on iFarm.)
 
 ## General Information
 
