@@ -4,6 +4,7 @@
 #include "G4MagneticField.hh"
 #include "G4ThreeVector.hh"
 #include "G4SystemOfUnits.hh"
+#include <vector>
 
 class MolPolSolenoid : public G4MagneticField
 {
