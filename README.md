@@ -104,3 +104,39 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | /field/setQ6XRot     | Double w/ Unit | Offset for Helmholtz field in Y direction. |
 | /field/setQ6YRot     | Double w/ Unit | Offset for Helmholtz field in Y direction. |
 
+## Sensitive Detectors
+
+The following is a table of the Virtual "flux" Planes (VP) in the simulation
+
+| Detector Number      |        Description         |
+|:-------------|:--------------------|
+| 1 | VP Quad 1 Entrance |
+| 2 | VP Quad 1 Exit |
+| 3 | VP Quad 2 Entrance |
+| 4 | VP Quad 2 Exit |
+| 5 | VP Quad 3 Entrance |
+| 6 | VP Quad 3 Exit |
+| 7 | VP Quad 4 Entrance |
+| 8 | VP Quad 4 Exit |
+| 9 | VP Detector (Full Size) |
+| 10 | *Currently Unused* |
+| 11 | VP Hodoscope 1 |
+| 12 | VP Hodoscope 2 |
+| 13 | VP Detector Box |
+| 14 | VP Dipole Entrance |
+| 15 | VP Dipole Exit |
+| 100/101 - 190/191 | Left/Right Series of Flux Planes Through Dipole |
+
+1-8: The quadrupole flux planes seem self-explanatory.
+
+9: Detector flux plane. This covers the frontal area of the lead/spaghetti fibre detector.
+
+11: Hodoscope paddles.
+
+13: This plane covers the front of the detector box. *Potentially* useful if you want to know if you're clipping the box.
+
+14: Dipole entrance fixed to end of beam pipe.
+
+15: Dipole exit, square plane placed just past the titanium dipole exit windows.
+
+100+: Series of flux planes in the dipole which can be essential in understanding how the electron envelope moves through the dipole.
