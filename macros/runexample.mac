@@ -5,14 +5,14 @@
 /MolPol/filename          results_crex_6tube.root
 
 #GENERATOR EFFECTS
-/MolPol/calculateLevchuk  true
+/MolPol/calculateLevchuk  false
 /MolPol/targetPolPct      0.08012
-/MolPol/radCorrections    true
-/MolPol/remollMS          true
+/MolPol/radCorrections    false
+/MolPol/remollMS          false
 /MolPol/seed              5674661
 
 #STEPPING ACTION OPTIONS
-/MolPol/Step/krypteffect  false 
+/MolPol/Step/krypteffect  true 
 /MolPol/Step/onlymollers  true
 
 #GENERATED PHASE SPACE
@@ -33,7 +33,7 @@
 
 #GEOMETRY MODIFIABLES
 /MolPol/Geo/jawWidth           0.6   cm
-/MolPol/Geo/targetPosition    64.7   mm
+/MolPol/Geo/targetPosition    67.4   mm
 /MolPol/Geo/targetThickness    0.01  mm
 
 #FIELD INFORMATION
@@ -46,16 +46,16 @@
 /field/setQ6T             4.0
 
 #MAGNET OFFSET INFORMATION
-/field/setQ1YOffset       0.530   mm
-/field/setQ2XOffset       0.500   mm
-/field/setQ4XOffset       0.250   mm
-/field/setQ4YOffset       0.600   mm
+#/field/setQ1YOffset       0.530   mm
+#/field/setQ2XOffset       0.500   mm
+#/field/setQ4XOffset       0.250   mm
+#/field/setQ4YOffset       0.600   mm
 
 #YVES SOL OFFSETS 2019 MARCH 2.137 GeV X=.28mm,Y:-0.47,XROT:0.0042*deg,YROT:0.00077*deg
-/field/setQ6XOffset       0.28   mm
-/field/setQ6YOffset      -0.47    mm
-/field/setQ6XRot         -0.0042  deg
-/field/setQ6YRot          0.00077 deg
+#/field/setQ6XOffset       0.28   mm
+#/field/setQ6YOffset      -0.47    mm
+#/field/setQ6XRot         -0.0042  deg
+#/field/setQ6YRot          0.00077 deg
 
 #FIELD UPDATE COMMAND MUST BE MADE AFTER FIELD DEFINITIONS
 /field/update
