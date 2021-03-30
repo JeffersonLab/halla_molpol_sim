@@ -26,8 +26,11 @@ _Additional packages may be required for your system or particular options selec
 Program can be cloned from github with _git clone_ command from command line. After being downloaded you can enter the *halla_molpol_sim* and do the following. Create a build directory, use cmake & make to build the Geant4 application.
 
 *mkdir build*
+
 *cd build*
-*cmake* <path to MolPol>
+
+*cmake* [path to MolPol]
+  
 *make*
 
 Compiling the application this way should automatically copy the macros folder. You can start with the macro example named _runexmaple.mac_.
