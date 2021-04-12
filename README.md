@@ -150,6 +150,8 @@ The following is a table of the Virtual "flux" Planes (VP) in the simulation
 
 100+: Series of flux planes in the dipole which can be essential in understanding how the electron envelope moves through the dipole.
 
+200/201: GEM Trackers, if constructed, upstream at dipole exit and downstream before detector. Positions are managable by macro command.
+
 ## ROOT File Output
 
 Results of the simulation are stored in a root file. Details on the data structure of this file can be found in [variables.md](https://github.com/JeffersonLab/halla_molpol_sim/blob/master/variables.md)
