@@ -84,6 +84,10 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | /MolPol/Geo/jawWidth  | Double w/ Unit | Total Pb jaw opening width | 
 | /MolPol/Geo/targetPosition  | Double w/ Unit | Target position on the beamline | 
 | /MolPol/Geo/targetThickness | Double w/ Unit | Target thickness, can be modified to near zero (0) but not zero. | 
+| <span style="color:red">/MolPol/Geo/trackingUS_Pos_z</span> | Double w/ Unit  | Specifies z-position of upstream GEM tracking |
+| <span style="color:red">/MolPol/Geo/trackingDS_Pos_z</span> | Double w/ Unit | Specifies z-position of downstream GEM tracking |
+| <span style="color:red">/MolPol/Geo/buildTracking</span> |  | Initialize building of GEM solids and initializes detectors |
+| <span style="color:red">/MolPol/Geo/insertDipoleFluxPlanes</span> |  | (If desired) Insert inner-dipole flux planes for tracking |
 | **FIELD INFORMATION** | | |
 | /field/MagSourceMode   | Int | Souce Mode, 1: Using ideal pole tips | 
 | /field/setQ1T | Double No Unit | Pole tip of Q1 in teslas. | 
@@ -129,6 +133,8 @@ The following is a table of the Virtual "flux" Planes (VP) in the simulation
 | 14 | VP Dipole Entrance |
 | 15 | VP Dipole Exit |
 | 100/101 - 190/191 | Left/Right Series of Flux Planes Through Dipole |
+| 200 | Upstream GEM tracking (if used) | 
+| 201 | Downstream GEM tracking (if used) |
 
 1-8: The quadrupole flux planes seem self-explanatory.
 
