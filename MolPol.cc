@@ -4,48 +4,28 @@
 #include "MolPolPrimaryGeneratorAction.hh"
 #include "MolPolEventAction.hh"
 #include "MolPolSteppingAction.hh"
-
 #include "MolPolDetectorConstruction.hh"
-
 #include "MolPolIO.hh"
 #include "MolPolMessenger.hh"
 
-//  Standard physics list
+//Standard physics list
 #include "G4PhysListFactory.hh"
+
 #include "G4RunManager.hh"
-
 #include "G4UnitsTable.hh"
-
 #include "G4RunManagerKernel.hh"
 
-//to make gui.mac work
+//GUI Things
 #include <G4UImanager.hh>
 #include <G4UIExecutive.hh>
 #include <G4UIterminal.hh>
+#include <G4VisExecutive.hh>
 
-#include "G4GDMLParser.hh"
-
-#ifdef G4UI_USE_QT
-#include "G4UIQt.hh"
-#endif
-
-#ifdef G4UI_USE_XM
-#include "G4UIXm.hh"
-#endif
-
-#ifdef G4UI_USE_TCSH
-#include "G4UItcsh.hh"
-#endif
-
-#ifdef G4VIS_USE
-#include "G4VisExecutive.hh"
-#endif
+//Needed if GDML geomety ever implemented
+//#include "G4GDMLParser.hh"
 
 #include <sys/types.h>
 #include <sys/stat.h>
-
-// How do I change the display size of MolPol to be smaller for better viewing on small screens?
-// How do I get changes of MolPol detector construction and primary event generators to affect changes if the main function has already called the default values hardcoded inerDetectorConstruction* detector = new MolPolDetectorConstruction();
 
 int main(int argc, char** argv){
 
@@ -98,14 +78,7 @@ int main(int argc, char** argv){
     runManager->SetUserAction(stepping_action);
     rmmess->SetStepAct((MolPolSteppingAction *) stepping_action);
 
-    // Initialize Run manager
-		////////////////////////////////////////////////////////////////////////////
-		
     runManager->Initialize(); 
-
-		// do initialization in all macro files, 
-		//see remoll examples for assistance. 
-
 
     /*
     // Export gdml file
@@ -114,33 +87,7 @@ int main(int argc, char** argv){
     parser.Write("g4test.gdml", pWorld);
     */
 
-    G4UIsession* session = 0;
-
-    //----------------
-    // Visualization:
-    //----------------
-
-    if (argc==1)   // Define UI session for interactive mode.
-    {
-
-	// G4UIterminal is a (dumb) terminal.
-	
-#if defined(G4UI_USE_QT)
-	session = new G4UIQt(argc,argv);
-#elif defined(G4UI_USE_WIN32)
-	session = new G4UIWin32();
-#elif defined(G4UI_USE_XM)
-	session = new G4UIXm(argc,argv);
-#elif defined(G4UI_USE_TCSH)
-	session = new G4UIterminal(new G4UItcsh);
-#else
-	session = new G4UIterminal();
-#endif
-
-    }
-
-
-#ifdef G4VIS_USE
+    //NEW VISUALIZATION CODE--ERIC 6/22/2021 ... ISSUES RUNNING OLD CODE ON 10.7
     // Visualization, if you choose to have it!
     //
     // Simple graded message scheme - give first letter or a digit:
@@ -152,51 +99,26 @@ int main(int argc, char** argv){
     //  5) parameters,    // ...and parameters of scenes and views...
     //  6) all            // ...and everything available.
 
-    //this is the initializing the run manager?? Right?
-    G4VisManager* visManager = new G4VisExecutive;
-    //visManager -> SetVerboseLevel (1);
-    visManager ->Initialize();
-#endif
-
-    //get the pointer to the User Interface manager
-    G4UImanager * UI = G4UImanager::GetUIpointer();
-
-    if (session)   // Define UI session for interactive mode.
-    {
-	// G4UIterminal is a (dumb) terminal.
-	//UI->ApplyCommand("/control/execute myVis.mac");
-
-#if defined(G4UI_USE_XM) || defined(G4UI_USE_WIN32) || defined(G4UI_USE_QT)
-	// Customize the G4UIXm,Win32 menubar with a macro file :
-	UI->ApplyCommand("/control/execute macros/gui.mac");
-#endif
-
-	session->SessionStart();
-	delete session;
-    }
-    else           // Batch mode - not using the GUI
-    {
-#ifdef G4VIS_USE
-	visManager->SetVerboseLevel("quiet");
-#endif
-	//these line will execute a macro without the GUI
-	//in GEANT4 a macro is executed when it is passed to the command, /control/execute
+    G4UImanager *  uiManager  = G4UImanager::GetUIpointer();
+    G4VisManager * visManager = new G4VisExecutive("quiet");
+    visManager->Initialize();
+    visManager->SetVerboseLevel("quiet");
+	
+    if(argc==1){
+        //Visualization session :: qt, xm or win32 -- we could pass this as an option -- default to "qt" for now.
+        G4UIExecutive * session = new G4UIExecutive(argc,argv,"qt");
+        if( session->IsGUI() ) uiManager->ApplyCommand("/control/execute macros/gui.mac");
+        session->SessionStart();
+        delete session;
+    } else {
 	G4String command = "/control/execute ";
 	G4String fileName = argv[1];
-
-	/* Copy contents of macro into buffer to be written out
-	 * into ROOT file
-	 * */
-
-	UI->ApplyCommand(command+fileName);
+	uiManager->ApplyCommand(command+fileName);
     }
 
-    //if one used the GUI then delete it
-#ifdef G4VIS_USE
-    delete visManager;
-#endif
-
+    //clean up pointers
     delete runManager;
+    delete visManager;
 
     return 0;
 }
