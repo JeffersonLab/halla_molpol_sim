@@ -17,8 +17,8 @@ You can then proceed as usual.  --Eric King  3/11/2020  (Thanks to Sakib Rahman 
 
 Packages required to build this program:
 
-Geant 4.10 or better
-cmake v. 2.6 or better
+Geant 4.10.7 or better
+cmake v. 3.0 or better (_old versions of cmake being depricated, no problems noted requiring 3.0+_)
 root 5.31 or better
 
 _Additional packages may be required for your system or particular options selected during Geant4 or Root installations._
@@ -38,6 +38,8 @@ Compiling the application this way should automatically copy the macros folder. 
 To run in batch mode perform the following:
 
 *./MolPol runexample.mac* 
+
+_MolPol.cc revised, Qt visualization now default. Individuals using 4.10.7 having internal G4 errors compiling, so updated visualization code to manner in which it is now done in remoll. Visualization can be changed to Xm by modifying [string pass](https://github.com/JeffersonLab/halla_molpol_sim/blob/42950352b3f6b3713c50d90359244af1ba4a74ec/MolPol.cc#L109)._ --Eric King 06/23/2021
 
 ### Run With Visualization 
 ***
