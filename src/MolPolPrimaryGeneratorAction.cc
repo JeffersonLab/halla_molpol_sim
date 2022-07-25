@@ -351,7 +351,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //FINALIZE EVENT DATA FOR RECORDING
       fIO->SetEventData(fDefaultEvent);
     }
-      else if("LUND")
+      else if( gentype == "LUND")
     {
       if( fNLUNDLines < 1 )
   	  {
