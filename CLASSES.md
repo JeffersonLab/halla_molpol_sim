@@ -73,17 +73,15 @@ Messenger class for non-field non-geometry macros.
 ## `MolPolPrimaryGeneratorAction()`
 This is the event generator.
 
-Gener
-**Moller**: Generates moller pairs
-**LUND**: Generates events specified in a LUND file. 
-**Beam**: Generates single electrons using relevant options such as ***fx***, ***fy***, ***fz***, ***beamRot__*** and ***beamE***.
-
 |Generator| Brief Description |
 |----|------|
 | Moller | Generates Moller Pairs, general documentation on the computational methods used can be found in the Swartz paper [Observation of Target Electron Momentum Effects in Single-Arm Møller Polarimetry](https://www.sciencedirect.com/science/article/abs/pii/0168900295003843), in the J.P. Alexander paper [Radiative corrections to the  Z0  resonance](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.37.56), with an excellent reference on the Hydrogenlike Wavefunctions used for the iron target specified in the Swartz paper written by Don Jones in the Github Repository found [here](https://github.com/jonesdc76/MollerPolarimetry).    |
 | Beam   | Generates single electrons using relevant options such as ***fx***, ***fy***, ***fz***, ***beamRot__*** and ***beamE***. Can be useful if we're ever interested in what Geant4 says should be happening with beam on target .|
 | LUND   | Generates individual events based on specifications in LUND file.|
 | Inelastics (Coming soon) | Inelastic generator modeled after remoll inelastic generator. 
+
+### Levchuk Effect 
+Has been converted from old hydrogenic models to Hartree-Fock calculated models. Details of this are covered in [NIMA](https://www.sciencedirect.com/science/article/abs/pii/S0168900222007987) or, alternatively, [arXiv](https://arxiv.org/abs/2207.02150).
 
 ## `MolPolQuad()`
 Used to assign a quadrupole field in a specific volume.  Self explanatory. Takes the *field gradient* from pole tip to opposing pole tip, the *origin of the field* (where should the center of the field be), a *rotation matrix* (if necessary) and the radius of the quadrupole defined from center to one of the pole tips. 

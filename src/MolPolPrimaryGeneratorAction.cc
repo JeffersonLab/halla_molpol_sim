@@ -91,7 +91,7 @@ MolPolPrimaryGeneratorAction::MolPolPrimaryGeneratorAction()
 
   //INITIALIZE TARGET MOMENTUM DISTRIBUTION FOR LEVCHUK EFFECT
   InitTargetMomentum();
-
+  
   fNLUNDLines = 0;
 }
 
@@ -503,137 +503,101 @@ void MolPolPrimaryGeneratorAction::LevchukEffect() {
     G4double aaa = G4RandFlat::shoot(-1.,1.);
     G4double tgtMom = SampleTargetMomentum(1);
     fDefaultEvent->SetTargetMomentum( tgtMom );
-    //G4double pPol = 1e6 * tgtMom * aaa; //Used for printout in fortran
     fLEcorFac = 1 + tgtMom * aaa / (electron_mass_c2*0.001); //tgtMom returned in GeV ... need Me in GeV
     fLEtgtPol = 1;
   }else{
     G4double aaa = G4RandFlat::shoot(-1.,1.);
     G4double tgtMom = SampleTargetMomentum(0);
     fDefaultEvent->SetTargetMomentum( tgtMom );
-    //G4double pUnpol = 1e6 * tgtMom * aaa;//Used for printout in fortran
     fLEcorFac = 1 + tgtMom * aaa / (electron_mass_c2*0.001); //tgtMom returned in GeV ... need Me in Gev
     fLEtgtPol = 0;
   }
 }
 
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4double MolPolPrimaryGeneratorAction::SampleTargetMomentum(G4bool polarizationFlag) {
+G4double MolPolPrimaryGeneratorAction::SampleTargetMomentum(G4bool polFlag) {
   G4double rand  = G4RandFlat::shoot( 0., 1. );
-  G4double eMom(0),p0(0),p1(0);
-  for(int i = 0; i < eMomDistN; i++){
-    if(eMomDist[polarizationFlag][i] >= rand){
-      eMom = 2*i;
-      p0 = eMomDist[polarizationFlag][i-1];
-      p1 = eMomDist[polarizationFlag][i];
+
+  G4double eMom0(0),eMom1(0),p0(0),p1(0);
+  for(int i = 0; i < (Int_t)(fLevchukData.size()); i++){
+    if(fLevchukData[i][polFlag+1] >= rand){
+      eMom0 = fLevchukData[i-1][0];         //momentum #1
+      eMom1 = fLevchukData[i][0];           //momentum #2
+      p0    = fLevchukData[i-1][polFlag+1]; //cdf value #1
+      p1    = fLevchukData[i][polFlag+1];   //cdf value #2
       break;
     }
   }
 
-  //This is a (sort of) linear interpolation to get the momentum from the
-  //dice roll; divide by 1e6 to get to GeV/c
-  G4double sample = (eMom + 2 * (rand - p0) / (p1 - p0)) / 1e6;
+  //Linearly interpolate momentum
+  G4double sample = (eMom0 + (eMom1-eMom0) * (rand - p0) / (p1 - p0)) / 1e6;
+  
   return sample;
 }
-
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void MolPolPrimaryGeneratorAction::InitTargetMomentum() {
-  //refMom[] is the conversion factor from dimensionless momentum to keV for each
-  //successive shell (assuming screening). Iron atom specific.
-  G4double refMom[] = { 95.1, 76.5, 35.4, 5.60, 98.8, 80.2, 37.3, 5.60};
 
-  //initialize the eMomDist array, there are 150 bins (i) to be stored for polarized
-  //and unpolarized electrons (hence the [2][150] array).
-  for(int i = 0; i < eMomDistN; i++){
-    eMomDist[0][i]=0;
-    eMomDist[1][i]=0;
+  G4double read_nlines;
+  G4double read_momentum;
+  G4double read_unpolarized;
+  G4double read_polarized;
+
+  G4int    nlines = 0;
+
+  std::ifstream inputfile;
+  inputfile.open(fLevFilename.data());
+  
+  if (!inputfile.good() ){
+    G4cerr << "Error " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ") File " << fLevFilename << " could not open.  Aborting" << G4endl;
+    exit(1);
   }
 
-  //Calculates and stores the momentum distribution, this was SUMMOM in DG's original code.
-  for(int i = 0; i < eMomDistN; i++){
-    G4double maxMom = 2*(i+1);
-    G4int nStep(0);
-    //Define the number of steps to calculate the integrals of the electron momentum
-    //distribution for the FE atom. This must always be an even number of steps.
-    if(maxMom < 5){
-      nStep = 20;
-    } else {
-      nStep = 4*maxMom;
-    }
-    //xStep is the step size for the integration.
-    G4double xStep = maxMom / nStep;
-    //xSum is the integral
-    G4double xSum[2] = {0, 0};
-    //NOTE: THE INTEGRATION IS DONE ACCORDING TO SIMPSON'S COMPOSITE RULE...
-    for(int j = 0; j <= nStep; j++){
-      //self-explanator
-      G4double x = j * xStep;
-      //not sully sure that these 'momenta' are exactly... some sort of unitless momenta... :/
-      G4double p[8];
-      for(int k = 0; k < 8 ; k++){
-        p[k] = pow(x/refMom[k],2);
+  std::string inputline;
+  
+  getline(inputfile,inputline);
+  if (std::istringstream(inputline) >> read_nlines) {
+      lexExpLines = read_nlines;
+      nlines++;
+  } else {
+      G4cerr << "Error " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ") File " << fLevFilename << " contains invalid data on line 0. Aborting" << G4endl;
+      exit(1);
+  }
+  
+  for(Int_t i = 0; i < lexExpLines; i++){ 
+      getline(inputfile,inputline);
+      if (std::istringstream(inputline) >> read_momentum >> read_unpolarized >> read_polarized) {
+          std::vector < G4double > tempLevVec;
+          tempLevVec.push_back(read_momentum);
+          tempLevVec.push_back(read_unpolarized);
+          tempLevVec.push_back(read_polarized);
+          fLevchukData.push_back(tempLevVec);
+      } else {
+          G4cerr << "Error " << __PRETTY_FUNCTION__ << " line " << __LINE__ << ") File " << fLevFilename << " contains invalid data on line " << nlines << ". Aborting" << G4endl;
+          G4cerr << "Line in question:  " << inputline << G4endl;
+          exit(1);
       }
-      //xTmp1/2 are partial calculation of the integrand (hence temporary)
-      G4double xTmp1 = GetTmpUnpolDist(p,refMom,0);
-      G4double xTmp2 = GetTmpUnpolDist(p,refMom,4);
-      //xInt1 is the unpolarized distribution.  Although not noted in DG's original FORTRAN code, I assume that
-      //xInt2 is the polarized distribtuion.
-      G4double xInt1 = (xTmp1 + xTmp2) / 48.495;
-      G4double xInt2 = ( 570281 * pow(p[2],3) / pow(1 + 9 * p[2],8) / refMom[2] +
-                         570281 * pow(p[6],3) / pow(1 + 9 * p[6],8) / refMom[6])/2;
-      //Simpson's composite fules for coefficient selection: 2 for all (n/2 -1); 4 for all (n/2); and
-      //1 for the first and last terms.
-      G4double coeff = 2 + j%2 * 2;
-      if(j==0 || j==nStep) coeff=1;
-      //Sum up the integrands.
-      xSum[0] += coeff*xInt1;
-      xSum[1] += coeff*xInt2;
-    }//END THE FOR(j) LOOP
-    //Multiply by 1/3 of the step size to finish up Simpson's rule, and record the calculation.
-    eMomDist[0][i] = xStep/3 * xSum[0];
-    eMomDist[1][i] = xStep/3 * xSum[1];
-  }//END THE FOR(i) LOOP
-
-  //These remaining lines appear to be a normalizaton to get the continuous
-  //momentum distribution intialization arrays on a scale of [0,1] so that a momentum can
-  //be generated by rolling the die.
-  eMomDist[0][0] = 0;
-  eMomDist[1][0] = 0;
-  for(int i = 1; i < eMomDistN; i++){
-    eMomDist[0][i] /= eMomDist[0][eMomDistN - 1];
-    eMomDist[1][i] /= eMomDist[1][eMomDistN - 1];
   }
-  eMomDist[0][eMomDistN - 1] = 1;
-  eMomDist[1][eMomDistN - 1] = 1;
 
   /*
   G4cout << "Election Momenta Table" << G4endl;
   G4cout << "Bin, Unpolarized,  Polarized" << G4endl;
   G4cout << "==================================" << G4endl;
-  for(int i = 0; i < eMomDistN; i++){
-     G4cout << i << "," << std::setprecision(9) << eMomDist[0][i] << "," << std::setprecision(9) << eMomDist[1][i] << G4endl;
+  for(int i = 0; i < (Int_t)(fLevchukData.size()); i++){
+     for(Int_t j = 0; j < 3; j++){
+         G4cout << std::setprecision(10) << fLevchukData[i][j];
+         if(j <2) G4cout << "\t";
+         if(j==2) G4cout << G4endl;
+     }
   }
   */
 
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4double MolPolPrimaryGeneratorAction::GetTmpUnpolDist(const G4double p[8], const G4double refMom[8], const G4int k){
-  G4double oddValue = 3.79;
-  if(k == 4) oddValue = 4.705;
-  return
-    (2 * 10.1859 * p[0+k]) / (pow(1 + p[0+k],4) * refMom[0+k]) +
-    (2 * 325.949 * p[1+k] * pow(-1 + 4 * p[1+k],2) + 6 * 1738.4 * pow(p[1+k],2)) /(pow(1 + 4 * p[1+k],6) * refMom[1+k]) +
-    (2 * 275.02  * p[2+k] * pow(-1 + 4 * pow(-1 + 9 * p[2+k],2) / pow(1 + 9 * p[2+k],2),2)
-     / pow(1 + 9 * p[2+k],4) + (6 * 79205.7 * pow(p[2+k],2) * pow(-1 + 9 * p[2+k],2) + oddValue * 570281 * pow(p[2+k],3) )
-     /pow(1 + 9 * p[2+k],8) )/ refMom[2+k] +
-    (2 * 651.899 * p[3+k] * pow(-1 + 16 * p[3+k],2) * pow(-4 + 8 * pow(-1 + 16 * p[3+k],2) / pow(1 + 16 * p[3+k],2) ,2) )
-    / ( pow(1 + 16 * p[3+k],6) * refMom[3+k] );
-}
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
 
 ///**********************************************************
 ///This routine calculates the electron structure function

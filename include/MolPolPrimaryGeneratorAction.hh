@@ -9,6 +9,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <fstream>
+#include <vector>
 
 class MolPolDetectorConstruction;
 class G4ParticleGun;
@@ -58,29 +59,39 @@ public:
   G4double fBeamRotZY = 0.00 * rad;
 
 private:
-  MolPolEvent* fDefaultEvent;
-  G4ParticleGun* particleGun; //pointer a to G4  class
-  MolPolIO *fIO;
+  MolPolEvent   *fDefaultEvent; 
+  G4ParticleGun *particleGun;   //pointer a to G4  class
+  MolPolIO      *fIO;
+  
   G4String rndmFlag;     //flag for a rndm impact point
-  double angle;//in deg
+  G4double angle;        //in deg
   G4String gentype;
 
   //Levchuk effect
-  static const G4int eMomDistN = 150;
-  G4double eMomDist[2][eMomDistN];
+  void InitTargetMomentum();
+  G4String fLevFilename = "../levchukMomentaBulkIron.tab";
+  Int_t lexExpLines;
+  std::vector< std::vector< G4double > > fLevchukData;
+  
   void LevchukEffect();
   G4double fLEcorFac, fLEtgtPol;
   G4double SampleTargetMomentum(G4bool);
-  void InitTargetMomentum();
-  G4double GetTmpUnpolDist(const G4double p[8],const G4double refMom[8],const G4int k);
-  G4double GetElectronStructFct(G4double&, const G4double);
-  G4bool CheckLUNDFile(G4String LUNDfile_name);
 
+
+  //Radiative Corrections
+  G4double GetElectronStructFct(G4double&, const G4double);
+
+  //Using LUND File
+  G4bool CheckLUNDFile(G4String LUNDfile_name);
+  G4int    fNLUNDLines;
+  std::ifstream LUNDfile;
+  
+  //For Multiple Scatting using remoll model
   G4double fTargetA;
   G4double fTargetZ;
   G4double fTargetDensity;
-  G4int    fNLUNDLines;
-  std::ifstream LUNDfile;
+
+
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
