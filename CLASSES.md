@@ -75,7 +75,7 @@ This is the event generator.
 
 |Generator| Brief Description |
 |----|------|
-| Moller | Generates Moller Pairs, general documentation on the computational methods used can be found in the Swartz paper [Observation of Target Electron Momentum Effects in Single-Arm Møller Polarimetry](https://www.sciencedirect.com/science/article/abs/pii/0168900295003843), in the J.P. Alexander paper [Radiative corrections to the  Z0  resonance](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.37.56), with an excellent reference on the Hydrogenlike Wavefunctions used for the iron target specified in the Swartz paper written by Don Jones in the Github Repository found [here](https://github.com/jonesdc76/MollerPolarimetry).    |
+| Moller | Generates Moller Pairs, general documentation on the computational methods used can be found in the Swartz paper [Observation of Target Electron Momentum Effects in Single-Arm Møller Polarimetry](https://www.sciencedirect.com/science/article/abs/pii/0168900295003843), in the J.P. Alexander paper [Radiative corrections to the  Z0  resonance](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.37.56).    |
 | Beam   | Generates single electrons using relevant options such as ***fx***, ***fy***, ***fz***, ***beamRot__*** and ***beamE***. Can be useful if we're ever interested in what Geant4 says should be happening with beam on target .|
 | LUND   | Generates individual events based on specifications in LUND file.|
 | Inelastics (Coming soon) | Inelastic generator modeled after remoll inelastic generator. 
