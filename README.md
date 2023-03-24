@@ -1,3 +1,5 @@
+__This version of MolPol integrates TOSCA field map usage, from a 2018 branch, with the newest version of MolPol. Due to incompatibilities in development it was hand-merged with the current version. It has not been extensively tested at this point.__
+
 # Jefferson Lab Hall A Moller Polarimeter Simulation
 
 Simulation of the Thomas Jefferson National Accelerator Facility's Hall A Moller Polarimeter.
