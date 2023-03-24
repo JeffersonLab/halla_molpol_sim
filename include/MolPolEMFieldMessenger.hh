@@ -2,6 +2,7 @@
 #define MolPolEMFieldMessenger_h 1
 
 #include "G4UImessenger.hh"
+#include "G4UIcmdWithAString.hh"
 
 class MolPolEMFieldSetup;
 class G4UIdirectory;
@@ -57,6 +58,13 @@ class MolPolEMFieldMessenger: public G4UImessenger
 
     G4UIcmdWithADoubleAndUnit* fQ6XrotCmd;
     G4UIcmdWithADoubleAndUnit* fQ6YrotCmd;
+    
+    G4UIcmdWithAString*        fToscaQ1Cmd;
+    G4UIcmdWithAString*        fToscaQ2Cmd;
+    G4UIcmdWithAString*        fToscaQ3Cmd;
+    G4UIcmdWithAString*        fToscaQ4Cmd;
+    G4UIcmdWithAString*        fToscaQ5Cmd;
+    G4UIcmdWithAString*        fToscaQ6Cmd;
 
     G4UIcmdWithoutParameter*   fUpdateCmd;
 
