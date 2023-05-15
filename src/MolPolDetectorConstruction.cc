@@ -90,7 +90,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double world_x = 10*m;  G4double world_y = 10*m;  G4double world_z = 10*m;
   G4Box* world_box = new G4Box("World",world_x,world_y,world_z);
   G4LogicalVolume* world_log = new G4LogicalVolume(world_box,MolPol_Vacuum,"World",0,0,0);
-  world_log->SetVisAttributes(G4VisAttributes::Invisible);
+  world_log->SetVisAttributes(G4VisAttributes::GetInvisible() );
   G4VPhysicalVolume* world_phys = new G4PVPlacement(0,G4ThreeVector(),world_log,"World",0,false,fCheckOverlaps);
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
