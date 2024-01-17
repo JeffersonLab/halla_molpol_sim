@@ -7,9 +7,11 @@ Simulation of the Thomas Jefferson National Accelerator Facility's Hall A Moller
 This Geant4 application must be compiled with an up-to-date version of GCC. If running on the iFarm you __MUST__ do the following in order to be establish the proper software environment to compile the MolPol application.
 
 *source /apps/root/6.18.00/setroot_CUE*
-*source /site/12gev_phys/softenv.csh devel*
+*source /site/12gev_phys/softenv.csh 2.4*
 
-You can then proceed as usual.  --Eric King  3/11/2020  (Thanks to Sakib Rahman who instructed me on how to get the proper gcc to compile something with c++17 syntax on iFarm.)
+You can then proceed as usual.  --Eric King  
+
+Note: It's unclear why but MolPol doesn't function properly with SoftEnv version 2.6 so be sure to use 2.4 --Eric 01/17/2024
 
 ## General Information
 
