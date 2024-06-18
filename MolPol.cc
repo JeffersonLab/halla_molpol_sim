@@ -46,7 +46,7 @@ int main(int argc, char** argv){
     rmmess->SetIO(io);
 
     // Detector geometry
-    G4VUserDetectorConstruction* detector = new MolPolDetectorConstruction();
+    MolPolDetectorConstruction* detector = new MolPolDetectorConstruction();
     runManager->SetUserInitialization(detector);
     rmmess->SetDetCon( ((MolPolDetectorConstruction *) detector) );
 
