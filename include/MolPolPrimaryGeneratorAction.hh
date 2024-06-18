@@ -33,7 +33,7 @@ public:
     particleGun->SetParticleMomentumDirection(G4ThreeVector(0.,sin(rad),cos(rad)));
   }
   void SetIO( MolPolIO *io ){ fIO = io; }
-  void SetDetector( MolPolDetectorConstruction *det ){ fDet = det }
+  void SetDetector( MolPolDetectorConstruction *det ){ fDet = det; }
   void rand();
   double xPos(){return particleGun->GetParticlePosition().x();}
   double yPos(){return particleGun->GetParticlePosition().y();}
