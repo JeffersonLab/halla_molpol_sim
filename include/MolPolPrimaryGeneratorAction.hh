@@ -33,6 +33,7 @@ public:
     particleGun->SetParticleMomentumDirection(G4ThreeVector(0.,sin(rad),cos(rad)));
   }
   void SetIO( MolPolIO *io ){ fIO = io; }
+  void SetDetector( MolPolDetectorConstruction *det ){ fDet = det }
   void rand();
   double xPos(){return particleGun->GetParticlePosition().x();}
   double yPos(){return particleGun->GetParticlePosition().y();}
@@ -62,6 +63,7 @@ private:
   MolPolEvent   *fDefaultEvent; 
   G4ParticleGun *particleGun;   //pointer a to G4  class
   MolPolIO      *fIO;
+  MolPolDetectorConstruction *fDet;
   
   G4String rndmFlag;     //flag for a rndm impact point
   G4double angle;        //in deg
