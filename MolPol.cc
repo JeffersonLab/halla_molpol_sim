@@ -67,6 +67,7 @@ int main(int argc, char** argv){
 
     G4VUserPrimaryGeneratorAction* gen_action = new MolPolPrimaryGeneratorAction();
     ((MolPolPrimaryGeneratorAction *) gen_action)->SetIO(io);
+    ((MolPolPrimaryGeneratorAction *) gen_action)->SetDetector(detector);
     rmmess->SetPriGen((MolPolPrimaryGeneratorAction *)gen_action);
     runManager->SetUserAction(gen_action);
 
