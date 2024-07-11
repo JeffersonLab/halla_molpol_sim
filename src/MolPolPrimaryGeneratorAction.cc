@@ -264,8 +264,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       //CALCULATE THE M0LLER CROSS SECTION
       G4double cos2t = pow(cos(thcom),2);
       G4double sin2t = 1 - cos2t;
-      G4double sigma = pow(fine_structure_const,2) / s * pow(hbarc,2) *
-	      pow(3 + cos2t,2)/pow(sin2t,2) / (2 * electron_mass_c2 * beamE);
+      G4double sigma = pow(fine_structure_const,2) / s * pow(hbarc,2) * pow(3 + cos2t,2) / pow(sin2t,2);
 
       //CALCULATE INDV ELECTRON STRUCTURE FACTORS AND COMPLETE strFct
       G4double strFct1,strFct2,strFct3,strFct4,strFct;
