@@ -117,7 +117,7 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
       //get target thickness
       fTargLen = fDet->GetTargetFullLength();
-      G4cout << "Received target thickness from MolPolDetectorConstruction: " << fTargLen / mm << " mm." << G4endl; 
+      //G4cout << "Received target thickness from MolPolDetectorConstruction: " << fTargLen / mm << " mm." << G4endl; 
 
       //direction at face of Target
       G4double thcom = acos(G4RandFlat::shoot(cos(fthetaComMax), cos(fthetaComMin)));
