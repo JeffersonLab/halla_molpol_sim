@@ -310,15 +310,14 @@ void MolPolPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       G4double tX1 = tX + theta1 * cos(phcom);
       G4double tY1 = tY + theta1 * sin(phcom);
       G4double arg1 = 1 - tX1*tX1 - tY1*tY1;
-      G4double tZ1(0);
-      assert(arg1 >= 0 and "your tX1^2 + tY1^2 > 1");
+      G4double tZ1(0); //Original fortran code had if/else statment for tZ1/2, here we implement with intialization and if.
+      //assert(arg1 >= 0 and "your tX1^2 + tY1^2 > 1");
       if(arg1 > 0) tZ1 = sqrt(arg1);
       //electron #2
       G4double tX2 = tX + theta2 * cos(phcom + pi);
       G4double tY2 = tY + theta2 * sin(phcom + pi);
       G4double arg2 = 1 - tX2*tX2 - tY2*tY2;
-      G4double tZ2(0);
-      assert(arg2 >= 0 and "your tX2^2 + tY2^2 > 1");
+      G4double tZ2(0); //Original fortran code had if/else statment for tZ1/2, here we implement with intialization and if.
       if(arg2 > 0) tZ2 = sqrt(arg2);
 
       //STORE EVENT QUANTITIES OF IMPORTANCE
