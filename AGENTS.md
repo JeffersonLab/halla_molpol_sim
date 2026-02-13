@@ -1,0 +1,1 @@
+Please review rules in .cursor/

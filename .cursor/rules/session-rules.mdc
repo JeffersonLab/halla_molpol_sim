@@ -1,0 +1,44 @@
+---
+description: "session rules"
+alwaysApply: true
+---
+
+# Session Rules
+
+## Communication Style
+- Reply in a concise format unless prompted by user for specific details
+- If explaining GEANT4 behavior, provide brief context and link to relevant documentation
+- For code changes, show the specific changes needed rather than rewriting entire files
+
+## Decision Making
+- DO NOT MODIFY OR SUGGEST CHANGES to physics processes
+- DO NOT MODIFY OR SUGGEST CHANGES to geometry unless explicitly prompted by user
+- DO NOT MODIFY OR SUGGEST CHANGES to more than one file at a time
+- Make no assumptions about the underlying physics parameters or detector configuration
+- When uncertain ask the user rather than guessing
+- For GEANT4/ROOT API questions, prefer searching the codebase first to see existing patterns, then reviewing GEANT4/ROOT class references
+  - Ask user for preference if more than one method is available
+
+## GEANT4 Macro Handling
+- Maintain consistency with current macro creation methods
+- Only create macros with explicit instruction to do so from user 
+
+## Code Changes
+- When modifying detector geometry or physics processes, explain the expected impact on simulation
+- For macro file changes, show the specific command syntax following existing patterns in `macros/`
+- When adding new detectors or sensitive volumes, reference the detector numbering scheme in README.md
+
+## Context Awareness
+- Moller Polarimeter simulation in which the transportation of electrons to the detector is important
+  - Geometry is important 
+- When working with ROOT output, consider the ROOT tree/branch structure can be found in src/MolPolIO.cc
+  - Preservation of backward compatibility of ROOT data file structure is important
+    - Do not rename ROOT branch names
+  - Notify user if this must be updated to accomadate requests
+
+## Error Handling
+- For compilation errors, check GEANT4/ROOT version compatibility first
+  - This should generally not be an issue for GEANT4 4.10/11
+  - ROOT version 5 should be assumed, avoid ROOT 6 syntax and ROOT 6 specific classes.
+- Care should be given to always output potential errors encountered while running application.
+- When suggesting fixes, explain both the immediate fix and why the error occurred
