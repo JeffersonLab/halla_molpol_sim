@@ -1,0 +1,26 @@
+---
+description: "Cursor code quality and best practices"
+alwaysApply: true
+---
+
+# Code Quality Rules
+
+## Memory Management
+- Use `new` and `delete` for GEANT4 objects (GEANT4 manages its own memory)
+- Clean up pointers in destructors
+- Follow RAII principles where possible
+
+## Error Handling
+- Use assertions (`assert()`) for debugging critical conditions
+- Check return values from GEANT4 API calls
+- Validate input parameters in constructors
+
+## Comments and Documentation
+- Document class purpose with `/*! */` style comments at class definition
+- Explain complex physics calculations
+- Comment detector numbers and their meanings (see README.md for detector numbering scheme)
+
+## Consistency
+- Follow existing code patterns in the codebase
+- Maintain consistency with GEANT4 examples and conventions
+- Keep variable naming consistent with existing code (f-prefix for members)
