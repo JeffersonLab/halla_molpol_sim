@@ -32,8 +32,9 @@
 /MolPol/beamE             2.2     GeV
 
 #GEOMETRY MODIFIABLES
+/MolPol/Geo/internalDipoleVPs  false
 /MolPol/Geo/jawWidth           0.6   cm
-/MolPol/Geo/targetPosition    67.4   mm
+/MolPol/Geo/targetPosition     67.4   mm
 /MolPol/Geo/targetThickness    0.01  mm
 
 #FIELD INFORMATION

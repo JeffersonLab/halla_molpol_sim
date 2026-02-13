@@ -33,6 +33,7 @@ MolPolDetectorConstruction::MolPolDetectorConstruction():
   fCheckOverlaps(true),        //Check for overlaps, always.
   fTargetMaterial(0),
   fMessenger(nullptr),         //Prob not necessary since assigned in DefGeoCom() which is also run.
+  fEnableDipoleInternalVPlanes(false),  //Default: disabled (planes created but not sensitive)
   fLeadJawGapWidth(3.6*cm),    //Default jaw gap fully open.
   fTargetFullLength(0.013*mm), //Default target width 13 microns.
   fTargetFullRadius(15.0*mm),
@@ -520,26 +521,26 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double DPIzloc[10] = {-82.*cm,-63.*cm,-45.*cm,-27.*cm,-9.*cm,9.*cm,27.*cm,45.*cm,63.*cm,82.*cm};
   G4double DPIyloc = 0.0 * cm;
   G4VSolid * DPIVPbox = new G4Box("DipoleInternalVPlane",DPIVPHLX,DPIVPHLY,DPIVPHLZ);
-  G4LogicalVolume* DP0L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP0L",0,0,0);
-  G4LogicalVolume* DP0R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP0R",0,0,0);
-  G4LogicalVolume* DP1L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP1L",0,0,0);
-  G4LogicalVolume* DP1R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP1R",0,0,0);
-  G4LogicalVolume* DP2L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP2L",0,0,0);
-  G4LogicalVolume* DP2R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP2R",0,0,0);
-  G4LogicalVolume* DP3L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP3L",0,0,0);
-  G4LogicalVolume* DP3R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP3R",0,0,0);
-  G4LogicalVolume* DP4L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP4L",0,0,0);
-  G4LogicalVolume* DP4R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP4R",0,0,0);
-  G4LogicalVolume* DP5L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP5L",0,0,0);
-  G4LogicalVolume* DP5R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP5R",0,0,0);
-  G4LogicalVolume* DP6L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP6L",0,0,0);
-  G4LogicalVolume* DP6R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP6R",0,0,0);
-  G4LogicalVolume* DP7L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP7L",0,0,0);
-  G4LogicalVolume* DP7R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP7R",0,0,0);
-  G4LogicalVolume* DP8L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP8L",0,0,0);
-  G4LogicalVolume* DP8R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP8R",0,0,0);
-  G4LogicalVolume* DP9L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP9L",0,0,0);
-  G4LogicalVolume* DP9R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP9R",0,0,0);
+  DP0L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP0L",0,0,0);
+  DP0R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP0R",0,0,0);
+  DP1L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP1L",0,0,0);
+  DP1R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP1R",0,0,0);
+  DP2L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP2L",0,0,0);
+  DP2R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP2R",0,0,0);
+  DP3L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP3L",0,0,0);
+  DP3R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP3R",0,0,0);
+  DP4L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP4L",0,0,0);
+  DP4R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP4R",0,0,0);
+  DP5L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP5L",0,0,0);
+  DP5R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP5R",0,0,0);
+  DP6L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP6L",0,0,0);
+  DP6R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP6R",0,0,0);
+  DP7L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP7L",0,0,0);
+  DP7R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP7R",0,0,0);
+  DP8L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP8L",0,0,0);
+  DP8R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP8R",0,0,0);
+  DP9L = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP9L",0,0,0);
+  DP9R = new G4LogicalVolume(DPIVPbox, MolPol_Vacuum, "DP9R",0,0,0);
   DP0L->SetVisAttributes(VacVisAtt);
   DP0R->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0,G4ThreeVector(-DPIxloc,DPIyloc,DPIzloc[0]),DP0L,"DP0L",DLogical,0,0,fCheckOverlaps);
@@ -602,26 +603,6 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   SDman->AddNewDetector(DP8Rsd);
   SDman->AddNewDetector(DP9Lsd);
   SDman->AddNewDetector(DP9Rsd);
-  DP0L->SetSensitiveDetector(DP0Lsd);
-  DP0R->SetSensitiveDetector(DP0Rsd);
-  DP1L->SetSensitiveDetector(DP1Lsd);
-  DP1R->SetSensitiveDetector(DP1Rsd);
-  DP2L->SetSensitiveDetector(DP2Lsd);
-  DP2R->SetSensitiveDetector(DP2Rsd);
-  DP3L->SetSensitiveDetector(DP3Lsd);
-  DP3R->SetSensitiveDetector(DP3Rsd);
-  DP4L->SetSensitiveDetector(DP4Lsd);
-  DP4R->SetSensitiveDetector(DP4Rsd);
-  DP5L->SetSensitiveDetector(DP5Lsd);
-  DP5R->SetSensitiveDetector(DP5Rsd);
-  DP6L->SetSensitiveDetector(DP6Lsd);
-  DP6R->SetSensitiveDetector(DP6Rsd);
-  DP7L->SetSensitiveDetector(DP7Lsd);
-  DP7R->SetSensitiveDetector(DP7Rsd);
-  DP8L->SetSensitiveDetector(DP8Lsd);
-  DP8R->SetSensitiveDetector(DP8Rsd);
-  DP9L->SetSensitiveDetector(DP9Lsd);
-  DP9R->SetSensitiveDetector(DP9Rsd);
   //////////////////////////////////////////////////////////////////////////////
 
 
@@ -974,6 +955,88 @@ void MolPolDetectorConstruction::SetDipolePbJawsGap(G4double val){
   G4RunManager::GetRunManager()->GeometryHasBeenModified();
 }
 
+void MolPolDetectorConstruction::SetDPVPSensitiveDetectors(){
+  if(!DP0L){
+    G4cerr << "Dipole internal virtual planes have not yet been constructed." << G4endl;
+    return;
+  }
+
+  if(!fEnableDipoleInternalVPlanes) {
+    DP0L->SetSensitiveDetector(nullptr);
+    DP0R->SetSensitiveDetector(nullptr);
+    DP1L->SetSensitiveDetector(nullptr);
+    DP1R->SetSensitiveDetector(nullptr);
+    DP2L->SetSensitiveDetector(nullptr);
+    DP2R->SetSensitiveDetector(nullptr);
+    DP3L->SetSensitiveDetector(nullptr);
+    DP3R->SetSensitiveDetector(nullptr);
+    DP4L->SetSensitiveDetector(nullptr);
+    DP4R->SetSensitiveDetector(nullptr);
+    DP5L->SetSensitiveDetector(nullptr);
+    DP5R->SetSensitiveDetector(nullptr);
+    DP6L->SetSensitiveDetector(nullptr);
+    DP6R->SetSensitiveDetector(nullptr);
+    DP7L->SetSensitiveDetector(nullptr);
+    DP7R->SetSensitiveDetector(nullptr);
+    DP8L->SetSensitiveDetector(nullptr);
+    DP8R->SetSensitiveDetector(nullptr);
+    DP9L->SetSensitiveDetector(nullptr);
+    DP9R->SetSensitiveDetector(nullptr);
+    return;
+  }
+
+  G4SDManager* SDman = G4SDManager::GetSDMpointer();
+
+  // Safety check to ensure the SDs are registered before applying
+  if(!SDman->FindSensitiveDetector("dp0L", false) || !SDman->FindSensitiveDetector("dp0R", false)) {
+    G4cerr << "Dipole internal SD(s) not registered yet" << G4endl;
+    return;
+  }
+
+  DP0L->SetSensitiveDetector( SDman->FindSensitiveDetector("dp0L") );
+  DP0R->SetSensitiveDetector( SDman->FindSensitiveDetector("dp0R") );
+  DP1L->SetSensitiveDetector( SDman->FindSensitiveDetector("dp1L") );
+  DP1R->SetSensitiveDetector( SDman->FindSensitiveDetector("dp1R") );
+  DP2L->SetSensitiveDetector( SDman->FindSensitiveDetector("dp2L") );
+  DP2R->SetSensitiveDetector( SDman->FindSensitiveDetector("dp2R") );
+  DP3L->SetSensitiveDetector( SDman->FindSensitiveDetector("dp3L") );
+  DP3R->SetSensitiveDetector( SDman->FindSensitiveDetector("dp3R") );
+  DP4L->SetSensitiveDetector( SDman->FindSensitiveDetector("dp4L") );
+  DP4R->SetSensitiveDetector( SDman->FindSensitiveDetector("dp4R") );
+  DP5L->SetSensitiveDetector( SDman->FindSensitiveDetector("dp5L") );
+  DP5R->SetSensitiveDetector( SDman->FindSensitiveDetector("dp5R") );
+  DP6L->SetSensitiveDetector( SDman->FindSensitiveDetector("dp6L") );
+  DP6R->SetSensitiveDetector( SDman->FindSensitiveDetector("dp6R") );
+  DP7L->SetSensitiveDetector( SDman->FindSensitiveDetector("dp7L") );
+  DP7R->SetSensitiveDetector( SDman->FindSensitiveDetector("dp7R") );
+  DP8L->SetSensitiveDetector( SDman->FindSensitiveDetector("dp8L") );
+  DP8R->SetSensitiveDetector( SDman->FindSensitiveDetector("dp8R") );
+  DP9L->SetSensitiveDetector( SDman->FindSensitiveDetector("dp9L") );
+  DP9R->SetSensitiveDetector( SDman->FindSensitiveDetector("dp9R") );
+
+  // tell G4RunManager that we change the geometry
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+}
+
+void MolPolDetectorConstruction::SetDipoleInternalVPlanes(G4String val){
+  G4cout << "internalDipoleVPs macro value receive: " << val << G4endl;
+  if(val == "true"){
+    fEnableDipoleInternalVPlanes = true;
+  } 
+  else if(val == "false") {
+    fEnableDipoleInternalVPlanes = false;
+  } else {
+    G4cerr << "Invalid value for dipole internal virtual planes: " << val << G4endl;
+    return;
+  }
+  SetDPVPSensitiveDetectors();  // Update detector state (enables or disables based on flag)
+  if(fEnableDipoleInternalVPlanes) {
+    G4cout << "Dipole internal virtual planes are enabled." << G4endl;
+  } else {
+    G4cout << "Dipole internal virtual planes are disabled." << G4endl;
+  }
+}
+
 
 void MolPolDetectorConstruction::DefineGeometryCommands(){
   fMessenger = new G4GenericMessenger(this,"/MolPol/Geo/","Geometry control");
@@ -992,5 +1055,12 @@ void MolPolDetectorConstruction::DefineGeometryCommands(){
   auto& targetThicknessCmd  = fMessenger->DeclareMethodWithUnit("targetThickness","mm", &MolPolDetectorConstruction::SetTargetThickness, "Set Pb Jaw Width at Dipole Entrance in cm.");
   targetThicknessCmd.SetParameterName("targetThickness", true);
   targetThicknessCmd.SetRange("targetThickness >= 0. && targetThickness < 100");//TODO: SET LIMIT BETWEEN 1 and 100 microns AFTER TESTING
+
+  // dipole internal virtual planes command
+  auto& dipoleInternalVPlanesCmd =
+  fMessenger->DeclareMethod("internalDipoleVPs",
+                            &MolPolDetectorConstruction::SetDipoleInternalVPlanes,
+                            "Enable dipole internal VP sensitive detectors with 'true'");
+
 
 }

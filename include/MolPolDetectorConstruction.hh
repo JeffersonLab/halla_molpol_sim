@@ -24,6 +24,8 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
     void SetDipolePbJawsGap(G4double val);
     void SetTargetThickness(G4double val);
     void SetTargetZPosition(G4double val);
+    void SetDPVPSensitiveDetectors();
+    void SetDipoleInternalVPlanes(G4String val);
 
     void UpdateGeometry();
 
@@ -41,6 +43,8 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
 
     G4GenericMessenger *  fMessenger;
 
+    G4bool                fEnableDipoleInternalVPlanes;
+
     G4double              fLeadJawGapWidth;
     G4double              fLeadJawsHLength;
     G4double              fLeadJawsZOrigin;
@@ -50,6 +54,17 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
     G4VPhysicalVolume *   fLeadJawsPhysicalLB;
     G4VPhysicalVolume *   fLeadJawsPhysicalRT;
     G4VPhysicalVolume *   fLeadJawsPhysicalRB;
+
+    G4LogicalVolume *DP0L = nullptr, *DP0R = nullptr,
+                    *DP1L = nullptr, *DP1R = nullptr,
+                    *DP2L = nullptr, *DP2R = nullptr,
+                    *DP3L = nullptr, *DP3R = nullptr,
+                    *DP4L = nullptr, *DP4R = nullptr,
+                    *DP5L = nullptr, *DP5R = nullptr,
+                    *DP6L = nullptr, *DP6R = nullptr,
+                    *DP7L = nullptr, *DP7R = nullptr,
+                    *DP8L = nullptr, *DP8R = nullptr,
+                    *DP9L = nullptr, *DP9R = nullptr;
 
     G4VPhysicalVolume *   fTargetPhysVolume;
     G4double              fTargetFullLength;   //Used for Sanghwa's update to PrimaryGenerator and DetCon's Generic Messenger
