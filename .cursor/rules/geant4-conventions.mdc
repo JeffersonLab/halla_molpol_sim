@@ -1,3 +1,35 @@
 ---
-alwaysApply: true
+description: "GEANT4 framework conventions and patterns"
+globs: *.cc,*.hh
 ---
+
+# GEANT4 Conventions
+
+## Class Structure
+- Inherit from appropriate GEANT4 base classes (e.g., `G4VSensitiveDetector`, `G4VUserAction`)
+- Follow GEANT4 initialization patterns
+- Use GEANT4's RunManager, EventManager, and SteppingAction architecture
+
+## User Actions
+- `MolPolRunAction`: Handles run-level actions
+- `MolPolEventAction`: Handles event-level actions
+- `MolPolSteppingAction`: Handles stepping actions
+- `MolPolPrimaryGeneratorAction`: Generates primary particles
+
+## Detector Construction
+- `MolPolDetectorConstruction`: Sets up detector geometry
+- Sensitive detectors inherit from `G4VSensitiveDetector`
+- Detector hits inherit from `G4VHit`
+
+## Messenger Pattern
+- Use `G4UImessenger` for command-line interface
+- Commands follow pattern: `/MolPol/[category]/[command]`
+- Field commands follow pattern: `/field/[command]`
+
+## Physics Lists
+- Use `G4PhysListFactory` to get reference physics lists
+- Default: "FTFP_BERT" physics list
+
+## Random Number Generation
+- Use `G4Random` with `CLHEP::RanecuEngine`
+- Seed based on time: `G4int seconds = time(NULL); G4Random::setTheSeed(seconds);`
