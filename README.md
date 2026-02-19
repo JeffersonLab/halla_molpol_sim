@@ -90,9 +90,9 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | /MolPol/Geo/jawWidth  | Double w/ Unit | Total Pb jaw opening width | 
 | /MolPol/Geo/targetPosition  | Double w/ Unit | Target position on the beamline | 
 | /MolPol/Geo/targetThickness | Double w/ Unit | Target thickness, can be modified to near zero (0) but not zero. | 
-|| /MolPol/Geo/fluxVPs | String | Enable/disable sensitive detectors for flux virtual planes (detectors 1-8, 13-15). Use 'true' or 'false'. Default: false |
-|| /MolPol/Geo/internalDipoleVPs | String | Enable/disable sensitive detectors for dipole internal virtual planes (detectors 100-191). Use 'true' or 'false'. Default: false |
-|| /MolPol/Geo/activatePaddleVPs | String | Enable/disable sensitive detectors for paddle virtual planes (detectors 11-12). Use 'true' or 'false'. Default: false |
+| /MolPol/Geo/fluxVPs | String | Enable/disable sensitive detectors for flux virtual planes (detectors 1-8, 13-15). Use 'true' or 'false'. Default: false |
+| /MolPol/Geo/internalDipoleVPs | String | Enable/disable sensitive detectors for dipole internal virtual planes (detectors 100-191). Use 'true' or 'false'. Default: false |
+| /MolPol/Geo/activatePaddleVPs | String | Enable/disable sensitive detectors for paddle virtual planes (detectors 11-12). Use 'true' or 'false'. Default: false |
 | <span style="color:red">/MolPol/Geo/trackingUS_Pos_z</span> | Double w/ Unit  | Specifies z-position of upstream GEM tracking |
 | <span style="color:red">/MolPol/Geo/trackingDS_Pos_z</span> | Double w/ Unit | Specifies z-position of downstream GEM tracking |
 | <span style="color:red">/MolPol/Geo/buildTracking</span> |  | Initialize building of GEM solids and initializes detectors |
