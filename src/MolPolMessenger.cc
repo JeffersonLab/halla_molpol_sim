@@ -34,6 +34,9 @@ MolPolMessenger::MolPolMessenger(){
     fMolPolStepDir = new G4UIdirectory("/MolPol/Step/");
     fMolPolStepDir->SetGuidance("UI commands for MolPolSteppingAction");
 
+    fMolPolEventDir = new G4UIdirectory("/MolPol/Event/");
+    fMolPolEventDir->SetGuidance("UI commands for MolPolEventAction");
+
     fileCmd = new G4UIcmdWithAString("/MolPol/filename",this);
     fileCmd->SetGuidance("Output filename");
     fileCmd->SetParameterName("filename", false);
@@ -150,6 +153,10 @@ MolPolMessenger::MolPolMessenger(){
     fTrackMollersOnlyCmd->SetGuidance("Track/Record only Moller Electrons? True:On False:Off | Default: True");
     fTrackMollersOnlyCmd->SetParameterName("targetPolPct",false);
 
+    fEventIORecordHitsOnlyCmd = new G4UIcmdWithABool("/MolPol/Event/recordOnlyEventsWithHits",this);
+    fEventIORecordHitsOnlyCmd->SetGuidance("Record hits only? True:On False:Off | Default: False");
+    fEventIORecordHitsOnlyCmd->SetParameterName("recordOnlyEventsWithHits",false);
+
 }
 
 MolPolMessenger::~MolPolMessenger(){
@@ -175,6 +182,9 @@ MolPolMessenger::~MolPolMessenger(){
   delete fXCmd;
   delete fYCmd;
   delete fZCmd;
+  delete fStepActKryptEdgeCmd;
+  delete fTrackMollersOnlyCmd;
+  delete fEventIORecordHitsOnlyCmd;
 
 }
 
@@ -296,6 +306,9 @@ void MolPolMessenger::SetNewValue(G4UIcommand* cmd, G4String newValue){
   } else if( cmd == fTrackMollersOnlyCmd ){
     G4bool x = fTrackMollersOnlyCmd->GetNewBoolValue(newValue);
     fStepAct->SetMollerTracksOnly( x );
+  } else if( cmd == fEventIORecordHitsOnlyCmd ){
+    G4bool x = fEventIORecordHitsOnlyCmd->GetNewBoolValue(newValue);
+    fEvtAct->SetRecordHitsOnly( x );
   }
 
 }

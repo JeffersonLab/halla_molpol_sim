@@ -61,7 +61,7 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | **GENERAL**  | | |
 |/MolPol/gen   | String              | moller: moller scatter generator; LUND: generates from LUND file; beam: single beam | 
 |/MolPol/filename | String           | output file name for results 
-|**GENERATOR EFFECTS** | | |
+| **GENERATOR EFFECTS** | | |
 |/MolPol/calculateLevchuk |  Boolean | Introduce Levchuk Effect: true or false |
 |/MolPol/targetPolPct | Double no unit | Target polarization. Currently 0.08012
 |/MolPol/radCorrections | Boolean | Calculate all four (4) radiative corrections in moller diagram
@@ -70,6 +70,8 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | **STEPPING ACTION OPTIONS** | | | 
 | /MolPol/Step/krypteffect | Boolean | Stepping action, treat all materials besides target and dipoel exit windows as kryptonite.
 | /MolPol/Step/onlymollers | Boolean | Kill any particles that aren't the original two mollers.
+| **EVENT ACTION OPTIONS** | | |
+| /MolPol/Event/recordOnlyEventsWithHits | Boolean | Record only events with hits to ROOT file. True: only events with hits; False: record all events (default). <span style="color:red"><strong><em>A proper asymmetry cannot be calculated unless all event data is recorded.</em></strong></span>
 | **GENERATED PHASE SPACE** | | |
 | /MolPol/thcommin  | Dbl w/ Unit | Center of mass theta minimum for moller generation. | 
 | /MolPol/thcommax   | Dbl w/ Unit | Center of mass theta maximum for moller generation. | 

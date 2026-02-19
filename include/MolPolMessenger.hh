@@ -48,6 +48,7 @@ class MolPolMessenger : public G4UImessenger {
 
   G4UIdirectory *fMolPolMainDir;
   G4UIdirectory *fMolPolStepDir;
+  G4UIdirectory *fMolPolEventDir;
 
         //added in targpolcmd for testing/validation to avoid recompiling every time needed to change.
         G4UIcmdWithABool         *fLevchukEffectCmd;
@@ -89,6 +90,8 @@ class MolPolMessenger : public G4UImessenger {
 
     G4UIcmdWithABool         *fStepActKryptEdgeCmd;
     G4UIcmdWithABool         *fTrackMollersOnlyCmd;
+
+	G4UIcmdWithABool         *fEventIORecordHitsOnlyCmd;
 
 };
 

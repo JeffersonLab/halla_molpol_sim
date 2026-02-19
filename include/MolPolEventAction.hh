@@ -19,10 +19,12 @@ class MolPolEventAction : public G4UserEventAction
     virtual void EndOfEventAction(const G4Event*);
 
     void SetIO( MolPolIO *io ){ fIO = io; }
+    void SetRecordHitsOnly(G4bool val){ fRecordHitsOnly = val; }
 
   private:
 
     MolPolIO *fIO;
+    G4bool fRecordHitsOnly;
 
   public:
 };

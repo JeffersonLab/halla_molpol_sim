@@ -31,8 +31,11 @@
 /MolPol/beamRotZY         0.0     rad
 /MolPol/beamE             2.2     GeV
 
+#EVENT MACROS
+/MolPol/Event/recordOnlyEventsWithHits false
+
 #GEOMETRY MODIFIABLES
-/MolPol/Geo/jawWidth           0.6   cm
+/MolPol/Geo/jawWidth           3.6   cm
 /MolPol/Geo/targetPosition     67.4  mm
 /MolPol/Geo/targetThickness    0.01  mm
 /MolPol/Geo/fluxVPs            true

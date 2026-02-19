@@ -18,6 +18,7 @@
 //using namespace std;
 
 MolPolEventAction::MolPolEventAction() {
+  fRecordHitsOnly = false;
 }
 
 MolPolEventAction::~MolPolEventAction(){
@@ -41,27 +42,50 @@ void MolPolEventAction::EndOfEventAction(const G4Event* evt ) {
 
   G4VHitsCollection *thiscol;
 
-  
+  G4bool hasHits = false;
+  G4int totalHits = 0;
+  // Count total number o hits in the HC
+  for (int hcidx = 0; hcidx < HCE->GetCapacity(); hcidx++){
+    thiscol = HCE->GetHC(hcidx);
+    if(thiscol){
+      totalHits += thiscol->GetSize();
+    }
+  }
+  if(totalHits > 0){
+    hasHits = true;
+  }
+
   // Traverse all hit collections, sort by output type
   for( int hcidx = 0; hcidx < HCE->GetCapacity(); hcidx++ ){
       thiscol = HCE->GetHC(hcidx);
       if(thiscol){ // This is NULL if nothing is stored
-	  // Dyanmic cast to test types, process however see fit and feed to IO
-	  
-	  ////  Detector Hits ///////////////////////////////////
-	  if( MolPolDetectorHitsCollection *thiscast = 
-		  dynamic_cast<MolPolDetectorHitsCollection *>(thiscol)){
-	      for( unsigned int hidx = 0; hidx < thiscast->GetSize(); hidx++ ){
-		  fIO->AddDetectorHit(
-			  (MolPolDetectorHit *) thiscast->GetHit(hidx) );
-	      }
-	  }
+
+        //// Detector Hits ///////////////////////////////////
+        if( MolPolDetectorHitsCollection *thiscast = 
+            dynamic_cast<MolPolDetectorHitsCollection *>(thiscol)){
+            for( unsigned int hidx = 0; hidx < thiscast->GetSize(); hidx++ ){
+            fIO->AddDetectorHit(
+                (MolPolDetectorHit *) thiscast->GetHit(hidx) );
+            }
+        }
+        
       }
   }
   
   //cout << "Flushing" << endl;
   // Fill tree and reset buffers
-  fIO->FillTree();
+  if(fRecordHitsOnly){
+    // Only record events with hits
+    if(hasHits){
+      fIO->FillTree();
+      G4cout << "Filling tree for events with hits only" << G4endl;
+    }
+  } else {
+    // Record all events
+    fIO->FillTree();
+    G4cout << "[" << evt->GetEventID() << "] Filling tree for any event" << G4endl;
+  }
+
   fIO->Flush();
 
   return;

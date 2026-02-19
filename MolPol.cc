@@ -73,8 +73,9 @@ int main(int argc, char** argv){
 
     G4UserEventAction* event_action = new MolPolEventAction;
     ((MolPolEventAction *) event_action)->SetIO(io);
-
     runManager->SetUserAction(event_action);
+    rmmess->SetEvAct((MolPolEventAction *) event_action);
+
     G4UserSteppingAction* stepping_action = new MolPolSteppingAction;
     runManager->SetUserAction(stepping_action);
     rmmess->SetStepAct((MolPolSteppingAction *) stepping_action);
