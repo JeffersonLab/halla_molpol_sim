@@ -1,3 +1,26 @@
 ---
+description: "File organization and directory structure"
 alwaysApply: true
 ---
+
+# File Organization Rules
+
+## Directory Structure
+- All header files (`.hh`) go in `include/` directory
+- All source files (`.cc`) go in `src/` directory
+- Main executable file `MolPol.cc` stays in project root
+- Macro files (`.mac`) go in `macros/` directory
+- Visualization macros go in `vis/` directory
+- Python scripts go in `scripts/` directory
+- Shell scripts can be in `macros/` or `scripts/` directories
+
+## File Naming
+- C++ classes: `MolPol[ClassName].cc` and `MolPol[ClassName].hh`
+- Macros: descriptive names with `.mac` extension
+- Scripts: descriptive names with appropriate extension (`.sh`, `.pl`, `.py`)
+
+## Project Structure
+- This is a GEANT4 and ROOT application
+- Simulation is in GEANT4
+- Output is in ROOT file format
+- Codebase is primarily C++ (GEANT4/ROOT standard)
