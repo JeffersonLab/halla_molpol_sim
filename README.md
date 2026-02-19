@@ -90,6 +90,7 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | /MolPol/Geo/targetThickness | Double w/ Unit | Target thickness, can be modified to near zero (0) but not zero. | 
 || /MolPol/Geo/fluxVPs | String | Enable/disable sensitive detectors for flux virtual planes (detectors 1-8, 13-15). Use 'true' or 'false'. Default: false |
 || /MolPol/Geo/internalDipoleVPs | String | Enable/disable sensitive detectors for dipole internal virtual planes (detectors 100-191). Use 'true' or 'false'. Default: false |
+|| /MolPol/Geo/activatePaddleVPs | String | Enable/disable sensitive detectors for paddle virtual planes (detectors 11-12). Use 'true' or 'false'. Default: false |
 | <span style="color:red">/MolPol/Geo/trackingUS_Pos_z</span> | Double w/ Unit  | Specifies z-position of upstream GEM tracking |
 | <span style="color:red">/MolPol/Geo/trackingDS_Pos_z</span> | Double w/ Unit | Specifies z-position of downstream GEM tracking |
 | <span style="color:red">/MolPol/Geo/buildTracking</span> |  | Initialize building of GEM solids and initializes detectors |
@@ -133,8 +134,8 @@ The following is a table of the Virtual "flux" Planes (VP) in the simulation
 | 8 | VP Quad 4 Exit | `/MolPol/Geo/fluxVPs` |
 | 9 | VP Detector (Full Size) | Always active |
 | 10 | *Currently Unused* | N/A |
-| 11 | VP Hodoscope 1 | Always active |
-| 12 | VP Hodoscope 2 | Always active |
+| 11 | VP Hodoscope 1 | `/MolPol/Geo/activatePaddleVPs` |
+| 12 | VP Hodoscope 2 | `/MolPol/Geo/activatePaddleVPs` |
 | 13 | VP Detector Box | `/MolPol/Geo/fluxVPs` |
 | 14 | VP Dipole Entrance | `/MolPol/Geo/fluxVPs` |
 | 15 | VP Dipole Exit | `/MolPol/Geo/fluxVPs` |
@@ -148,7 +149,7 @@ The following is a table of the Virtual "flux" Planes (VP) in the simulation
 
 9: Detector flux plane. This covers the frontal area of the lead/spaghetti fibre detector. **Always active** - not controlled by any macro command.
 
-11-12: Hodoscope paddles. **Always active** - not controlled by any macro command.
+11-12: Hodoscope paddles. Controlled by `/MolPol/Geo/activatePaddleVPs` macro command (default: disabled). Use `true` to enable, `false` to disable.
 
 13-15: Controlled by `/MolPol/Geo/fluxVPs` macro command (default: disabled). Detector 13 covers the front of the detector box. Detector 14 is the dipole entrance fixed to end of beam pipe. Detector 15 is the dipole exit, square plane placed just past the titanium dipole exit windows.
 

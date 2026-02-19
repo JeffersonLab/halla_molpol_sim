@@ -35,6 +35,7 @@ MolPolDetectorConstruction::MolPolDetectorConstruction():
   fMessenger(nullptr),         //Prob not necessary since assigned in DefGeoCom() which is also run.
   fEnableDipoleInternalVPlanes(false),  //Default: disabled (planes created but not sensitive)
   fEnableFluxVPlanes(false),   //Default: disabled (planes created but not sensitive)
+  fEnablePaddleVPs(false),    //Default: disabled (planes created but not sensitive)
   fLeadJawGapWidth(3.6*cm),    //Default jaw gap fully open.
   fTargetFullLength(0.013*mm), //Default target width 13 microns.
   fTargetFullRadius(15.0*mm),
@@ -778,10 +779,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* APP1LSolid = new G4Box( "APP1LBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
   G4VSolid* APP1RSolid = new G4Box( "APP1RBOX", pAPP1HLX, pAPP1HLY, pAPP1HLZ );
   G4LogicalVolume* APP1LLogical = new G4LogicalVolume(APP1LSolid, MolPol_Scint, "APP1LLogical", 0,0,0);
-  // APP1LLogical->SetSensitiveDetector(APPSD1);
   APP1LLogical->SetVisAttributes(ScintVisAtt);
   G4LogicalVolume* APP1RLogical = new G4LogicalVolume(APP1RSolid, MolPol_Scint, "APP1RLogical", 0,0,0);
-  // APP1RLogical->SetSensitiveDetector(APPSD2);
   APP1RLogical->SetVisAttributes(ScintVisAtt);
   new G4PVPlacement(0, G4ThreeVector(    pAPP1Pos_X,pAPP1Pos_Y,pAPP1Pos_Z), APP1LLogical, "Detector_APP1L", MDETLogical, 0,0, fCheckOverlaps);
   new G4PVPlacement(0, G4ThreeVector(-1.*pAPP1Pos_X,pAPP1Pos_Y,pAPP1Pos_Z), APP1RLogical, "Detector_APP1R", MDETLogical, 0,0, fCheckOverlaps);
@@ -790,10 +789,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* VPHOD1Solid = new G4Box( "VPHOD1", pAPP1HLX, pAPP1HLY, pVPHODHLZ);
   G4VSolid* VPHOD2Solid = new G4Box( "VPHOD2", pAPP1HLX, pAPP1HLY, pVPHODHLZ);
   VPHOD1Logical = new G4LogicalVolume(VPHOD1Solid, MolPol_Vacuum, "VPHOD1Logical", 0,0,0);
-  VPHOD1Logical->SetSensitiveDetector(APPSD1);
   VPHOD1Logical->SetVisAttributes(VacVisAtt);
   VPHOD2Logical = new G4LogicalVolume(VPHOD2Solid, MolPol_Vacuum, "VPHOD2Logical", 0,0,0);
-  VPHOD2Logical->SetSensitiveDetector(APPSD2);
   VPHOD2Logical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0, G4ThreeVector(    pAPP1Pos_X,pAPP1Pos_Y,pAPP1Pos_Z-pAPP1HLZ-pVPHODHLZ), VPHOD1Logical, "APP1L-VP", MDETLogical, 0,0, fCheckOverlaps);
   new G4PVPlacement(0, G4ThreeVector(-1.*pAPP1Pos_X,pAPP1Pos_Y,pAPP1Pos_Z-pAPP1HLZ-pVPHODHLZ), VPHOD2Logical, "APP1R-VP", MDETLogical, 0,0, fCheckOverlaps);
@@ -1094,6 +1091,50 @@ void MolPolDetectorConstruction::SetFluxVPlanes(G4String val){
   }
 }
 
+void MolPolDetectorConstruction::SetPaddleVPSensitiveDetectors(){
+  if(!VPHOD1Logical){
+    G4cerr << "Paddle virtual planes have not yet been constructed." << G4endl;
+    return;
+  }
+
+  if(!fEnablePaddleVPs) {
+    VPHOD1Logical->SetSensitiveDetector(nullptr);
+    VPHOD2Logical->SetSensitiveDetector(nullptr);
+    return;
+  }
+
+  G4SDManager* SDman = G4SDManager::GetSDMpointer();
+  if(!SDman->FindSensitiveDetector("app1", false) || !SDman->FindSensitiveDetector("app2", false)) {
+    G4cerr << "Paddle VP SD(s) not registered yet" << G4endl;
+    return;
+  }
+
+  VPHOD1Logical->SetSensitiveDetector( SDman->FindSensitiveDetector("app1") );
+  VPHOD2Logical->SetSensitiveDetector( SDman->FindSensitiveDetector("app2") );
+
+  // tell G4RunManager that we change the geometry
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+}
+
+void MolPolDetectorConstruction::SetPaddleVPlanes(G4String val){
+  G4cout << "activatePaddleVPs macro value receive: " << val << G4endl;
+  if(val == "true"){
+    fEnablePaddleVPs = true;
+  } 
+  else if(val == "false") {
+    fEnablePaddleVPs = false;
+  } else {
+    G4cerr << "Invalid value for paddle virtual planes: " << val << G4endl;
+    return;
+  }
+  SetPaddleVPSensitiveDetectors();  // Update detector state (enables or disables based on flag)
+  if(fEnablePaddleVPs) {
+    G4cout << "Paddle virtual planes are enabled." << G4endl;
+  } else {
+    G4cout << "Paddle virtual planes are disabled." << G4endl;
+  }
+}
+
 
 void MolPolDetectorConstruction::DefineGeometryCommands(){
   fMessenger = new G4GenericMessenger(this,"/MolPol/Geo/","Geometry control");
@@ -1124,5 +1165,12 @@ void MolPolDetectorConstruction::DefineGeometryCommands(){
   fMessenger->DeclareMethod("fluxVPs",
                             &MolPolDetectorConstruction::SetFluxVPlanes,
                             "Enable flux VP sensitive detectors with 'true'");
+
+  // paddle virtual planes command
+  auto& paddleVPlanesCmd =
+  fMessenger->DeclareMethod("activatePaddleVPs",
+                            &MolPolDetectorConstruction::SetPaddleVPlanes,
+                            "Enable/disable sensitive detectors for paddle virtual planes (use 'true' or 'false').");
+  paddleVPlanesCmd.SetParameterName("enable", true);
 
 }

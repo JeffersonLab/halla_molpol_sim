@@ -37,6 +37,7 @@
 /MolPol/Geo/targetThickness    0.01  mm
 /MolPol/Geo/fluxVPs            true
 /MolPol/Geo/internalDipoleVPs  false
+/MolPol/Geo/activatePaddleVPs  false
 
 #FIELD INFORMATION
 /field/MagSourceMode      1

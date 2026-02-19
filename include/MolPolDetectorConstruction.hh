@@ -28,6 +28,8 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
     void SetDipoleInternalVPlanes(G4String val);
     void SetFluxVPSensitiveDetectors();
     void SetFluxVPlanes(G4String val);
+    void SetPaddleVPSensitiveDetectors();
+    void SetPaddleVPlanes(G4String val);
 
     void UpdateGeometry();
 
@@ -47,6 +49,7 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
 
     G4bool                fEnableDipoleInternalVPlanes;
     G4bool                fEnableFluxVPlanes;
+    G4bool                fEnablePaddleVPs;
 
     G4double              fLeadJawGapWidth;
     G4double              fLeadJawsHLength;
