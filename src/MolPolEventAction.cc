@@ -78,12 +78,10 @@ void MolPolEventAction::EndOfEventAction(const G4Event* evt ) {
     // Only record events with hits
     if(hasHits){
       fIO->FillTree();
-      G4cout << "Filling tree for events with hits only" << G4endl;
     }
   } else {
     // Record all events
     fIO->FillTree();
-    G4cout << "[" << evt->GetEventID() << "] Filling tree for any event" << G4endl;
   }
 
   fIO->Flush();

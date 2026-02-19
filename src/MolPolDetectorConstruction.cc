@@ -1156,13 +1156,13 @@ void MolPolDetectorConstruction::DefineGeometryCommands(){
 
   // dipole internal virtual planes command
   auto& dipoleInternalVPlanesCmd =
-  fMessenger->DeclareMethod("internalDipoleVPs",
+  fMessenger->DeclareMethod("activateInternalDipoleVPs",
                             &MolPolDetectorConstruction::SetDipoleInternalVPlanes,
                             "Enable dipole internal VP sensitive detectors with 'true'");
 
   // flux virtual planes command
   auto& fluxVPlanesCmd =
-  fMessenger->DeclareMethod("fluxVPs",
+  fMessenger->DeclareMethod("activateFluxTrackingVPs",
                             &MolPolDetectorConstruction::SetFluxVPlanes,
                             "Enable flux VP sensitive detectors with 'true'");
 

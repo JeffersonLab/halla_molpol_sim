@@ -38,8 +38,8 @@
 /MolPol/Geo/jawWidth           3.6   cm
 /MolPol/Geo/targetPosition     67.4  mm
 /MolPol/Geo/targetThickness    0.01  mm
-/MolPol/Geo/fluxVPs            true
-/MolPol/Geo/internalDipoleVPs  false
+/MolPol/Geo/activateFluxTrackingVPs            true
+/MolPol/Geo/activateInternalDipoleVPs  false
 /MolPol/Geo/activatePaddleVPs  false
 
 #FIELD INFORMATION
