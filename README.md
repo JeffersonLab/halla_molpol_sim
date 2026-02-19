@@ -88,6 +88,8 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | /MolPol/Geo/jawWidth  | Double w/ Unit | Total Pb jaw opening width | 
 | /MolPol/Geo/targetPosition  | Double w/ Unit | Target position on the beamline | 
 | /MolPol/Geo/targetThickness | Double w/ Unit | Target thickness, can be modified to near zero (0) but not zero. | 
+|| /MolPol/Geo/fluxVPs | String | Enable/disable sensitive detectors for flux virtual planes (detectors 1-8, 13-15). Use 'true' or 'false'. Default: false |
+|| /MolPol/Geo/internalDipoleVPs | String | Enable/disable sensitive detectors for dipole internal virtual planes (detectors 100-191). Use 'true' or 'false'. Default: false |
 | <span style="color:red">/MolPol/Geo/trackingUS_Pos_z</span> | Double w/ Unit  | Specifies z-position of upstream GEM tracking |
 | <span style="color:red">/MolPol/Geo/trackingDS_Pos_z</span> | Double w/ Unit | Specifies z-position of downstream GEM tracking |
 | <span style="color:red">/MolPol/Geo/buildTracking</span> |  | Initialize building of GEM solids and initializes detectors |
@@ -119,42 +121,40 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 
 The following is a table of the Virtual "flux" Planes (VP) in the simulation
 
-| Detector Number      |        Description         |
-|:-------------|:--------------------|
-| 1 | VP Quad 1 Entrance |
-| 2 | VP Quad 1 Exit |
-| 3 | VP Quad 2 Entrance |
-| 4 | VP Quad 2 Exit |
-| 5 | VP Quad 3 Entrance |
-| 6 | VP Quad 3 Exit |
-| 7 | VP Quad 4 Entrance |
-| 8 | VP Quad 4 Exit |
-| 9 | VP Detector (Full Size) |
-| 10 | *Currently Unused* |
-| 11 | VP Hodoscope 1 |
-| 12 | VP Hodoscope 2 |
-| 13 | VP Detector Box |
-| 14 | VP Dipole Entrance |
-| 15 | VP Dipole Exit |
-| 100/101 - 190/191 | Left/Right Series of Flux Planes Through Dipole |
-| 200 | Upstream GEM tracking (if used) | 
-| 201 | Downstream GEM tracking (if used) |
+| Detector Number      |        Description         | Macro Control |
+|:-------------|:--------------------|:--------------|
+| 1 | VP Quad 1 Entrance | `/MolPol/Geo/fluxVPs` |
+| 2 | VP Quad 1 Exit | `/MolPol/Geo/fluxVPs` |
+| 3 | VP Quad 2 Entrance | `/MolPol/Geo/fluxVPs` |
+| 4 | VP Quad 2 Exit | `/MolPol/Geo/fluxVPs` |
+| 5 | VP Quad 3 Entrance | `/MolPol/Geo/fluxVPs` |
+| 6 | VP Quad 3 Exit | `/MolPol/Geo/fluxVPs` |
+| 7 | VP Quad 4 Entrance | `/MolPol/Geo/fluxVPs` |
+| 8 | VP Quad 4 Exit | `/MolPol/Geo/fluxVPs` |
+| 9 | VP Detector (Full Size) | Always active |
+| 10 | *Currently Unused* | N/A |
+| 11 | VP Hodoscope 1 | Always active |
+| 12 | VP Hodoscope 2 | Always active |
+| 13 | VP Detector Box | `/MolPol/Geo/fluxVPs` |
+| 14 | VP Dipole Entrance | `/MolPol/Geo/fluxVPs` |
+| 15 | VP Dipole Exit | `/MolPol/Geo/fluxVPs` |
+| 100/101 - 190/191 | Left/Right Series of Flux Planes Through Dipole | `/MolPol/Geo/internalDipoleVPs` |
+| 200 | Upstream GEM tracking (if used) | N/A |
+| 201 | Downstream GEM tracking (if used) | N/A |
 
-1-8: The quadrupole flux planes seem self-explanatory.
+**Notes:**
 
-9: Detector flux plane. This covers the frontal area of the lead/spaghetti fibre detector.
+1-8: The quadrupole flux planes. Controlled by `/MolPol/Geo/fluxVPs` macro command (default: disabled). Use `true` to enable, `false` to disable.
 
-11: Hodoscope paddles.
+9: Detector flux plane. This covers the frontal area of the lead/spaghetti fibre detector. **Always active** - not controlled by any macro command.
 
-13: This plane covers the front of the detector box. *Potentially* useful if you want to know if you're clipping the box.
+11-12: Hodoscope paddles. **Always active** - not controlled by any macro command.
 
-14: Dipole entrance fixed to end of beam pipe.
+13-15: Controlled by `/MolPol/Geo/fluxVPs` macro command (default: disabled). Detector 13 covers the front of the detector box. Detector 14 is the dipole entrance fixed to end of beam pipe. Detector 15 is the dipole exit, square plane placed just past the titanium dipole exit windows.
 
-15: Dipole exit, square plane placed just past the titanium dipole exit windows.
+100-191: Series of flux planes in the dipole which can be essential in understanding how the electron envelope moves through the dipole. Controlled by `/MolPol/Geo/internalDipoleVPs` macro command (default: disabled). Use `true` to enable, `false` to disable.
 
-100+: Series of flux planes in the dipole which can be essential in understanding how the electron envelope moves through the dipole.
-
-200/201: GEM Trackers, if constructed, upstream at dipole exit and downstream before detector. Positions are managable by macro command.
+200/201: GEM Trackers, if constructed, upstream at dipole exit and downstream before detector. Positions are manageable by macro command.
 
 ## ROOT File Output
 
