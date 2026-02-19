@@ -26,6 +26,8 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
     void SetTargetZPosition(G4double val);
     void SetDPVPSensitiveDetectors();
     void SetDipoleInternalVPlanes(G4String val);
+    void SetFluxVPSensitiveDetectors();
+    void SetFluxVPlanes(G4String val);
 
     void UpdateGeometry();
 
@@ -44,6 +46,7 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
     G4GenericMessenger *  fMessenger;
 
     G4bool                fEnableDipoleInternalVPlanes;
+    G4bool                fEnableFluxVPlanes;
 
     G4double              fLeadJawGapWidth;
     G4double              fLeadJawsHLength;
@@ -65,6 +68,14 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
                     *DP7L = nullptr, *DP7R = nullptr,
                     *DP8L = nullptr, *DP8R = nullptr,
                     *DP9L = nullptr, *DP9R = nullptr;
+
+    G4LogicalVolume *Q1ENLogical = nullptr, *Q1EXLogical = nullptr,
+                    *Q2ENLogical = nullptr, *Q2EXLogical = nullptr,
+                    *Q3ENLogical = nullptr, *Q3EXLogical = nullptr,
+                    *Q4ENLogical = nullptr, *Q4EXLogical = nullptr,
+                    *VPHOD1Logical = nullptr, *VPHOD2Logical = nullptr,
+                    *VP1Logical = nullptr, *DipELogical = nullptr,
+                    *VP3Logical = nullptr;
 
     G4VPhysicalVolume *   fTargetPhysVolume;
     G4double              fTargetFullLength;   //Used for Sanghwa's update to PrimaryGenerator and DetCon's Generic Messenger

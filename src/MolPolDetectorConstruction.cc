@@ -34,6 +34,7 @@ MolPolDetectorConstruction::MolPolDetectorConstruction():
   fTargetMaterial(0),
   fMessenger(nullptr),         //Prob not necessary since assigned in DefGeoCom() which is also run.
   fEnableDipoleInternalVPlanes(false),  //Default: disabled (planes created but not sensitive)
+  fEnableFluxVPlanes(false),   //Default: disabled (planes created but not sensitive)
   fLeadJawGapWidth(3.6*cm),    //Default jaw gap fully open.
   fTargetFullLength(0.013*mm), //Default target width 13 microns.
   fTargetFullRadius(15.0*mm),
@@ -412,15 +413,15 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double         VBSolidHLZ = 0.00001*mm;
   G4double         VBSolidRad = 4.78*cm;
   G4VSolid*        VBSolid   = new G4Tubs("VBSolid",0,VBSolidRad, VBSolidHLZ ,0.0,360.0*deg);
-  G4LogicalVolume* Q1ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q1ENLogical",0,0,0);
-  G4LogicalVolume* Q1EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q1EXLogical",0,0,0);
-  G4LogicalVolume* Q2ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q2ENLogical",0,0,0);
-  G4LogicalVolume* Q2EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q2EXLogical",0,0,0);
-  G4LogicalVolume* Q3ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q3ENLogical",0,0,0);
-  G4LogicalVolume* Q3EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q3EXLogical",0,0,0);
-  G4LogicalVolume* Q4ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q4ENLogical",0,0,0);
-  G4LogicalVolume* Q4EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q4EXLogical",0,0,0);
-  G4LogicalVolume* DipELogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "DIPELogical",0,0,0);
+  Q1ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q1ENLogical",0,0,0);
+  Q1EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q1EXLogical",0,0,0);
+  Q2ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q2ENLogical",0,0,0);
+  Q2EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q2EXLogical",0,0,0);
+  Q3ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q3ENLogical",0,0,0);
+  Q3EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q3EXLogical",0,0,0);
+  Q4ENLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q4ENLogical",0,0,0);
+  Q4EXLogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "Q4EXLogical",0,0,0);
+  DipELogical = new G4LogicalVolume(VBSolid, MolPol_Vacuum, "DIPELogical",0,0,0);
 
   Q1ENLogical->SetVisAttributes(VacVisAtt);
   Q1EXLogical->SetVisAttributes(VacVisAtt);
@@ -466,16 +467,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   SDman->AddNewDetector(DETVP );
   SDman->AddNewDetector(DPIN  );
   SDman->AddNewDetector(DPOUT );
-
-  Q1ENLogical->SetSensitiveDetector(Q1ENSD);
-  Q1EXLogical->SetSensitiveDetector(Q1EXSD);
-  Q2ENLogical->SetSensitiveDetector(Q2ENSD);
-  Q2EXLogical->SetSensitiveDetector(Q2EXSD);
-  Q3ENLogical->SetSensitiveDetector(Q3ENSD);
-  Q3EXLogical->SetSensitiveDetector(Q3EXSD);
-  Q4ENLogical->SetSensitiveDetector(Q4ENSD);
-  Q4EXLogical->SetSensitiveDetector(Q4EXSD);
-  DipELogical->SetSensitiveDetector( DPIN );
+  // Sensitive detector assignment for detectors 1-8 and 13-15 controlled by fluxVPs macro command
+  // Detectors 9, 11, 12 are always active
 
   new G4PVPlacement(0, G4ThreeVector( 0, 0, -1.*pQ1HL + VBSolidHLZ ),       Q1ENLogical,   "VP.Q1.Entr", BPVacLogVol[1], 0, 0, fCheckOverlaps);
   new G4PVPlacement(0, G4ThreeVector( 0, 0,     pQ1HL - VBSolidHLZ ),       Q1EXLogical,   "VP.Q1.Exit", BPVacLogVol[1], 0, 0, fCheckOverlaps);
@@ -504,8 +497,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pVP3Pos_X  = 0.00  * cm;  G4double pVP3Pos_Y = -9.00  * cm;  G4double pVP3Pos_Z = (537.0*cm - 14.0*cm - pVP2HLZ);
 
   G4VSolid* VP3Solid  = new G4Box( "VP3BOX",  pVP2HLX, pVP2HLY, pVP2HLZ );
-  G4LogicalVolume* VP3Logical = new G4LogicalVolume(VP3Solid, MolPol_Vacuum, "VP3Logical", 0,0,0);
-  VP3Logical->SetSensitiveDetector( DPOUT );
+  VP3Logical = new G4LogicalVolume(VP3Solid, MolPol_Vacuum, "VP3Logical", 0,0,0);
+  // Sensitive detector assignment controlled by fluxVPs macro command
   VP3Logical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0,G4ThreeVector(pVP3Pos_X, pVP3Pos_Y, pVP3Pos_Z), VP3Logical, "VP.Dp.Exit", world_log, 0,0, fCheckOverlaps);
 
@@ -755,6 +748,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double CalVPHLZ = 0.00001 * cm;
   G4VSolid* SpagCalVPSolid  = new G4Box ( "SpagCalVPSolid"  , pSPCLHLX, pSPCLHLY, CalVPHLZ );
   G4LogicalVolume* SpagCalVpLogical = new G4LogicalVolume(SpagCalVPSolid, MolPol_Vacuum, "SpagCalVpLogical",0,0,0);
+  //This sets the flux plane that acts as our detector as active 
   SpagCalVpLogical->SetSensitiveDetector(DETSD);
   new G4PVPlacement(0 , G4ThreeVector(0. , 0. , -1.*pSPCLHLZ + CalVPHLZ ) , SpagCalVpLogical , "SpagCalor_VP" , SPCLLogical , 0 , 0 , fCheckOverlaps);
 
@@ -795,10 +789,10 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double  pVPHODHLZ = 0.0001 * cm;
   G4VSolid* VPHOD1Solid = new G4Box( "VPHOD1", pAPP1HLX, pAPP1HLY, pVPHODHLZ);
   G4VSolid* VPHOD2Solid = new G4Box( "VPHOD2", pAPP1HLX, pAPP1HLY, pVPHODHLZ);
-  G4LogicalVolume* VPHOD1Logical = new G4LogicalVolume(VPHOD1Solid, MolPol_Vacuum, "VPHOD1Logical", 0,0,0);
+  VPHOD1Logical = new G4LogicalVolume(VPHOD1Solid, MolPol_Vacuum, "VPHOD1Logical", 0,0,0);
   VPHOD1Logical->SetSensitiveDetector(APPSD1);
   VPHOD1Logical->SetVisAttributes(VacVisAtt);
-  G4LogicalVolume* VPHOD2Logical = new G4LogicalVolume(VPHOD2Solid, MolPol_Vacuum, "VPHOD2Logical", 0,0,0);
+  VPHOD2Logical = new G4LogicalVolume(VPHOD2Solid, MolPol_Vacuum, "VPHOD2Logical", 0,0,0);
   VPHOD2Logical->SetSensitiveDetector(APPSD2);
   VPHOD2Logical->SetVisAttributes(VacVisAtt);
   new G4PVPlacement(0, G4ThreeVector(    pAPP1Pos_X,pAPP1Pos_Y,pAPP1Pos_Z-pAPP1HLZ-pVPHODHLZ), VPHOD1Logical, "APP1L-VP", MDETLogical, 0,0, fCheckOverlaps);
@@ -809,13 +803,12 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pVP1HLX    = 37.00 * cm;  G4double pVP1HLY   = 50.00 * cm;  G4double pVP1HLZ   = 0.0001   * cm;
   G4double pVP1Pos_X  = 0.00  * cm;  G4double pVP1Pos_Y = -46.86* cm;  //G4double pVP1Pos_Z = 660.0 * cm;--Unneeded as it is 'pasted' onto the front of the Detector Box
   G4VSolid* VP1Solid  = new G4Box( "VP1BOX",  pVP1HLX, pVP1HLY, pVP1HLZ );
-  G4LogicalVolume* VP1Logical = new G4LogicalVolume(VP1Solid, MolPol_Vacuum, "VPDetector", 0,0,0);
-  VP1Logical->SetSensitiveDetector( DETVP );
+  VP1Logical = new G4LogicalVolume(VP1Solid, MolPol_Vacuum, "VPDetector", 0,0,0);
+  // Sensitive detector assignment controlled by fluxVPs macro command
   VP1Logical->SetVisAttributes( VacVisAtt );
   new G4PVPlacement(0,G4ThreeVector(pVP1Pos_X, pVP1Pos_Y, pMDBXPos_Z - pMDBXHLZ - pVP1HLZ ), VP1Logical, "VP.Detector.Entr", world_log, 0,0, fCheckOverlaps);
 
   G4cout << "Z-position of DetectorBox Virtual Plane " << pMDBXPos_Z - pMDBXHLZ - pVP1HLZ << G4endl;
-
 
   return world_phys;
 }
@@ -1037,6 +1030,70 @@ void MolPolDetectorConstruction::SetDipoleInternalVPlanes(G4String val){
   }
 }
 
+void MolPolDetectorConstruction::SetFluxVPSensitiveDetectors(){
+  if(!Q1ENLogical){
+    G4cerr << "Flux virtual planes have not yet been constructed." << G4endl;
+    return;
+  }
+
+  if(!fEnableFluxVPlanes) {
+    Q1ENLogical->SetSensitiveDetector(nullptr);
+    Q1EXLogical->SetSensitiveDetector(nullptr);
+    Q2ENLogical->SetSensitiveDetector(nullptr);
+    Q2EXLogical->SetSensitiveDetector(nullptr);
+    Q3ENLogical->SetSensitiveDetector(nullptr);
+    Q3EXLogical->SetSensitiveDetector(nullptr);
+    Q4ENLogical->SetSensitiveDetector(nullptr);
+    Q4EXLogical->SetSensitiveDetector(nullptr);
+    VP1Logical->SetSensitiveDetector(nullptr);
+    DipELogical->SetSensitiveDetector(nullptr);
+    VP3Logical->SetSensitiveDetector(nullptr);
+    return;
+  }
+
+  G4SDManager* SDman = G4SDManager::GetSDMpointer();
+
+  // Safety check to ensure the SDs are registered before applying
+  if(!SDman->FindSensitiveDetector("q1en", false) || !SDman->FindSensitiveDetector("q1ex", false)) {
+    G4cerr << "Flux VP SD(s) not registered yet" << G4endl;
+    return;
+  }
+
+  Q1ENLogical->SetSensitiveDetector( SDman->FindSensitiveDetector("q1en") );
+  Q1EXLogical->SetSensitiveDetector( SDman->FindSensitiveDetector("q1ex") );
+  Q2ENLogical->SetSensitiveDetector( SDman->FindSensitiveDetector("q2en") );
+  Q2EXLogical->SetSensitiveDetector( SDman->FindSensitiveDetector("q2ex") );
+  Q3ENLogical->SetSensitiveDetector( SDman->FindSensitiveDetector("q3en") );
+  Q3EXLogical->SetSensitiveDetector( SDman->FindSensitiveDetector("q3ex") );
+  Q4ENLogical->SetSensitiveDetector( SDman->FindSensitiveDetector("q4en") );
+  Q4EXLogical->SetSensitiveDetector( SDman->FindSensitiveDetector("q4ex") );
+  VP1Logical->SetSensitiveDetector( SDman->FindSensitiveDetector("vp") );
+  DipELogical->SetSensitiveDetector( SDman->FindSensitiveDetector("dpin") );
+  VP3Logical->SetSensitiveDetector( SDman->FindSensitiveDetector("dpout") );
+
+  // tell G4RunManager that we change the geometry
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+}
+
+void MolPolDetectorConstruction::SetFluxVPlanes(G4String val){
+  G4cout << "fluxVPs macro value receive: " << val << G4endl;
+  if(val == "true"){
+    fEnableFluxVPlanes = true;
+  } 
+  else if(val == "false") {
+    fEnableFluxVPlanes = false;
+  } else {
+    G4cerr << "Invalid value for flux virtual planes: " << val << G4endl;
+    return;
+  }
+  SetFluxVPSensitiveDetectors();  // Update detector state (enables or disables based on flag)
+  if(fEnableFluxVPlanes) {
+    G4cout << "Flux virtual planes are enabled." << G4endl;
+  } else {
+    G4cout << "Flux virtual planes are disabled." << G4endl;
+  }
+}
+
 
 void MolPolDetectorConstruction::DefineGeometryCommands(){
   fMessenger = new G4GenericMessenger(this,"/MolPol/Geo/","Geometry control");
@@ -1062,5 +1119,10 @@ void MolPolDetectorConstruction::DefineGeometryCommands(){
                             &MolPolDetectorConstruction::SetDipoleInternalVPlanes,
                             "Enable dipole internal VP sensitive detectors with 'true'");
 
+  // flux virtual planes command
+  auto& fluxVPlanesCmd =
+  fMessenger->DeclareMethod("fluxVPs",
+                            &MolPolDetectorConstruction::SetFluxVPlanes,
+                            "Enable flux VP sensitive detectors with 'true'");
 
 }
