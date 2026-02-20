@@ -283,22 +283,24 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
                            pDMFRPos_Z + pDMBHPos_Z + pDMS1Pos_Z + pDBV1Pos_Z) );
 
   // Create Sub0 which subtracts the sub4 volume from the DMagSolid Volume, create DLogical from sub0, and place as before.
-  G4SubtractionSolid* sub0 = new G4SubtractionSolid("sub0", DMagSolid , sub4 , 0 , G4ThreeVector (0,0,0));
+  G4SubtractionSolid* sub0 = new G4SubtractionSolid("sub0", DMagSolid , sub2 , 0 , G4ThreeVector (0,0,0));
   G4LogicalVolume* DLogical = new G4LogicalVolume ( sub0, MolPol_Vacuum, "DipoleMag", 0, 0, 0);
   DLogical->SetFieldManager(DFieldManager,allLocal);
   DLogical->SetVisAttributes(VacVisAtt);
-  new G4PVPlacement(0,G4ThreeVector(pDMagPos_X, pDMagPos_Y - 9*cm, pDMagPos_Z), DLogical,"DipoleMag",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(pDMagPos_X, pDMagPos_Y - 9*cm, pDMagPos_Z), DLogical,"DipoleMagFieldVolume",world_log,0,0,fCheckOverlaps);
+
   //Create the sub4 logical volume and place this in the WORLD_LOG not the DipoleMag volume.
   G4LogicalVolume* sub4Logical = new G4LogicalVolume ( sub4, MolPol_SiliSteel, "DipoleVacuumBox", 0, 0, 0);
   sub4Logical->SetVisAttributes(SteelVisAtt);
   new G4PVPlacement(0,G4ThreeVector(pDBI1Pos_X, pDBI1Pos_Y, pDBI1Pos_Z),sub4Logical,"DipoleVacuumBox",world_log,0,0,fCheckOverlaps);
+
   //This is the back dipole window. Start with the steel plate, take out the windows (DBW3/4), cut out the beampipe hole (DBW2)
   G4SubtractionSolid* sub9  = new G4SubtractionSolid("sub9" , DBW1Solid, DBW2Solid, 0, G4ThreeVector(pDBW2Pos_X, pDBW2Pos_Y, pDBW2Pos_Z) );
   G4SubtractionSolid* sub10 = new G4SubtractionSolid("sub10", sub9     , DBW3Solid, 0, G4ThreeVector(pDBW3Pos_X, pDBW3Pos_Y, pDBW3Pos_Z) );
   G4SubtractionSolid* sub11 = new G4SubtractionSolid("sub11", sub10    , DBW4Solid, 0, G4ThreeVector(pDBW4Pos_X, pDBW4Pos_Y, pDBW4Pos_Z) );
   G4LogicalVolume* sub11Logical = new G4LogicalVolume ( sub11, MolPol_SiliSteel, "sub13Logical", 0, 0, 0);
   sub11Logical->SetVisAttributes(SteelVisAtt);
-  new G4PVPlacement(0,G4ThreeVector(pDBW1Pos_X, pDBW1Pos_Y, pDBW1Pos_Z),sub11Logical,"DipoleVacuumBox",world_log,0,0,fCheckOverlaps);
+  new G4PVPlacement(0,G4ThreeVector(pDBW1Pos_X, pDBW1Pos_Y, pDBW1Pos_Z),sub11Logical,"DipoleVacuumBoxEndplate",world_log,0,0,fCheckOverlaps);
   //Thin titanium windows for the dipole exit windows, must be placed at z = pDBW1Pos_Z and place at the positions of the cutouts (pDBW3/4) plus the dipole vacuum box Y offset
   G4LogicalVolume* DipoleExitWindowLLogical = new G4LogicalVolume ( DBT3Solid, MolPol_Titanium, "DipoleExitWindowL", 0, 0, 0);
   G4LogicalVolume* DipoleExitWindowRLogical = new G4LogicalVolume ( DBT4Solid, MolPol_Titanium, "DipoleExitWindowR", 0, 0, 0);
