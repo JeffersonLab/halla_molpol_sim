@@ -22,7 +22,7 @@ MolPolRunAction::~MolPolRunAction()
 void MolPolRunAction::BeginOfRunAction(const G4Run* aRun)
 {
   G4cout << "### Run " << aRun->GetRunID() << " start." << G4endl;
-  //  timer->Start();
+  timer->Start();
   fIO->InitializeTree();
 
 }
@@ -30,8 +30,10 @@ void MolPolRunAction::BeginOfRunAction(const G4Run* aRun)
 void MolPolRunAction::EndOfRunAction(const G4Run* aRun)
 {
   timer->Stop();
-  G4cout << "number of event = " << aRun->GetNumberOfEvent() << G4endl;
-  //       << " " << *timer << G4endl;
+  G4cout << "Total Number of Events = " << aRun->GetNumberOfEvent()  << G4endl;
+  G4cout << "     User Elapsed Time = " << std::fixed << std::setprecision(2) << timer->GetUserElapsed()   << " seconds" << G4endl;
+  G4cout << "   + Syst Elapsed Time = " << std::fixed << std::setprecision(2) << timer->GetSystemElapsed() << " seconds" << G4endl;
+  G4cout << "   = Real Elapsed Time = " << std::fixed << std::setprecision(2) << timer->GetRealElapsed()   << " seconds" << G4endl;
 
   fIO->WriteTree();
 }
