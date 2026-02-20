@@ -726,7 +726,13 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VSolid* SPCLSolid  = new G4Box ( "SPCLBox"  , pSPCLHLX, pSPCLHLY, pSPCLHLZ );
 
   G4SubtractionSolid* sub5 = new G4SubtractionSolid("sub5", MDBXSolid, MDBASolid, 0    , G4ThreeVector(pMDBAPos_X, pMDBAPos_Y, pMDBAPos_Z) );
-  G4SubtractionSolid* sub6 = new G4SubtractionSolid("sub6", sub5     , MDBWSolid, pRot9, G4ThreeVector(pMDBWPos_X, pMDBWPos_Y, pMDBWPos_Z) );
+  
+  //Sub5 must also have a section taken out to account for the beamline passthrough. Measurements must have been
+  //based off the steel frame sides of the box, which have a lip to contain Pb bricks used as shielding.
+  G4VSolid* MDETBeamlinePassThroughSubSolid = new G4Box("MDETBeamlinePassThroughSubSolid",2.55*cm, 2.55*cm, pMDBXHLZ*1.1);
+  G4SubtractionSolid* sub5b= new G4SubtractionSolid("sub5b", sub5, MDETBeamlinePassThroughSubSolid, 0, G4ThreeVector(0,pMDBXHLY,0));
+
+  G4SubtractionSolid* sub6 = new G4SubtractionSolid("sub6", sub5b     , MDBWSolid, pRot9, G4ThreeVector(pMDBWPos_X, pMDBWPos_Y, pMDBWPos_Z) );
   G4SubtractionSolid* sub7 = new G4SubtractionSolid("sub7", sub6     , MDBLSolid, pRot9, G4ThreeVector(pMDBLPos_X, pMDBLPos_Y, pMDBLPos_Z) );
   G4LogicalVolume* MDBXLogical = new G4LogicalVolume ( sub7, MolPol_Lead, "Detector_MDBX", 0, 0, 0);
   G4VisAttributes *MDBXVisAtt(PbVisAtt);
