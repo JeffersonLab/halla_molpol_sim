@@ -151,8 +151,9 @@ The following is a table of the Virtual "flux" Planes (VP) in the simulation
 | 14 | VP Dipole Entrance | `/MolPol/Geo/activateFluxTrackingVPs` |
 | 15 | VP Dipole Exit | `/MolPol/Geo/activateFluxTrackingVPs` |
 | 100/101 - 190/191 | Left/Right Series of Flux Planes Through Dipole | `/MolPol/Geo/activateInternalDipoleVPs` |
-| 200 | Upstream GEM tracking (if used) | N/A |
-| 201 | Downstream GEM tracking (if used) | N/A |
+| 200 | Upstream GEM tracker (GEM1) | `/MolPol/Geo/buildTracking` |
+| 201 | Middle GEM tracker (GEM2) | `/MolPol/Geo/buildTracking` |
+| 202 | Downstream GEM tracker (GEM3) | `/MolPol/Geo/buildTracking` |
 
 **Notes:**
 
@@ -166,7 +167,7 @@ The following is a table of the Virtual "flux" Planes (VP) in the simulation
 
 100-191: Series of flux planes in the dipole which can be essential in understanding how the electron envelope moves through the dipole. Controlled by `/MolPol/Geo/activateInternalDipoleVPs` macro command (default: disabled). Use `true` to enable, `false` to disable.
 
-200/201: GEM Trackers, if constructed, upstream at dipole exit and downstream before detector. Positions are manageable by macro command.
+200-202: GEM trackers (upstream, middle, downstream). Sensitive detectors are attached when you run the build GEM tracking macro `/MolPol/Geo/buildTracking` (typically after `/run/initialize`). Positions are set via `/MolPol/Geo/GEM1X`, `GEM1Y`, `GEM1Z`, etc., or `trackingUS_Pos_z`, `trackingMD_Pos_z`, `trackingDS_Pos_z`.
 
 ## ROOT File Output
 
