@@ -27,6 +27,10 @@
 #include "G4VisAttributes.hh"
 #include "G4RunManager.hh"
 #include "G4GenericMessenger.hh"
+#include "G4NistManager.hh"
+#include <functional>
+#include <string>
+#include <cstdlib>
 
 MolPolDetectorConstruction::MolPolDetectorConstruction():
   mEMFieldSetup(0),
@@ -36,12 +40,32 @@ MolPolDetectorConstruction::MolPolDetectorConstruction():
   fEnableDipoleInternalVPlanes(false),  //Default: disabled (planes created but not sensitive)
   fEnableFluxVPlanes(false),   //Default: disabled (planes created but not sensitive)
   fEnablePaddleVPs(false),    //Default: disabled (planes created but not sensitive)
+  fGEMTr1Pos_X(0.0*cm),
+  fGEMTr1Pos_Y(-31.82*cm),
+  fGEMTr1Pos_Z(560.0*cm),
+  fGEMTr2Pos_X(0.0*cm),
+  fGEMTr2Pos_Y(-36.6206*cm),
+  fGEMTr2Pos_Z(608.6156*cm),
+  fGEMTr3Pos_X(0.0*cm),
+  fGEMTr3Pos_Y(-40.075*cm),
+  fGEMTr3Pos_Z(656.7486*cm),
+  fTrackingSolidUS(nullptr),
+  fTrackingSolidMD(nullptr),
+  fTrackingSolidDS(nullptr),
+  fTrackingLogicalUS(nullptr),
+  fTrackingLogicalMD(nullptr),
+  fTrackingLogicalDS(nullptr),
+  fTrackingPhysVolUS(nullptr),
+  fTrackingPhysVolMD(nullptr),
+  fTrackingPhysVolDS(nullptr),
   fLeadJawGapWidth(3.6*cm),    //Default jaw gap fully open.
   fTargetFullLength(0.013*mm), //Default target width 13 microns.
   fTargetFullRadius(15.0*mm),
   fTargetBeamlinePx( 0.0*mm),
   fTargetBeamlinePy( 0.0*mm),
-  fTargetBeamlinePz(67.4*mm)   //Default target-center position on beamline.
+  fTargetBeamlinePz(67.4*mm),  //Default target-center position on beamline.
+  fHelmCoilBeamPosZ(0.),       // set in Construct()
+  fTargetVSolidTubs(nullptr)   // set in Construct()
 {
   DefineGeometryCommands();
 }
@@ -69,6 +93,12 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   auto MolPol_Stainless = G4Material::GetMaterial("MP_StainlessSteel304");
   auto MolPol_Titanium  = G4Material::GetMaterial("MP_Titanium");
   auto MolPol_Vacuum    = G4Material::GetMaterial("MP_Vacuum");
+  // GEM materials
+  auto MolPol_Mylar     = G4Material::GetMaterial("Mylar");
+  auto MolPol_Kapton    = G4Material::GetMaterial("Kapton");
+  auto MolPol_ArCO2     = G4Material::GetMaterial("ArCO2");
+  auto MolPol_NEMAG10   = G4Material::GetMaterial("NEMAG10");
+  //auto mat_Kryptonite= G4Material::GetMaterial("Kryptonite");
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -76,6 +106,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double alphaVacuum = 0.15;
   G4double alphaMatStd = 0.50;
   G4double alphaTarget = 0.85;
+  G4double alphaWCuNi = 0.60;
   G4VisAttributes* IronVisAtt = new G4VisAttributes( G4Colour( 10./255., 10./255.,10./255.,alphaTarget) );
   G4VisAttributes* PbVisAtt   = new G4VisAttributes( G4Colour(149./255.,149./255.,100./255.,alphaMatStd) );//Use for wireframed lead
   G4VisAttributes* LeadVisAtt = new G4VisAttributes( G4Colour(149./255.,149./255.,100./255.,alphaMatStd) );
@@ -86,6 +117,7 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VisAttributes* CuVisAtt   = new G4VisAttributes( G4Colour(178./255.,102./255., 26./255.,alphaMatStd) );
   G4VisAttributes* ScintVisAtt= new G4VisAttributes( G4Colour(  0./255.,100./255.,100./255.,alphaMatStd) );
   G4VisAttributes* DipVisAtt  = new G4VisAttributes( G4Colour(  0./255., 80./255.,225./255.,alphaVacuum) );
+  G4VisAttributes* WCuNiVisAtt= new G4VisAttributes(G4Colour(140./255., 110./255., 90./255., alphaWCuNi));
 
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -815,8 +847,91 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   G4cout << "Z-position of DetectorBox Virtual Plane " << pMDBXPos_Z - pMDBXHLZ - pVP1HLZ << G4endl;
 
-
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // GEM TRACKERS
+  const int nGEMLayers = 24;
+  G4double GEMlayerThickness[nGEMLayers] = {
+    0.005*mm,0.02*mm,               //OPENING WINDOW
+    3*mm,0.05*mm,0.005*mm,          //FIRST GAP (DRIFT)
+    3*mm,0.005*mm,0.05*mm,0.005*mm, //GEM0 -- SECOND GAP
+    2*mm,0.005*mm,0.05*mm,0.005*mm, //GEM1 -- THIRD GAP
+    2*mm,0.005*mm,0.05*mm,0.005*mm, //GEM2 -- FOURTH GAP
+    2*mm,0.01*mm,0.05*mm,0.18*mm,   //FIFTH GAP then READOUT BOARD
+    3*mm,0.02*mm,0.005*mm           //SIXTH GAP and CLOSING WINDOW
+  };
+  G4String GEMlayerTypes[nGEMLayers] = {
+    "Al","Mylar",                    //OPENING WINDOW
+    "ArCO2","Kapton","Cu",           //FIRST GAP (DRIFT)
+    "ArCO2","Cu","Kapton","Cu",      //GEM0 -- SECOND GAP
+    "ArCO2","Cu","Kapton","Cu",      //GEM1 -- THIRD GAP
+    "ArCO2","Cu","Kapton","Cu",      //GEM2 -- FOURTH GAP
+    "ArCO2","Cu","Kapton","NEMAG10", //FIFTH GAP then READOUT BOARD
+    "ArCO2","Mylar","Al"     //SIXTH GAP and CLOSING WINDOW
+  };
+
+  G4double totalGEMThickness = 0.0;
+  for (int i = 0; i < nGEMLayers; ++i) totalGEMThickness += GEMlayerThickness[i];
+
+  G4double pTr1HLX = 11.3792 * cm;  G4double pTr1HLY = 20.32 * cm;
+  G4double pTr2HLX = 11.3792 * cm;  G4double pTr2HLY = 20.32 * cm;
+  G4double pTr3HLX = 11.3792 * cm;  G4double pTr3HLY = 20.32 * cm;
+
+  auto getLayerMat = [&](const G4String& t) -> G4Material* {
+    if (t == "Al")         return MolPol_Aluminum;
+    if (t == "Cu")         return MolPol_Copper;
+    if (t == "Mylar")      return MolPol_Mylar;
+    if (t == "Kapton")     return MolPol_Kapton;
+    if (t == "ArCO2")      return MolPol_ArCO2;
+    if (t == "NEMAG10")    return MolPol_NEMAG10;
+    //if (t == "Kryptonite") return mat_Kryptonite;
+    return nullptr;
+  };
+
+  if (!MolPol_Aluminum || !MolPol_Copper || !MolPol_Mylar || !MolPol_Kapton || !MolPol_ArCO2 || !MolPol_NEMAG10) {
+    G4cerr << "ERROR: One or more GEM materials were not found. Check ConstructMaterials() names." << G4endl;
+    exit(42);
+  }
+
+  auto buildGEM = [&](const G4String& gemTag,
+                      G4double hlx, G4double hly,
+                      const G4ThreeVector& worldPos,
+                      G4Box*& outSolid,
+                      G4LogicalVolume*& outLogical,
+                      G4VPhysicalVolume*& outPhys) {
+    G4String motherSolidName = gemTag + ".MotherSolid";
+    G4String motherLogName   = gemTag + ".MotherLogical";
+    outSolid   = new G4Box(motherSolidName, hlx, hly, totalGEMThickness/2.0);
+    outLogical = new G4LogicalVolume(outSolid, MolPol_Vacuum, motherLogName, 0, 0, 0);
+    G4VisAttributes* GEMVisAtt = new G4VisAttributes(G4Colour(255./255., 255./255., 255./255., 0.75));
+    GEMVisAtt->SetForceWireframe(true);
+    GEMVisAtt->SetLineWidth(2.0);
+    outLogical->SetVisAttributes(GEMVisAtt);
+    
+    outPhys = new G4PVPlacement(0, worldPos, outLogical, gemTag, world_log, 0, 0, fCheckOverlaps);
+    G4double z_cursor = -totalGEMThickness/2.0;
+    for (int i = 0; i < nGEMLayers; ++i) {
+      G4Material* layMat = getLayerMat(GEMlayerTypes[i]);
+      if (!layMat) { G4cerr << "ERROR: Unknown GEM layer type '" << GEMlayerTypes[i] << "' at index " << i << G4endl; exit(42); }
+      const G4double hz = GEMlayerThickness[i] / 2.0;
+      z_cursor += hz;
+
+      G4String layerSolidName = gemTag + ".LayerSolid." + std::to_string(i) + "." + GEMlayerTypes[i];
+      G4String layerLogName   = gemTag + ".LayerLogical." + std::to_string(i) + "." + GEMlayerTypes[i];
+      G4String layerPhysName  = gemTag + ".Layer." + std::to_string(i) + "." + GEMlayerTypes[i];
+
+      G4Box* layerSolid = new G4Box(layerSolidName, hlx, hly, hz);
+      G4LogicalVolume* layerLogical = new G4LogicalVolume(layerSolid, layMat, layerLogName, 0, 0, 0);
+
+      new G4PVPlacement(0, G4ThreeVector(0, 0, z_cursor), layerLogical, layerPhysName, outLogical, 0, 0, fCheckOverlaps);
+
+      z_cursor += hz;
+    }
+
+  };
+  buildGEM("GEM.Tracking.US", pTr1HLX, pTr1HLY, G4ThreeVector(fGEMTr1Pos_X, fGEMTr1Pos_Y, fGEMTr1Pos_Z), fTrackingSolidUS, fTrackingLogicalUS, fTrackingPhysVolUS);
+  buildGEM("GEM.Tracking.MD", pTr2HLX, pTr2HLY, G4ThreeVector(fGEMTr2Pos_X, fGEMTr2Pos_Y, fGEMTr2Pos_Z), fTrackingSolidMD, fTrackingLogicalMD, fTrackingPhysVolMD);
+  buildGEM("GEM.Tracking.DS", pTr3HLX, pTr3HLY, G4ThreeVector(fGEMTr3Pos_X, fGEMTr3Pos_Y, fGEMTr3Pos_Z), fTrackingSolidDS, fTrackingLogicalDS, fTrackingPhysVolDS);
+
   // MASK CONSTRUCTION
   G4double pWinDown = 3.271*cm;
   G4double pWinTopAngle = 6.3*deg;
@@ -855,17 +970,18 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   maskSub4Log->SetVisAttributes( WCuNiVisAtt );
   new G4PVPlacement(0 , G4ThreeVector( pMDBXPos_X, pYShift+pMDBXPos_Y, pZPlace ) , maskSub4Log ,   "detectorMask_PV" ,   world_log , 0 , 0 , fCheckOverlaps);
 
-
   return world_phys;
 }
 
 void MolPolDetectorConstruction::ConstructMaterials(){
   G4double a, z, density, pressure, temperature;
-  G4int nelements, natoms;
+  G4int nelements, natoms, nel;
+  G4String name, symbol;
+  G4NistManager* nist = G4NistManager::Instance();
 
   G4Element* N  = new G4Element("Nitrogen"  , "N" , z=7 , a=14.01*g/mole);
   G4Element* O  = new G4Element("Oxygen"    , "O" , z=8 , a=16.00*g/mole);
-  //G4Element* H  = new G4Element("Hydrogen"  , "H" , z=1 , a=1.01 *g/mole); // Unneeded at this time
+  G4Element* H  = new G4Element("Hydrogen"  , "H" , z=1 , a=1.01 *g/mole);
   G4Element* C  = new G4Element("Carbon"    , "C" , z=6 , a=12.01*g/mole);
   // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
   G4Element* P  = new G4Element("Phosphorus", "P" , z=15, a=30.974*g/mole);
@@ -873,6 +989,7 @@ void MolPolDetectorConstruction::ConstructMaterials(){
   G4Element* Al = new G4Element("Aluminum"  , "Al", z=13, a=26.98 *g/mole);
   G4Element* Fe = new G4Element("Iron"      , "Fe", z=26, a=55.845*g/mole);
   G4Element* Si = new G4Element("Silicon"   , "Si", z=14, a=28.09 *g/mole);
+  G4Element* Ar = new G4Element("Argon"     , "Ar", z=18, a=39.948*g/mole);
   //G4Element* Pb = new G4Element("Lead"      , "Pb", z=82, a=207.19*g/mole); // Unneeded at this time
   // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
   G4Element* Mn = new G4Element("Manganese" , "Mn", z=25, a=54.938*g/mole);
@@ -887,7 +1004,7 @@ void MolPolDetectorConstruction::ConstructMaterials(){
   WCuMix->AddElement(W, 0.85);
   WCuMix->AddElement(Cu, 0.15);
 
-  // INFORMATION FROM SANGHWA
+  // INFORMATION FROM SANGHWA FOR SS304
   density = 7.93 *g/cm3;
   G4Material* ss304 = new G4Material("MP_StainlessSteel304", density, 9);
   ss304->AddElement(Fe, 0.65);
@@ -929,20 +1046,87 @@ void MolPolDetectorConstruction::ConstructMaterials(){
   //G4Material* scint = new G4Material("MP_Scint", z=6., a, density);
   new G4Material("MP_Scint", z=6., a, density);
 
-  density = 1.e-6/760.0 * 1.29*mg/cm3; //0.001 of air density
-  pressure = 1.e-6/760.0 *atmosphere;
-  temperature = 293.15 *kelvin;
-  a = 28.97 *g/mole;
-
   //G4Material* titanium = new G4Material("MP_Titanium", 22, 47.867*g/mole, 4.54*g/cm3);
   new G4Material("MP_Titanium", 22, 47.867*g/mole, 4.54*g/cm3);
 
   //G4Material* Vacuum = new G4Material("MP_Vacuum",z=1,a,density,kStateGas,temperature,pressure);
+  density = 1.e-6/760.0 * 1.29*mg/cm3; //0.001 of air density
+  pressure = 1.e-6/760.0 *atmosphere;
+  temperature = 293.15 *kelvin;
+  a = 28.97 *g/mole;
   new G4Material("MP_Vacuum",z=1,a,density,kStateGas,temperature,pressure);
 
   G4Material* Air    = new G4Material("MP_Air",    density=1.29*mg/cm3, nelements=2);
   Air->AddElement(N, 79.0*perCent);
   Air->AddElement(O, 21.0*perCent);
+
+  // GEM materials
+  G4Material* G4_Air = nist->FindOrBuildMaterial("G4_AIR");
+  G4Material* G4_H   = nist->FindOrBuildMaterial("G4_H");
+  G4Material* G4_C   = nist->FindOrBuildMaterial("G4_C");
+  G4Material* G4_N   = nist->FindOrBuildMaterial("G4_N");
+  G4Material* G4_O   = nist->FindOrBuildMaterial("G4_O");
+  G4Material* G4_Cl  = nist->FindOrBuildMaterial("G4_Cl");
+
+  // PURE ARGON GAS
+  G4double density_Ar = 1.7823*mg/cm3;
+  G4Material* Argon = new G4Material(name="Argon", density_Ar, nel=1);
+  Argon->AddElement(Ar, natoms=1);
+
+  // CO2
+  G4double density_CO2 = 1.977*mg/cm3;
+  G4Material* CO2 = new G4Material(name = "CO2", density_CO2, nel=2);
+  CO2->AddElement(C, natoms=1);
+  CO2->AddElement(O, natoms=2);
+
+  // ArCO2
+  G4double density_ArCO2 = 10*(0.68*density_Ar + 0.32*density_CO2);
+  G4Material* GEM_ArCO2 = new G4Material(name = "ArCO2", density_ArCO2, nel=2);
+  GEM_ArCO2->AddMaterial(Argon, 0.68*density_Ar/density_ArCO2);
+  GEM_ArCO2->AddMaterial(CO2, 0.32*density_CO2/density_ArCO2);
+
+  // Mylar
+  G4double density_mylar = 1.397*g/cm3;
+  G4Material * GEM_mylar = new G4Material(name = "Mylar", density_mylar, nel=3);
+  GEM_mylar->AddMaterial(G4_H, 4.2*perCent);
+  GEM_mylar->AddMaterial(G4_C, 62.5*perCent);
+  GEM_mylar->AddMaterial(G4_O, 33.3*perCent);
+
+  // Kapton
+  G4double density_Kapton = 1.420*g/cm3;
+  G4Material * GEM_Kapton = new G4Material(name = "Kapton", density_Kapton, nel=4);
+  GEM_Kapton->AddMaterial(G4_H, 2.6362*perCent);
+  GEM_Kapton->AddMaterial(G4_C, 69.1133*perCent);
+  GEM_Kapton->AddMaterial(G4_N, 7.3727*perCent);
+  GEM_Kapton->AddMaterial(G4_O, 20.9235*perCent);
+
+  // NOMEX pure
+  G4double density_NOMEX_pure = 1.38*g/cm3;
+   G4Material* GEM_NOMEX_pure = new G4Material(name = "GEM_NOMEX_pure", density_NOMEX_pure, nel=5);
+  GEM_NOMEX_pure->AddMaterial(G4_H, 4*perCent);
+  GEM_NOMEX_pure->AddMaterial(G4_C, 54*perCent);
+  GEM_NOMEX_pure->AddMaterial(G4_N, 9*perCent);
+  GEM_NOMEX_pure->AddMaterial(G4_O, 10*perCent);
+  GEM_NOMEX_pure->AddMaterial(G4_Cl, 23*perCent);
+
+  // NOMEX
+  G4double density_GEM_NOMEX = 1.397*g/cm3;
+  G4Material* GEM_NOMEX = new G4Material(name ="GEM_NOMEX", density_GEM_NOMEX, nel=2);
+  GEM_NOMEX->AddMaterial(GEM_NOMEX_pure, 45*perCent);
+  GEM_NOMEX->AddMaterial(G4_Air, 55*perCent);
+
+  // NEMAG10
+  G4double density_GEM_NEMAG10 = 1.397*g/cm3;
+  G4Material* GEM_NEMAG10 = new G4Material(name= "NEMAG10", density_GEM_NEMAG10, nel=4);
+  GEM_NEMAG10->AddElement(Si, natoms=1);
+  GEM_NEMAG10->AddElement(O, natoms=2);
+  GEM_NEMAG10->AddElement(C, natoms=3);
+  GEM_NEMAG10->AddElement(H, natoms=3);
+
+  // Kryptonite
+  G4double density_Kryptonite = 0.000000000000001*mg/cm3;
+  G4Material* Kryptonite = new G4Material(name = "Kryptonite", density_Kryptonite, nel=1);
+  Kryptonite->AddElement(H, natoms=1);
 
   G4cout << G4endl << "The materials defined are : " << G4endl << G4endl;
   G4cout << *(G4Material::GetMaterialTable()) << G4endl;
@@ -950,14 +1134,13 @@ void MolPolDetectorConstruction::ConstructMaterials(){
 
 
 void MolPolDetectorConstruction::SetTargetThickness(G4double val){
-
   fTargetFullLength = val;
-  fTargetVSolidTubs->SetZHalfLength( val / 2.0 );
 
-  if (!( fTargetPhysVolume )) {
+  if (!( fTargetPhysVolume ) || !fTargetVSolidTubs) {
       G4cerr << "Target has not yet been constructed." << G4endl;
       return;
   }
+  fTargetVSolidTubs->SetZHalfLength( val / 2.0 );
 
   // tell G4RunManager that we change the geometry
   //G4RunManager::GetRunManager()->ReinitializeGeometry();  // THIS RESETS EVERYTHING, USE IF NEXT IS NOT SUFFICIENT
@@ -995,6 +1178,98 @@ void MolPolDetectorConstruction::SetDipolePbJawsGap(G4double val){
   fLeadJawsPhysicalRB->SetTranslation( G4ThreeVector( fLeadJawsXOrigin, (fLeadJawsYOrigin - (fLeadJawsHLength + (fLeadJawGapWidth/2.0))), fLeadJawsZOrigin) );
 
   // tell G4RunManager that we change the geometry
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+}
+
+// GEM tracker position setters (student NewGEMs)
+void MolPolDetectorConstruction::SetGEMTr1Pos_x(G4double val) { fGEMTr1Pos_X = val; if(fTrackingPhysVolUS) fTrackingPhysVolUS->SetTranslation(G4ThreeVector(fGEMTr1Pos_X, fGEMTr1Pos_Y, fGEMTr1Pos_Z)); }
+void MolPolDetectorConstruction::SetGEMTr1Pos_y(G4double val) { fGEMTr1Pos_Y = val; if(fTrackingPhysVolUS) fTrackingPhysVolUS->SetTranslation(G4ThreeVector(fGEMTr1Pos_X, fGEMTr1Pos_Y, fGEMTr1Pos_Z)); }
+void MolPolDetectorConstruction::SetGEMTr2Pos_x(G4double val) { fGEMTr2Pos_X = val; if(fTrackingPhysVolMD) fTrackingPhysVolMD->SetTranslation(G4ThreeVector(fGEMTr2Pos_X, fGEMTr2Pos_Y, fGEMTr2Pos_Z)); }
+void MolPolDetectorConstruction::SetGEMTr2Pos_y(G4double val) { fGEMTr2Pos_Y = val; if(fTrackingPhysVolMD) fTrackingPhysVolMD->SetTranslation(G4ThreeVector(fGEMTr2Pos_X, fGEMTr2Pos_Y, fGEMTr2Pos_Z)); }
+void MolPolDetectorConstruction::SetGEMTr3Pos_x(G4double val) { fGEMTr3Pos_X = val; if(fTrackingPhysVolDS) fTrackingPhysVolDS->SetTranslation(G4ThreeVector(fGEMTr3Pos_X, fGEMTr3Pos_Y, fGEMTr3Pos_Z)); }
+void MolPolDetectorConstruction::SetGEMTr3Pos_y(G4double val) { fGEMTr3Pos_Y = val; if(fTrackingPhysVolDS) fTrackingPhysVolDS->SetTranslation(G4ThreeVector(fGEMTr3Pos_X, fGEMTr3Pos_Y, fGEMTr3Pos_Z)); }
+
+void MolPolDetectorConstruction::SetGEMTr1Pos_z(G4double val){
+  fGEMTr1Pos_Z = val;
+  if (fGEMTr1Pos_Z >= fGEMTr2Pos_Z || fGEMTr2Pos_Z >= fGEMTr3Pos_Z) {
+    G4cerr << "Error: Tracker positions must satisfy fGEMTr1Pos_Z < fGEMTr2Pos_Z < fGEMTr3Pos_Z." << G4endl;
+    return;
+  }
+  if (val < 555.6*cm || val > 671.0*cm) {
+    G4cerr << "Error: Upstream GEM z out of range [555.6, 671.0] cm." << G4endl;
+    return;
+  }
+  if (fTrackingPhysVolUS) fTrackingPhysVolUS->SetTranslation(G4ThreeVector(fGEMTr1Pos_X, fGEMTr1Pos_Y, fGEMTr1Pos_Z));
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+}
+
+void MolPolDetectorConstruction::SetGEMTr2Pos_z(G4double val){
+  fGEMTr2Pos_Z = val;
+  if (fGEMTr1Pos_Z >= fGEMTr2Pos_Z || fGEMTr2Pos_Z >= fGEMTr3Pos_Z) {
+    G4cerr << "Error: Tracker positions must satisfy fGEMTr1Pos_Z < fGEMTr2Pos_Z < fGEMTr3Pos_Z." << G4endl;
+    return;
+  }
+  if (val < 555.6*cm || val > 671.0*cm) {
+    G4cerr << "Error: Middle GEM z out of range [555.6, 671.0] cm." << G4endl;
+    return;
+  }
+  if (fTrackingPhysVolMD) fTrackingPhysVolMD->SetTranslation(G4ThreeVector(fGEMTr2Pos_X, fGEMTr2Pos_Y, fGEMTr2Pos_Z));
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+}
+
+void MolPolDetectorConstruction::SetGEMTr3Pos_z(G4double val){
+  fGEMTr3Pos_Z = val;
+  if (fGEMTr1Pos_Z >= fGEMTr2Pos_Z || fGEMTr2Pos_Z >= fGEMTr3Pos_Z) {
+    G4cerr << "Error: Tracker positions must satisfy fGEMTr1Pos_Z < fGEMTr2Pos_Z < fGEMTr3Pos_Z." << G4endl;
+    return;
+  }
+  if (val < 555.6*cm || val > 671.0*cm) {
+    G4cerr << "Error: Downstream GEM z out of range [555.6, 671.0] cm." << G4endl;
+    return;
+  }
+  if (fTrackingPhysVolDS) fTrackingPhysVolDS->SetTranslation(G4ThreeVector(fGEMTr3Pos_X, fGEMTr3Pos_Y, fGEMTr3Pos_Z));
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+}
+
+void MolPolDetectorConstruction::BuildTracking(){
+  if (fGEMTr1Pos_Z >= fGEMTr2Pos_Z || fGEMTr2Pos_Z >= fGEMTr3Pos_Z) {
+    G4cerr << "Error: Trackers must satisfy fGEMTr1Pos_Z < fGEMTr2Pos_Z < fGEMTr3Pos_Z." << G4endl;
+    return;
+  }
+  if (!fTrackingPhysVolUS || !fTrackingPhysVolMD || !fTrackingPhysVolDS ||
+      !fTrackingLogicalUS || !fTrackingLogicalMD || !fTrackingLogicalDS) {
+    G4cerr << "Error: GEM tracking volumes have not yet been constructed." << G4endl;
+    return;
+  }
+  G4SDManager* SDman = G4SDManager::GetSDMpointer();
+  auto ensureSD = [&](const G4String& name, int id) -> MolPolDetector* {
+    auto* existing = SDman->FindSensitiveDetector(name, false);
+    if (existing) return static_cast<MolPolDetector*>(existing);
+    auto* sd = new MolPolDetector(name, id);
+    SDman->AddNewDetector(sd);
+    return sd;
+  };
+  MolPolDetector* TRIN  = ensureSD("trin",  200);
+  MolPolDetector* TRMID = ensureSD("trmid", 201);
+  MolPolDetector* TROUT = ensureSD("trout", 202);
+  std::function<void(G4LogicalVolume*, G4VSensitiveDetector*)> AttachSDRecursive;
+  AttachSDRecursive = [&](G4LogicalVolume* lv, G4VSensitiveDetector* sd){
+    if (!lv) return;
+    G4Material* mat = lv->GetMaterial();
+    G4String matName = mat ? mat->GetName() : "";
+    if (matName == "ArCO2") lv->SetSensitiveDetector(sd);
+    else lv->SetSensitiveDetector(nullptr);
+    for (size_t i = 0; i < (size_t)lv->GetNoDaughters(); ++i) {
+      G4VPhysicalVolume* pvD = lv->GetDaughter(i);
+      if (pvD && pvD->GetLogicalVolume()) AttachSDRecursive(pvD->GetLogicalVolume(), sd);
+    }
+  };
+  AttachSDRecursive(fTrackingLogicalUS, TRIN);
+  AttachSDRecursive(fTrackingLogicalMD, TRMID);
+  AttachSDRecursive(fTrackingLogicalDS, TROUT);
+  fTrackingPhysVolUS->SetTranslation(G4ThreeVector(fGEMTr1Pos_X, fGEMTr1Pos_Y, fGEMTr1Pos_Z));
+  fTrackingPhysVolMD->SetTranslation(G4ThreeVector(fGEMTr2Pos_X, fGEMTr2Pos_Y, fGEMTr2Pos_Z));
+  fTrackingPhysVolDS->SetTranslation(G4ThreeVector(fGEMTr3Pos_X, fGEMTr3Pos_Y, fGEMTr3Pos_Z));
   G4RunManager::GetRunManager()->GeometryHasBeenModified();
 }
 
@@ -1206,6 +1481,38 @@ void MolPolDetectorConstruction::DefineGeometryCommands(){
   auto& targetThicknessCmd  = fMessenger->DeclareMethodWithUnit("targetThickness","mm", &MolPolDetectorConstruction::SetTargetThickness, "Set Pb Jaw Width at Dipole Entrance in cm.");
   targetThicknessCmd.SetParameterName("targetThickness", true);
   targetThicknessCmd.SetRange("targetThickness >= 0. && targetThickness < 100");//TODO: SET LIMIT BETWEEN 1 and 100 microns AFTER TESTING
+
+  // GEM tracker position commands (student NewGEMs)
+  auto& GEM1XCmd = fMessenger->DeclareMethodWithUnit("GEM1X", "cm", &MolPolDetectorConstruction::SetGEMTr1Pos_x, "Set X position of GEM1 (upstream)");
+  GEM1XCmd.SetParameterName("GEM1X", true);
+  GEM1XCmd.SetRange("GEM1X >= -100 && GEM1X <= 100");
+  auto& GEM1YCmd = fMessenger->DeclareMethodWithUnit("GEM1Y", "cm", &MolPolDetectorConstruction::SetGEMTr1Pos_y, "Set Y position of GEM1 (upstream)");
+  GEM1YCmd.SetParameterName("GEM1Y", true);
+  GEM1YCmd.SetRange("GEM1Y >= -100 && GEM1Y <= 100");
+  auto& GEM1ZCmd = fMessenger->DeclareMethodWithUnit("GEM1Z", "cm", &MolPolDetectorConstruction::SetGEMTr1Pos_z, "Set Z position of GEM1 (upstream)");
+  GEM1ZCmd.SetParameterName("GEM1Z", true);
+  GEM1ZCmd.SetRange("GEM1Z >= 555.6 && GEM1Z <= 671.0");
+  auto& GEM2XCmd = fMessenger->DeclareMethodWithUnit("GEM2X", "cm", &MolPolDetectorConstruction::SetGEMTr2Pos_x, "Set X position of GEM2 (middle)");
+  GEM2XCmd.SetParameterName("GEM2X", true);
+  auto& GEM2YCmd = fMessenger->DeclareMethodWithUnit("GEM2Y", "cm", &MolPolDetectorConstruction::SetGEMTr2Pos_y, "Set Y position of GEM2 (middle)");
+  GEM2YCmd.SetParameterName("GEM2Y", true);
+  auto& GEM2ZCmd = fMessenger->DeclareMethodWithUnit("GEM2Z", "cm", &MolPolDetectorConstruction::SetGEMTr2Pos_z, "Set Z position of GEM2 (middle)");
+  GEM2ZCmd.SetParameterName("GEM2Z", true);
+  GEM2ZCmd.SetRange("GEM2Z >= 555.6 && GEM2Z <= 671.0");
+  auto& GEM3XCmd = fMessenger->DeclareMethodWithUnit("GEM3X", "cm", &MolPolDetectorConstruction::SetGEMTr3Pos_x, "Set X position of GEM3 (downstream)");
+  GEM3XCmd.SetParameterName("GEM3X", true);
+  auto& GEM3YCmd = fMessenger->DeclareMethodWithUnit("GEM3Y", "cm", &MolPolDetectorConstruction::SetGEMTr3Pos_y, "Set Y position of GEM3 (downstream)");
+  GEM3YCmd.SetParameterName("GEM3Y", true);
+  auto& GEM3ZCmd = fMessenger->DeclareMethodWithUnit("GEM3Z", "cm", &MolPolDetectorConstruction::SetGEMTr3Pos_z, "Set Z position of GEM3 (downstream)");
+  GEM3ZCmd.SetParameterName("GEM3Z", true);
+  GEM3ZCmd.SetRange("GEM3Z >= 555.6 && GEM3Z <= 671.0");
+  auto& track1Pos_zCmd = fMessenger->DeclareMethodWithUnit("trackingUS_Pos_z","cm", &MolPolDetectorConstruction::SetGEMTr1Pos_z, "Set z position of upstream GEM tracker");
+  track1Pos_zCmd.SetParameterName("trackingUS_Pos_z", true);
+  auto& track2Pos_zCmd = fMessenger->DeclareMethodWithUnit("trackingMD_Pos_z","cm", &MolPolDetectorConstruction::SetGEMTr2Pos_z, "Set z position of middle GEM tracker");
+  track2Pos_zCmd.SetParameterName("trackingMD_Pos_z", true);
+  auto& track3Pos_zCmd = fMessenger->DeclareMethodWithUnit("trackingDS_Pos_z","cm", &MolPolDetectorConstruction::SetGEMTr3Pos_z, "Set z position of downstream GEM tracker");
+  track3Pos_zCmd.SetParameterName("trackingDS_Pos_z", true);
+  auto& BuildTrackingCmd = fMessenger->DeclareMethod("buildTracking", &MolPolDetectorConstruction::BuildTracking, "Attach sensitive detectors to GEM ArCO2 layers");
 
   // dipole internal virtual planes command
   auto& dipoleInternalVPlanesCmd =

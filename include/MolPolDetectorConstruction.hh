@@ -10,6 +10,7 @@ class G4Material;
 class G4VPhysicalVolume;
 class G4GenericMessenger;
 class G4Tubs;
+class G4Box;
 
 class MolPolDetectorConstruction : public G4VUserDetectorConstruction
 {
@@ -31,6 +32,17 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
     void SetPaddleVPSensitiveDetectors();
     void SetPaddleVPlanes(G4String val);
 
+    void SetGEMTr1Pos_x(G4double val);
+    void SetGEMTr1Pos_y(G4double val);
+    void SetGEMTr2Pos_x(G4double val);
+    void SetGEMTr2Pos_y(G4double val);
+    void SetGEMTr3Pos_x(G4double val);
+    void SetGEMTr3Pos_y(G4double val);
+    void SetGEMTr1Pos_z(G4double val);
+    void SetGEMTr2Pos_z(G4double val);
+    void SetGEMTr3Pos_z(G4double val);
+    void BuildTracking();
+
     void UpdateGeometry();
 
     G4Material * GetTarget()           {return fTargetMaterial;}
@@ -50,6 +62,26 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
     G4bool                fEnableDipoleInternalVPlanes;
     G4bool                fEnableFluxVPlanes;
     G4bool                fEnablePaddleVPs;
+
+    // GEM tracking
+    G4double              fGEMTr1Pos_X;
+    G4double              fGEMTr1Pos_Y;
+    G4double              fGEMTr1Pos_Z;
+    G4double              fGEMTr2Pos_X;
+    G4double              fGEMTr2Pos_Y;
+    G4double              fGEMTr2Pos_Z;
+    G4double              fGEMTr3Pos_X;
+    G4double              fGEMTr3Pos_Y;
+    G4double              fGEMTr3Pos_Z;
+    G4Box*                fTrackingSolidUS;
+    G4Box*                fTrackingSolidMD;
+    G4Box*                fTrackingSolidDS;
+    G4LogicalVolume*      fTrackingLogicalUS;
+    G4LogicalVolume*      fTrackingLogicalMD;
+    G4LogicalVolume*      fTrackingLogicalDS;
+    G4VPhysicalVolume*    fTrackingPhysVolUS;
+    G4VPhysicalVolume*    fTrackingPhysVolMD;
+    G4VPhysicalVolume*    fTrackingPhysVolDS;
 
     G4double              fLeadJawGapWidth;
     G4double              fLeadJawsHLength;
