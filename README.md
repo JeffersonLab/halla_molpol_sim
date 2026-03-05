@@ -93,9 +93,19 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | /MolPol/Geo/activateFluxTrackingVPs | String | Enable/disable sensitive detectors for flux virtual planes (detectors 1-8, 13-15). Use 'true' or 'false'. Default: false |
 | /MolPol/Geo/activateInternalDipoleVPs | String | Enable/disable sensitive detectors for dipole internal virtual planes (detectors 100-191). Use 'true' or 'false'. Default: false |
 | /MolPol/Geo/activatePaddleVPs | String | Enable/disable sensitive detectors for paddle virtual planes (detectors 11-12). Use 'true' or 'false'. Default: false |
-| /MolPol/Geo/trackingUS_Pos_z | Double w/ Unit  | Specifies z-position of upstream GEM tracking |
-| /MolPol/Geo/trackingDS_Pos_z | Double w/ Unit | Specifies z-position of downstream GEM tracking |
-| /MolPol/Geo/buildTracking |  | Initialize building of GEM solids and initializes detectors |
+| /MolPol/Geo/GEM1X | Double w/ Unit (cm) | X position of GEM1 (upstream tracker) |
+| /MolPol/Geo/GEM1Y | Double w/ Unit (cm) | Y position of GEM1 (upstream tracker) |
+| /MolPol/Geo/GEM1Z | Double w/ Unit (cm) | Z position of GEM1 (upstream tracker) |
+| /MolPol/Geo/GEM2X | Double w/ Unit (cm) | X position of GEM2 (middle tracker) |
+| /MolPol/Geo/GEM2Y | Double w/ Unit (cm) | Y position of GEM2 (middle tracker) |
+| /MolPol/Geo/GEM2Z | Double w/ Unit (cm) | Z position of GEM2 (middle tracker) |
+| /MolPol/Geo/GEM3X | Double w/ Unit (cm) | X position of GEM3 (downstream tracker) |
+| /MolPol/Geo/GEM3Y | Double w/ Unit (cm) | Y position of GEM3 (downstream tracker) |
+| /MolPol/Geo/GEM3Z | Double w/ Unit (cm) | Z position of GEM3 (downstream tracker) |
+| /MolPol/Geo/trackingUS_Pos_z | Double w/ Unit (cm) | Z position of upstream GEM tracker (alias for GEM1Z) |
+| /MolPol/Geo/trackingMD_Pos_z | Double w/ Unit (cm) | Z position of middle GEM tracker (alias for GEM2Z) |
+| /MolPol/Geo/trackingDS_Pos_z | Double w/ Unit (cm) | Z position of downstream GEM tracker (alias for GEM3Z) |
+| /MolPol/Geo/buildTracking |  | Attach sensitive detectors to GEM ArCO2 layers; call after geometry is built (e.g. after /run/initialize) |
 | **FIELD INFORMATION** | | |
 | /field/MagSourceMode   | Int | Souce Mode, 1: Using ideal pole tips | 
 | /field/setQ1T | Double No Unit | Pole tip of Q1 in teslas. | 
