@@ -815,6 +815,47 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
 
   G4cout << "Z-position of DetectorBox Virtual Plane " << pMDBXPos_Z - pMDBXHLZ - pVP1HLZ << G4endl;
 
+
+  //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // MASK CONSTRUCTION
+  G4double pWinDown = 3.271*cm;
+  G4double pWinTopAngle = 6.3*deg;
+  G4double pWinBotAngle = 7.5*deg;
+  G4double pWinZRotGlob = 0.0*deg;
+  G4RotationMatrix* pRotWin = new G4RotationMatrix();
+  pRotWin->rotateY(90.*deg);
+  pRotWin->rotateZ(90.*deg);
+  pRotWin->rotateY(pWinZRotGlob);
+  //HLX HERE SHOULD BE 6.305 SO... 12.610 / 2.0*CM
+  G4double  pPT1MASKHLX  = 12.610/2.0*cm; G4double pPT1MASKHLY = 17.046/2.0*cm; G4double pPT1MASKHLZ = 3.810/2.0*cm;
+  G4double  pPT2MASKHLX  = 19.303/2.0*cm; G4double pPT2MASKHLY = 20.196/2.0*cm; G4double pPT2MASKHLZ = 2.540/2.0*cm;
+  G4double  pANGLESUBTOPX   = 3.150/2.0*cm; G4double pANGLESUBTOPY   = 3.810/2.0*cm;
+  G4double  pANGLESUBTOPZ   = 12.752/2.0*cm;
+  G4double  pANGLESUBBOTX   = 3.150/2.0*cm; G4double pANGLESUBBOTY   = 3.820/2.0*cm + 2.540/2.0*cm; G4double pANGLESUBBOTZ   = 19.380/2.0*cm;
+  G4double  pANGLEWINUPPERX = 4.946/2.0*cm; G4double pANGLEWINUPPERY = 3.820/2.0*cm + 2.540/2.0*cm; G4double pANGLEWINUPPERZ = 12.852/2.0*cm;
+  G4double  pANGLEWINLOWERX = 4.946/2.0*cm; G4double pANGLEWINLOWERY = 3.820/2.0*cm + 2.540/2.0*cm; G4double pANGLEWINLOWERZ = 12.852/2.0*cm;
+  G4double  pANGLETOPCUT = 6.0*deg;  G4double pANGLEWINUPPER  = pWinTopAngle;
+  G4double  pANGLEWINLOWER  = pWinBotAngle; G4double pANGLEBOTCUT= 8.5*deg;
+  G4VSolid* PT1MASKSolid  = new G4Box ( "PT1MASKSolid" , pPT1MASKHLX, pPT1MASKHLY, pPT1MASKHLZ );
+  G4VSolid* PT2MASKSolid  = new G4Box ( "PT2MASKSolid" , pPT2MASKHLX, pPT2MASKHLY, pPT2MASKHLZ );
+
+  G4VSolid* ANGLESUBANGLE6pt0 = new G4Para( "AngleSub6pt0" , pANGLESUBTOPX,   pANGLESUBTOPY,   pANGLESUBTOPZ,   pANGLETOPCUT,   0.0*deg, 0.0*deg);
+  G4VSolid* ANGLESUBANGLE6pt3 = new G4Para( "AngleSub6pt3" , pANGLEWINUPPERX, pANGLEWINUPPERY, pANGLEWINUPPERZ, pANGLEWINUPPER, 0.0*deg, 0.0*deg);
+  G4VSolid* ANGLESUBANGLE7pt5 = new G4Para( "AngleSub7pt5" , pANGLEWINLOWERX, pANGLEWINLOWERY, pANGLEWINLOWERZ, pANGLEWINLOWER, 0.0*deg, 0.0*deg);
+  G4VSolid* ANGLESUBANGLE8pt5 = new G4Para( "AngleSub8pt5" , pANGLESUBBOTX,   pANGLESUBBOTY,   pANGLESUBBOTZ,   pANGLEBOTCUT,   0.0*deg, 0.0*deg);
+  G4double pZPlace  = 662.0*cm+pPT1MASKHLZ-0.01*cm;
+  G4double pYShift  = 15.775*cm;
+
+  G4SubtractionSolid* maskSub1 = new G4SubtractionSolid("maskSub1", PT1MASKSolid, ANGLESUBANGLE6pt0, pRot9, G4ThreeVector(0, pPT1MASKHLY+pANGLESUBTOPX-pPT1MASKHLZ*tan(pANGLETOPCUT), 0) );
+  G4UnionSolid* maskUnion1 = new G4UnionSolid("maskUnion1", maskSub1, PT2MASKSolid , 0, G4ThreeVector( 0, -(pPT1MASKHLY-pPT2MASKHLY) , -(pPT1MASKHLZ+pPT2MASKHLZ) ) );
+  G4SubtractionSolid* maskSub2 = new G4SubtractionSolid("maskSub2", maskUnion1, ANGLESUBANGLE8pt5, pRot9, G4ThreeVector(0, -pPT1MASKHLY-pANGLESUBBOTX+(pPT1MASKHLZ+pPT2MASKHLZ)*tan(pANGLEBOTCUT), -pPT2MASKHLZ) );
+  G4SubtractionSolid* maskSub3 = new G4SubtractionSolid("maskSub3", maskSub2, ANGLESUBANGLE6pt3, pRotWin, G4ThreeVector(0, -pWinDown+pPT1MASKHLY-0.5*(pPT1MASKHLZ+pPT2MASKHLZ)*tan(pANGLETOPCUT)-pANGLEWINUPPERX, -pPT2MASKHLZ) );
+  G4SubtractionSolid* maskSub4 = new G4SubtractionSolid("maskSub4", maskSub3, ANGLESUBANGLE7pt5, pRotWin, G4ThreeVector(0, -pWinDown+pPT1MASKHLY-0.5*(pPT1MASKHLZ+pPT2MASKHLZ)*tan(pANGLETOPCUT)-pANGLEWINLOWERX-(pPT1MASKHLZ+pPT2MASKHLZ)*(tan(pANGLEWINLOWER)-tan(pANGLEWINUPPER)), -pPT2MASKHLZ) );
+  G4LogicalVolume* maskSub4Log = new G4LogicalVolume(maskSub4, G4Material::GetMaterial("MolPol_WCuMix"), "maskSub4Log", 0, 0, 0);
+  maskSub4Log->SetVisAttributes( WCuNiVisAtt );
+  new G4PVPlacement(0 , G4ThreeVector( pMDBXPos_X, pYShift+pMDBXPos_Y, pZPlace ) , maskSub4Log ,   "detectorMask_PV" ,   world_log , 0 , 0 , fCheckOverlaps);
+
+
   return world_phys;
 }
 
@@ -826,21 +867,25 @@ void MolPolDetectorConstruction::ConstructMaterials(){
   G4Element* O  = new G4Element("Oxygen"    , "O" , z=8 , a=16.00*g/mole);
   //G4Element* H  = new G4Element("Hydrogen"  , "H" , z=1 , a=1.01 *g/mole); // Unneeded at this time
   G4Element* C  = new G4Element("Carbon"    , "C" , z=6 , a=12.01*g/mole);
-
   // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
   G4Element* P  = new G4Element("Phosphorus", "P" , z=15, a=30.974*g/mole);
   G4Element* S  = new G4Element("Sulfur"    , "S" , z=16, a=32.06 *g/mole);
-
   G4Element* Al = new G4Element("Aluminum"  , "Al", z=13, a=26.98 *g/mole);
   G4Element* Fe = new G4Element("Iron"      , "Fe", z=26, a=55.845*g/mole);
   G4Element* Si = new G4Element("Silicon"   , "Si", z=14, a=28.09 *g/mole);
   //G4Element* Pb = new G4Element("Lead"      , "Pb", z=82, a=207.19*g/mole); // Unneeded at this time
-
   // USED VALUES FROM WOLFRAMALPHA PERIODIC TABLE DATA | ERIC KING
   G4Element* Mn = new G4Element("Manganese" , "Mn", z=25, a=54.938*g/mole);
   G4Element* Cr = new G4Element("Chromium"  , "Cr", z=24, a=51.966*g/mole);
   G4Element* Ni = new G4Element("Nickel"    , "Ni", z=28, a=58.693*g/mole);
   G4Element* Mo = new G4Element("Molybdenum", "Mo", z=42, a=95.95 *g/mole);
+  // COLLIMATING MASK MATERIALS: W/Cu mix
+  G4Element* W  = new G4Element("Tungsten", "W", z=74, a=183.84*g/mole);
+  G4Element* Cu = new G4Element("Copper", "Cu", z=29, a=63.55*g/mole);
+  density = 17.0 * g/cm3;
+  G4Material* WCuMix = new G4Material("MolPol_WCuMix", density, 2);
+  WCuMix->AddElement(W, 0.85);
+  WCuMix->AddElement(Cu, 0.15);
 
   // INFORMATION FROM SANGHWA
   density = 7.93 *g/cm3;
