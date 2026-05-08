@@ -10,6 +10,7 @@
 #include "G4Trajectory.hh"
 #include "G4VVisManager.hh"
 #include "G4SDManager.hh"
+#include "G4RunManager.hh"
 #include "G4UImanager.hh"
 #include "G4ios.hh"
 
@@ -26,10 +27,14 @@ MolPolEventAction::~MolPolEventAction(){
 
 
 void MolPolEventAction::BeginOfEventAction(const G4Event*ev) {
-    // Pretty ongoing status with flush
-    if( (ev->GetEventID() % 100) == 0 ){
-	printf("Event %8d\r", ev->GetEventID() );
-	fflush(stdout);
+    G4int totalEvents = G4RunManager::GetRunManager()->GetNumberOfEventsToBeProcessed();
+    if(totalEvents <= 0) return;
+
+    G4int processedEvents = ev->GetEventID() + 1;
+    G4int progressPct = (processedEvents * 100) / totalEvents;
+    G4int prevProgressPct = (ev->GetEventID() * 100) / totalEvents;
+    if(progressPct > prevProgressPct && (progressPct % 2) == 0){
+      G4cout << "Progress: " << progressPct << "%" << G4endl;
     }
 
     return;
