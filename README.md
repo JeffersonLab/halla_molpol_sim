@@ -106,7 +106,8 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | /MolPol/Geo/trackingUS_Pos_z | Double w/ Unit (cm) | Z position of upstream GEM tracker (alias for GEM1Z) |
 | /MolPol/Geo/trackingMD_Pos_z | Double w/ Unit (cm) | Z position of middle GEM tracker (alias for GEM2Z) |
 | /MolPol/Geo/trackingDS_Pos_z | Double w/ Unit (cm) | Z position of downstream GEM tracker (alias for GEM3Z) |
-| /MolPol/Geo/buildTracking |  | Attach sensitive detectors to GEM ArCO2 layers; call after geometry is built (e.g. after /run/initialize) |
+| /MolPol/Geo/buildTracking |  | Activate GEM tracking geometry/materials and move trackers from parked to active positions |
+| /MolPol/Geo/activateTrackingSD | String | Enable/disable GEM tracking sensitive detector assignment. Use 'true' or 'false'. Requires `/MolPol/Geo/buildTracking` first |
 | **FIELD INFORMATION** | | |
 | /field/MagSourceMode   | Int | Souce Mode, 1: Using ideal pole tips | 
 | /field/setQ1T | Double No Unit | Pole tip of Q1 in teslas. | 
@@ -152,9 +153,9 @@ The following is a table of the Virtual "flux" Planes (VP) in the simulation
 | 14 | VP Dipole Entrance | `/MolPol/Geo/activateFluxTrackingVPs` |
 | 15 | VP Dipole Exit | `/MolPol/Geo/activateFluxTrackingVPs` |
 | 100/101 - 190/191 | Left/Right Series of Flux Planes Through Dipole | `/MolPol/Geo/activateInternalDipoleVPs` |
-| 200 | Upstream GEM tracker (GEM1) | `/MolPol/Geo/buildTracking` |
-| 201 | Middle GEM tracker (GEM2) | `/MolPol/Geo/buildTracking` |
-| 202 | Downstream GEM tracker (GEM3) | `/MolPol/Geo/buildTracking` |
+| 200 | Upstream GEM tracker (GEM1) | `/MolPol/Geo/activateTrackingSD` |
+| 201 | Middle GEM tracker (GEM2) | `/MolPol/Geo/activateTrackingSD` |
+| 202 | Downstream GEM tracker (GEM3) | `/MolPol/Geo/activateTrackingSD` |
 
 **Notes:**
 
@@ -168,7 +169,7 @@ The following is a table of the Virtual "flux" Planes (VP) in the simulation
 
 100-191: Series of flux planes in the dipole which can be essential in understanding how the electron envelope moves through the dipole. Controlled by `/MolPol/Geo/activateInternalDipoleVPs` macro command (default: disabled). Use `true` to enable, `false` to disable.
 
-200-202: GEM trackers (upstream, middle, downstream). Sensitive detectors are attached when you run the build GEM tracking macro `/MolPol/Geo/buildTracking` (typically after `/run/initialize`). Positions are set via `/MolPol/Geo/GEM1X`, `GEM1Y`, `GEM1Z`, etc., or `trackingUS_Pos_z`, `trackingMD_Pos_z`, `trackingDS_Pos_z`. GEMs are initialized in a parked configuration and moved to active positions by `/MolPol/Geo/buildTracking`; layer materials are also reassigned to their physical GEM materials at that stage.
+200-202: GEM trackers (upstream, middle, downstream). First run `/MolPol/Geo/buildTracking` to activate tracker mass in the simulation (move from parked positions and apply physical GEM materials). Then run `/MolPol/Geo/activateTrackingSD true` to attach sensitive detectors and record GEM hits. Use `/MolPol/Geo/activateTrackingSD false` to disable GEM SD assignment while keeping tracker mass active.
 
 Collimating mask: Initialized as air with a white wireframe visual. Running `/MolPol/Geo/useCollimatingMask` switches the mask to `MolPol_WCuMix` and applies the standard mask visual attributes.
 

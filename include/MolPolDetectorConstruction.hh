@@ -42,6 +42,8 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
     void SetGEMTr2Pos_z(G4double val);
     void SetGEMTr3Pos_z(G4double val);
     void BuildTracking();
+    void SetTrackingDetSensitiveDetectors();
+    void SetTrackingDet(G4String val);
     void UseCollimatingMask();
 
     void UpdateGeometry();
@@ -83,6 +85,8 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
     G4VPhysicalVolume*    fTrackingPhysVolUS;
     G4VPhysicalVolume*    fTrackingPhysVolMD;
     G4VPhysicalVolume*    fTrackingPhysVolDS;
+    G4bool                fTrackingBuilt;
+    G4bool                fEnableTrackingDet;
 
     G4double              fLeadJawGapWidth;
     G4double              fLeadJawsHLength;

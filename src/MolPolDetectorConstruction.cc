@@ -59,6 +59,8 @@ MolPolDetectorConstruction::MolPolDetectorConstruction():
   fTrackingPhysVolUS(nullptr),
   fTrackingPhysVolMD(nullptr),
   fTrackingPhysVolDS(nullptr),
+  fTrackingBuilt(false),
+  fEnableTrackingDet(false),
   fLeadJawGapWidth(3.6*cm),    //Default jaw gap fully open.
   fTargetFullLength(0.013*mm), //Default target width 13 microns.
   fTargetFullRadius(15.0*mm),
@@ -1336,35 +1338,10 @@ void MolPolDetectorConstruction::BuildTracking(){
   ApplyGEMMaterialsRecursive(fTrackingLogicalMD);
   ApplyGEMMaterialsRecursive(fTrackingLogicalDS);
 
-  G4SDManager* SDman = G4SDManager::GetSDMpointer();
-  auto ensureSD = [&](const G4String& name, int id) -> MolPolDetector* {
-    auto* existing = SDman->FindSensitiveDetector(name, false);
-    if (existing) return static_cast<MolPolDetector*>(existing);
-    auto* sd = new MolPolDetector(name, id);
-    SDman->AddNewDetector(sd);
-    return sd;
-  };
-  MolPolDetector* TRIN  = ensureSD("trin",  200);
-  MolPolDetector* TRMID = ensureSD("trmid", 201);
-  MolPolDetector* TROUT = ensureSD("trout", 202);
-  std::function<void(G4LogicalVolume*, G4VSensitiveDetector*)> AttachSDRecursive;
-  AttachSDRecursive = [&](G4LogicalVolume* lv, G4VSensitiveDetector* sd){
-    if (!lv) return;
-    G4Material* mat = lv->GetMaterial();
-    G4String matName = mat ? mat->GetName() : "";
-    if (matName == "ArCO2") lv->SetSensitiveDetector(sd);
-    else lv->SetSensitiveDetector(nullptr);
-    for (size_t i = 0; i < (size_t)lv->GetNoDaughters(); ++i) {
-      G4VPhysicalVolume* pvD = lv->GetDaughter(i);
-      if (pvD && pvD->GetLogicalVolume()) AttachSDRecursive(pvD->GetLogicalVolume(), sd);
-    }
-  };
-  AttachSDRecursive(fTrackingLogicalUS, TRIN);
-  AttachSDRecursive(fTrackingLogicalMD, TRMID);
-  AttachSDRecursive(fTrackingLogicalDS, TROUT);
   fTrackingPhysVolUS->SetTranslation(G4ThreeVector(fGEMTr1Pos_X, fGEMTr1Pos_Y, fGEMTr1Pos_Z));
   fTrackingPhysVolMD->SetTranslation(G4ThreeVector(fGEMTr2Pos_X, fGEMTr2Pos_Y, fGEMTr2Pos_Z));
   fTrackingPhysVolDS->SetTranslation(G4ThreeVector(fGEMTr3Pos_X, fGEMTr3Pos_Y, fGEMTr3Pos_Z));
+  fTrackingBuilt = true;
   G4RunManager::GetRunManager()->GeometryHasBeenModified();
   G4cout << "Checking tracking geometry::" << G4endl;
   // Fetch GEM mother volume positions and print, and fetch GEM layer materials and print.
@@ -1404,6 +1381,70 @@ void MolPolDetectorConstruction::BuildTracking(){
 
 
 
+}
+
+void MolPolDetectorConstruction::SetTrackingDetSensitiveDetectors(){
+  if(!fTrackingLogicalUS || !fTrackingLogicalMD || !fTrackingLogicalDS){
+    G4cerr << "GEM tracking logical volumes have not yet been constructed." << G4endl;
+    return;
+  }
+
+  if(!fTrackingBuilt){
+    G4cerr << "GEM tracking geometry has not been built yet. Run /MolPol/Geo/buildTracking first." << G4endl;
+    return;
+  }
+
+  G4SDManager* SDman = G4SDManager::GetSDMpointer();
+  auto ensureSD = [&](const G4String& name, int id) -> MolPolDetector* {
+    auto* existing = SDman->FindSensitiveDetector(name, false);
+    if (existing) return static_cast<MolPolDetector*>(existing);
+    auto* sd = new MolPolDetector(name, id);
+    SDman->AddNewDetector(sd);
+    return sd;
+  };
+  MolPolDetector* TRIN  = fEnableTrackingDet ? ensureSD("trin",  200) : nullptr;
+  MolPolDetector* TRMID = fEnableTrackingDet ? ensureSD("trmid", 201) : nullptr;
+  MolPolDetector* TROUT = fEnableTrackingDet ? ensureSD("trout", 202) : nullptr;
+
+  std::function<void(G4LogicalVolume*, G4VSensitiveDetector*)> AttachSDRecursive;
+  AttachSDRecursive = [&](G4LogicalVolume* lv, G4VSensitiveDetector* sd){
+    if (!lv) return;
+    G4Material* mat = lv->GetMaterial();
+    G4String matName = mat ? mat->GetName() : "";
+    if (matName == "ArCO2") lv->SetSensitiveDetector(sd);
+    else lv->SetSensitiveDetector(nullptr);
+    for (size_t i = 0; i < (size_t)lv->GetNoDaughters(); ++i) {
+      G4VPhysicalVolume* pvD = lv->GetDaughter(i);
+      if (pvD && pvD->GetLogicalVolume()) AttachSDRecursive(pvD->GetLogicalVolume(), sd);
+    }
+  };
+  AttachSDRecursive(fTrackingLogicalUS, TRIN);
+  AttachSDRecursive(fTrackingLogicalMD, TRMID);
+  AttachSDRecursive(fTrackingLogicalDS, TROUT);
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+}
+
+void MolPolDetectorConstruction::SetTrackingDet(G4String val){
+  G4cout << "activateTrackingSD macro value receive: " << val << G4endl;
+  if(val == "true"){
+    if(!fTrackingBuilt){
+      G4cerr << "GEM tracking geometry has not been built yet. Run /MolPol/Geo/buildTracking first." << G4endl;
+      return;
+    }
+    fEnableTrackingDet = true;
+  }
+  else if(val == "false") {
+    fEnableTrackingDet = false;
+  } else {
+    G4cerr << "Invalid value for GEM tracking SD activation: " << val << G4endl;
+    return;
+  }
+  SetTrackingDetSensitiveDetectors();
+  if(fEnableTrackingDet) {
+    G4cout << "GEM tracking sensitive detectors are enabled." << G4endl;
+  } else {
+    G4cout << "GEM tracking sensitive detectors are disabled." << G4endl;
+  }
 }
 
 void MolPolDetectorConstruction::UseCollimatingMask(){
@@ -1663,7 +1704,9 @@ void MolPolDetectorConstruction::DefineGeometryCommands(){
   track2Pos_zCmd.SetParameterName("trackingMD_Pos_z", true);
   auto& track3Pos_zCmd = fMessenger->DeclareMethodWithUnit("trackingDS_Pos_z","cm", &MolPolDetectorConstruction::SetGEMTr3Pos_z, "Set z position of downstream GEM tracker");
   track3Pos_zCmd.SetParameterName("trackingDS_Pos_z", true);
-  auto& BuildTrackingCmd = fMessenger->DeclareMethod("buildTracking", &MolPolDetectorConstruction::BuildTracking, "Attach sensitive detectors to GEM ArCO2 layers");
+  auto& BuildTrackingCmd = fMessenger->DeclareMethod("buildTracking", &MolPolDetectorConstruction::BuildTracking, "Activate GEM tracking geometry/materials and move trackers into active positions");
+  auto& activateTrackingSDCmd = fMessenger->DeclareMethod("activateTrackingSD", &MolPolDetectorConstruction::SetTrackingDet, "Enable/disable GEM tracking sensitive detector assignment (requires buildTracking first)");
+  activateTrackingSDCmd.SetParameterName("enable", true);
 
   // collimating mask command
   auto& useCollimatingMaskCmd = fMessenger->DeclareMethod("useCollimatingMask",&MolPolDetectorConstruction::UseCollimatingMask,"Activate collimating mask material and visual attributes");

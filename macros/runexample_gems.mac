@@ -56,7 +56,14 @@
 /MolPol/Geo/GEM3X 0.0 cm
 /MolPol/Geo/GEM3Y -40.075 cm
 /MolPol/Geo/GEM3Z 656.7486 cm
-/MolPol/Geo/buildTracking     
+# ⌄⌄⌄ unpark the physical GEM geometry
+/MolPol/Geo/buildTracking
+# ⌄⌄⌄ activate the sensitive detectors for the gems (if desired)
+/MolPol/Geo/activateTrackingSD  true
+
+#OPTIONAL DETECTOR SENSITIVE DETECTOR FLUX PLANES
+/MolPol/Geo/activateInternalDipoleVPs true
+/MolPol/Geo/activatePaddleVPs         true
 
 #MAGNET OFFSET INFORMATION
 #/field/setQ1YOffset       0.530   mm
