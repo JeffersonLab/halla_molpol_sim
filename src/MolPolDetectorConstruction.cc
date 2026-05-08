@@ -19,6 +19,7 @@
 #include "G4Cons.hh"
 #include "G4Tubs.hh"
 #include "G4LogicalVolume.hh"
+#include "G4LogicalVolumeStore.hh"
 #include "G4RotationMatrix.hh"
 #include "G4ThreeVector.hh"
 #include "G4Transform3D.hh"
@@ -119,13 +120,20 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4VisAttributes* DipVisAtt  = new G4VisAttributes( G4Colour(  0./255., 80./255.,225./255.,alphaVacuum) );
   G4VisAttributes* WCuNiVisAtt= new G4VisAttributes(G4Colour(140./255., 110./255., 90./255., alphaWCuNi));
 
+  G4VisAttributes* MaskInactiveVisAtt = new G4VisAttributes(G4Colour(1.0, 1.0, 1.0, 0.10));
+  MaskInactiveVisAtt->SetForceWireframe(true);
+  MaskInactiveVisAtt->SetLineWidth(1.0);
+
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // Build world
-  G4double world_x = 10*m;  G4double world_y = 10*m;  G4double world_z = 10*m;
+  G4double world_x = 3*m;  G4double world_y = 3*m;  G4double world_z = 10*m;
   G4Box* world_box = new G4Box("World",world_x,world_y,world_z);
   G4LogicalVolume* world_log = new G4LogicalVolume(world_box,MolPol_Vacuum,"World",0,0,0);
-  world_log->SetVisAttributes(G4VisAttributes::GetInvisible() );
+  G4VisAttributes* worldVisAtt = new G4VisAttributes(G4Colour(255./255., 255./255., 255./255., 0.10));
+  worldVisAtt->SetForceWireframe(true);
+  worldVisAtt->SetLineWidth(1.0);
+  world_log->SetVisAttributes(worldVisAtt);
   G4VPhysicalVolume* world_phys = new G4PVPlacement(0,G4ThreeVector(),world_log,"World",0,false,fCheckOverlaps);
 
   //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -859,6 +867,9 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
     2*mm,0.01*mm,0.05*mm,0.18*mm,   //FIFTH GAP then READOUT BOARD
     3*mm,0.02*mm,0.005*mm           //SIXTH GAP and CLOSING WINDOW
   };
+  // WARNING: BuildTracking() reassigns GEM layer materials by matching the
+  // ".<type>" suffix embedded in layer logical volume names. Keep these type
+  // tokens synchronized with BuildTracking() material matching branches.
   G4String GEMlayerTypes[nGEMLayers] = {
     "Al","Mylar",                    //OPENING WINDOW
     "ArCO2","Kapton","Cu",           //FIRST GAP (DRIFT)
@@ -876,16 +887,18 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4double pTr2HLX = 11.3792 * cm;  G4double pTr2HLY = 20.32 * cm;
   G4double pTr3HLX = 11.3792 * cm;  G4double pTr3HLY = 20.32 * cm;
 
-  auto getLayerMat = [&](const G4String& t) -> G4Material* {
-    if (t == "Al")         return MolPol_Aluminum;
-    if (t == "Cu")         return MolPol_Copper;
-    if (t == "Mylar")      return MolPol_Mylar;
-    if (t == "Kapton")     return MolPol_Kapton;
-    if (t == "ArCO2")      return MolPol_ArCO2;
-    if (t == "NEMAG10")    return MolPol_NEMAG10;
-    //if (t == "Kryptonite") return mat_Kryptonite;
-    return nullptr;
-  };
+  // GEM layer material assignment is deferred to BuildTracking().
+  // Keeping this lookup block commented for reference while using air-first construction.
+  // auto getLayerMat = [&](const G4String& t) -> G4Material* {
+  //   if (t == "Al")         return MolPol_Aluminum;
+  //   if (t == "Cu")         return MolPol_Copper;
+  //   if (t == "Mylar")      return MolPol_Mylar;
+  //   if (t == "Kapton")     return MolPol_Kapton;
+  //   if (t == "ArCO2")      return MolPol_ArCO2;
+  //   if (t == "NEMAG10")    return MolPol_NEMAG10;
+  //   //if (t == "Kryptonite") return mat_Kryptonite;
+  //   return nullptr;
+  // };
 
   if (!MolPol_Aluminum || !MolPol_Copper || !MolPol_Mylar || !MolPol_Kapton || !MolPol_ArCO2 || !MolPol_NEMAG10) {
     G4cerr << "ERROR: One or more GEM materials were not found. Check ConstructMaterials() names." << G4endl;
@@ -901,17 +914,29 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
     G4String motherSolidName = gemTag + ".MotherSolid";
     G4String motherLogName   = gemTag + ".MotherLogical";
     outSolid   = new G4Box(motherSolidName, hlx, hly, totalGEMThickness/2.0);
-    outLogical = new G4LogicalVolume(outSolid, MolPol_Vacuum, motherLogName, 0, 0, 0);
+    outLogical = new G4LogicalVolume(outSolid, MolPol_Air, motherLogName, 0, 0, 0);
     G4VisAttributes* GEMVisAtt = new G4VisAttributes(G4Colour(255./255., 255./255., 255./255., 0.75));
     GEMVisAtt->SetForceWireframe(true);
     GEMVisAtt->SetLineWidth(2.0);
     outLogical->SetVisAttributes(GEMVisAtt);
+
+    // Layer vis attributes (wireframe, material-colored) for GEM daughter volumes.
+    G4VisAttributes* GEMLayerVisAtt_Al      = new G4VisAttributes(G4Colour(  0./255., 237./255.,   0./255., 0.25));
+    G4VisAttributes* GEMLayerVisAtt_Cu      = new G4VisAttributes(G4Colour(178./255., 102./255.,  26./255., 0.25));
+    G4VisAttributes* GEMLayerVisAtt_Mylar   = new G4VisAttributes(G4Colour(175./255., 175./255., 175./255., 0.25));
+    G4VisAttributes* GEMLayerVisAtt_Kapton  = new G4VisAttributes(G4Colour(227./255., 147./255.,  14./255., 0.25));
+    G4VisAttributes* GEMLayerVisAtt_ArCO2   = new G4VisAttributes(G4Colour( 80./255., 170./255., 255./255., 0.25));
+    G4VisAttributes* GEMLayerVisAtt_NEMAG10 = new G4VisAttributes(G4Colour(190./255., 120./255., 220./255., 0.25));
+    GEMLayerVisAtt_Al->SetForceWireframe(true);
+    GEMLayerVisAtt_Cu->SetForceWireframe(true);
+    GEMLayerVisAtt_Mylar->SetForceWireframe(true);
+    GEMLayerVisAtt_Kapton->SetForceWireframe(true);
+    GEMLayerVisAtt_ArCO2->SetForceWireframe(true);
+    GEMLayerVisAtt_NEMAG10->SetForceWireframe(true);
     
     outPhys = new G4PVPlacement(0, worldPos, outLogical, gemTag, world_log, 0, 0, fCheckOverlaps);
     G4double z_cursor = -totalGEMThickness/2.0;
     for (int i = 0; i < nGEMLayers; ++i) {
-      G4Material* layMat = getLayerMat(GEMlayerTypes[i]);
-      if (!layMat) { G4cerr << "ERROR: Unknown GEM layer type '" << GEMlayerTypes[i] << "' at index " << i << G4endl; exit(42); }
       const G4double hz = GEMlayerThickness[i] / 2.0;
       z_cursor += hz;
 
@@ -920,7 +945,23 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
       G4String layerPhysName  = gemTag + ".Layer." + std::to_string(i) + "." + GEMlayerTypes[i];
 
       G4Box* layerSolid = new G4Box(layerSolidName, hlx, hly, hz);
-      G4LogicalVolume* layerLogical = new G4LogicalVolume(layerSolid, layMat, layerLogName, 0, 0, 0);
+      // Build GEM layers as air by default; BuildTracking() assigns physical GEM materials.
+      G4LogicalVolume* layerLogical = new G4LogicalVolume(layerSolid, MolPol_Air, layerLogName, 0, 0, 0);
+      if (GEMlayerTypes[i] == "Al") {
+        layerLogical->SetVisAttributes(GEMLayerVisAtt_Al);
+      } else if (GEMlayerTypes[i] == "Cu") {
+        layerLogical->SetVisAttributes(GEMLayerVisAtt_Cu);
+      } else if (GEMlayerTypes[i] == "Mylar") {
+        layerLogical->SetVisAttributes(GEMLayerVisAtt_Mylar);
+      } else if (GEMlayerTypes[i] == "Kapton") {
+        layerLogical->SetVisAttributes(GEMLayerVisAtt_Kapton);
+      } else if (GEMlayerTypes[i] == "ArCO2") {
+        layerLogical->SetVisAttributes(GEMLayerVisAtt_ArCO2);
+      } else if (GEMlayerTypes[i] == "NEMAG10") {
+        layerLogical->SetVisAttributes(GEMLayerVisAtt_NEMAG10);
+      } else {
+        layerLogical->SetVisAttributes(GEMLayerVisAtt_Mylar);
+      }
 
       new G4PVPlacement(0, G4ThreeVector(0, 0, z_cursor), layerLogical, layerPhysName, outLogical, 0, 0, fCheckOverlaps);
 
@@ -928,9 +969,14 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
     }
 
   };
-  buildGEM("GEM.Tracking.US", pTr1HLX, pTr1HLY, G4ThreeVector(fGEMTr1Pos_X, fGEMTr1Pos_Y, fGEMTr1Pos_Z), fTrackingSolidUS, fTrackingLogicalUS, fTrackingPhysVolUS);
-  buildGEM("GEM.Tracking.MD", pTr2HLX, pTr2HLY, G4ThreeVector(fGEMTr2Pos_X, fGEMTr2Pos_Y, fGEMTr2Pos_Z), fTrackingSolidMD, fTrackingLogicalMD, fTrackingPhysVolMD);
-  buildGEM("GEM.Tracking.DS", pTr3HLX, pTr3HLY, G4ThreeVector(fGEMTr3Pos_X, fGEMTr3Pos_Y, fGEMTr3Pos_Z), fTrackingSolidDS, fTrackingLogicalDS, fTrackingPhysVolDS);
+  
+  // Park GEM mothers near the -Z world edge at initialization; BuildTracking() moves them into active positions.
+  const G4double gemParkUS_Z = -world_z + 1.0*totalGEMThickness;
+  const G4double gemParkMD_Z = -world_z + 3.0*totalGEMThickness;
+  const G4double gemParkDS_Z = -world_z + 5.0*totalGEMThickness;
+  buildGEM("GEM.Tracking.US", pTr1HLX, pTr1HLY, G4ThreeVector(0, 0, gemParkUS_Z), fTrackingSolidUS, fTrackingLogicalUS, fTrackingPhysVolUS);
+  buildGEM("GEM.Tracking.MD", pTr2HLX, pTr2HLY, G4ThreeVector(0, 0, gemParkMD_Z), fTrackingSolidMD, fTrackingLogicalMD, fTrackingPhysVolMD);
+  buildGEM("GEM.Tracking.DS", pTr3HLX, pTr3HLY, G4ThreeVector(0, 0, gemParkDS_Z), fTrackingSolidDS, fTrackingLogicalDS, fTrackingPhysVolDS);
 
   // MASK CONSTRUCTION
   G4double pWinDown = 3.271*cm;
@@ -966,8 +1012,8 @@ G4VPhysicalVolume* MolPolDetectorConstruction::Construct() {
   G4SubtractionSolid* maskSub2 = new G4SubtractionSolid("maskSub2", maskUnion1, ANGLESUBANGLE8pt5, pRot9, G4ThreeVector(0, -pPT1MASKHLY-pANGLESUBBOTX+(pPT1MASKHLZ+pPT2MASKHLZ)*tan(pANGLEBOTCUT), -pPT2MASKHLZ) );
   G4SubtractionSolid* maskSub3 = new G4SubtractionSolid("maskSub3", maskSub2, ANGLESUBANGLE6pt3, pRotWin, G4ThreeVector(0, -pWinDown+pPT1MASKHLY-0.5*(pPT1MASKHLZ+pPT2MASKHLZ)*tan(pANGLETOPCUT)-pANGLEWINUPPERX, -pPT2MASKHLZ) );
   G4SubtractionSolid* maskSub4 = new G4SubtractionSolid("maskSub4", maskSub3, ANGLESUBANGLE7pt5, pRotWin, G4ThreeVector(0, -pWinDown+pPT1MASKHLY-0.5*(pPT1MASKHLZ+pPT2MASKHLZ)*tan(pANGLETOPCUT)-pANGLEWINLOWERX-(pPT1MASKHLZ+pPT2MASKHLZ)*(tan(pANGLEWINLOWER)-tan(pANGLEWINUPPER)), -pPT2MASKHLZ) );
-  G4LogicalVolume* maskSub4Log = new G4LogicalVolume(maskSub4, G4Material::GetMaterial("MolPol_WCuMix"), "maskSub4Log", 0, 0, 0);
-  maskSub4Log->SetVisAttributes( WCuNiVisAtt );
+  G4LogicalVolume* maskSub4Log = new G4LogicalVolume(maskSub4, MolPol_Air, "maskSub4Log", 0, 0, 0);
+  maskSub4Log->SetVisAttributes(MaskInactiveVisAtt);
   new G4PVPlacement(0 , G4ThreeVector( pMDBXPos_X, pYShift+pMDBXPos_Y, pZPlace ) , maskSub4Log ,   "detectorMask_PV" ,   world_log , 0 , 0 , fCheckOverlaps);
 
   return world_phys;
@@ -1241,6 +1287,55 @@ void MolPolDetectorConstruction::BuildTracking(){
     G4cerr << "Error: GEM tracking volumes have not yet been constructed." << G4endl;
     return;
   }
+  auto MolPol_Air     = G4Material::GetMaterial("MP_Air");
+  auto MolPol_Al      = G4Material::GetMaterial("MP_Aluminum");
+  auto MolPol_Cu      = G4Material::GetMaterial("MP_Copper");
+  auto MolPol_Mylar   = G4Material::GetMaterial("Mylar");
+  auto MolPol_Kapton  = G4Material::GetMaterial("Kapton");
+  auto MolPol_ArCO2   = G4Material::GetMaterial("ArCO2");
+  auto MolPol_NEMAG10 = G4Material::GetMaterial("NEMAG10");
+
+  if (!MolPol_Air || !MolPol_Al || !MolPol_Cu || !MolPol_Mylar || !MolPol_Kapton || !MolPol_ArCO2 || !MolPol_NEMAG10) {
+    G4cerr << "Error: Missing one or more GEM materials in BuildTracking()." << G4endl;
+    return;
+  }
+
+  auto endsWith = [&](const G4String& text, const G4String& suffix) -> bool {
+    if (text.size() < suffix.size()) return false;
+    return text.compare(text.size() - suffix.size(), suffix.size(), suffix) == 0;
+  };
+
+  std::function<void(G4LogicalVolume*)> ApplyGEMMaterialsRecursive;
+  ApplyGEMMaterialsRecursive = [&](G4LogicalVolume* lv){
+    if (!lv) return;
+    const G4String lvName = lv->GetName();
+    if (lvName.find(".LayerLogical.") != G4String::npos) {
+      if      (endsWith(lvName, ".Al"))      lv->SetMaterial(MolPol_Al);
+      else if (endsWith(lvName, ".Cu"))      lv->SetMaterial(MolPol_Cu);
+      else if (endsWith(lvName, ".Mylar"))   lv->SetMaterial(MolPol_Mylar);
+      else if (endsWith(lvName, ".Kapton"))  lv->SetMaterial(MolPol_Kapton);
+      else if (endsWith(lvName, ".ArCO2"))   lv->SetMaterial(MolPol_ArCO2);
+      else if (endsWith(lvName, ".NEMAG10")) lv->SetMaterial(MolPol_NEMAG10);
+      else {
+        // Safety for simulation integrity: do not continue with ambiguous GEM layer material assignment.
+        G4cerr << "CRITICAL: Unrecognized GEM layer material token in logical volume name '"
+               << lvName << "'. Aborting run." << G4endl;
+        exit(42);
+      }
+    } else if (lvName.find(".MotherLogical") != G4String::npos) {
+      lv->SetMaterial(MolPol_Air);
+    }
+
+    for (size_t i = 0; i < (size_t)lv->GetNoDaughters(); ++i) {
+      G4VPhysicalVolume* pvD = lv->GetDaughter(i);
+      if (pvD && pvD->GetLogicalVolume()) ApplyGEMMaterialsRecursive(pvD->GetLogicalVolume());
+    }
+  };
+
+  ApplyGEMMaterialsRecursive(fTrackingLogicalUS);
+  ApplyGEMMaterialsRecursive(fTrackingLogicalMD);
+  ApplyGEMMaterialsRecursive(fTrackingLogicalDS);
+
   G4SDManager* SDman = G4SDManager::GetSDMpointer();
   auto ensureSD = [&](const G4String& name, int id) -> MolPolDetector* {
     auto* existing = SDman->FindSensitiveDetector(name, false);
@@ -1271,6 +1366,62 @@ void MolPolDetectorConstruction::BuildTracking(){
   fTrackingPhysVolMD->SetTranslation(G4ThreeVector(fGEMTr2Pos_X, fGEMTr2Pos_Y, fGEMTr2Pos_Z));
   fTrackingPhysVolDS->SetTranslation(G4ThreeVector(fGEMTr3Pos_X, fGEMTr3Pos_Y, fGEMTr3Pos_Z));
   G4RunManager::GetRunManager()->GeometryHasBeenModified();
+  G4cout << "Checking tracking geometry::" << G4endl;
+  // Fetch GEM mother volume positions and print, and fetch GEM layer materials and print.
+  G4cout << "  GEM mother volume positions:" << G4endl;
+  G4cout << "    US: " << fTrackingPhysVolUS->GetTranslation() << G4endl;
+  G4cout << "    MD: " << fTrackingPhysVolMD->GetTranslation() << G4endl;
+  G4cout << "    DS: " << fTrackingPhysVolDS->GetTranslation() << G4endl;
+  G4cout << "  GEM layer materials:" << G4endl;
+  G4cout << "    US: " << fTrackingLogicalUS->GetMaterial()->GetName() << G4endl;
+  G4cout << "    MD: " << fTrackingLogicalMD->GetMaterial()->GetName() << G4endl;
+  G4cout << "    DS: " << fTrackingLogicalDS->GetMaterial()->GetName() << G4endl;
+  // Print all GEM daughter layer materials compactly (8 layers per line).
+  auto printGEMLayerMaterials = [&](const G4String& tag, G4LogicalVolume* gemLV){
+    const size_t perLine = 8;
+    G4cout << "    " << tag << ": ";
+    if (!gemLV) {
+      G4cout << "<null>" << G4endl;
+      return;
+    }
+    for (size_t i = 0; i < (size_t)gemLV->GetNoDaughters(); ++i) {
+      G4VPhysicalVolume* pvD = gemLV->GetDaughter(i);
+      G4LogicalVolume* lvD = pvD ? pvD->GetLogicalVolume() : nullptr;
+      G4Material* matD = lvD ? lvD->GetMaterial() : nullptr;
+      G4String matName = matD ? matD->GetName() : "null";
+      G4cout << i << ":" << matName;
+      if (i + 1 < (size_t)gemLV->GetNoDaughters()) {
+        if ((i + 1) % perLine == 0) G4cout << G4endl << "      ";
+        else G4cout << " ";
+      }
+    }
+    G4cout << G4endl;
+  };
+  G4cout << "  GEM daughter volume materials:" << G4endl;
+  printGEMLayerMaterials("US", fTrackingLogicalUS);
+  printGEMLayerMaterials("MD", fTrackingLogicalMD);
+  printGEMLayerMaterials("DS", fTrackingLogicalDS);
+
+
+
+}
+
+void MolPolDetectorConstruction::UseCollimatingMask(){
+  G4LogicalVolume* maskLV = G4LogicalVolumeStore::GetInstance()->GetVolume("maskSub4Log", false);
+  if (!maskLV) {
+    G4cerr << "Error: maskSub4Log not found. Cannot activate collimating mask." << G4endl;
+    return;
+  }
+  G4Material* wcuMix = G4Material::GetMaterial("MolPol_WCuMix");
+  if (!wcuMix) {
+    G4cerr << "Error: Material MolPol_WCuMix not found. Cannot activate collimating mask." << G4endl;
+    return;
+  }
+  maskLV->SetMaterial(wcuMix);
+  G4VisAttributes* activeMaskVisAtt = new G4VisAttributes(G4Colour(140./255., 110./255., 90./255., 0.60));
+  maskLV->SetVisAttributes(activeMaskVisAtt);
+  G4RunManager::GetRunManager()->GeometryHasBeenModified();
+  G4cout << "Collimating mask activated: material=MolPol_WCuMix, visual=WCuNiVisAtt" << G4endl;
 }
 
 void MolPolDetectorConstruction::SetDPVPSensitiveDetectors(){
@@ -1513,6 +1664,9 @@ void MolPolDetectorConstruction::DefineGeometryCommands(){
   auto& track3Pos_zCmd = fMessenger->DeclareMethodWithUnit("trackingDS_Pos_z","cm", &MolPolDetectorConstruction::SetGEMTr3Pos_z, "Set z position of downstream GEM tracker");
   track3Pos_zCmd.SetParameterName("trackingDS_Pos_z", true);
   auto& BuildTrackingCmd = fMessenger->DeclareMethod("buildTracking", &MolPolDetectorConstruction::BuildTracking, "Attach sensitive detectors to GEM ArCO2 layers");
+
+  // collimating mask command
+  auto& useCollimatingMaskCmd = fMessenger->DeclareMethod("useCollimatingMask",&MolPolDetectorConstruction::UseCollimatingMask,"Activate collimating mask material and visual attributes");
 
   // dipole internal virtual planes command
   auto& dipoleInternalVPlanesCmd =

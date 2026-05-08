@@ -44,6 +44,7 @@
 /MolPol/Geo/jawWidth          3.7  cm
 /MolPol/Geo/targetPosition   67.4  mm
 /MolPol/Geo/targetThickness  0.01  mm
+/MolPol/Geo/useCollimatingMask
 
 #GEOMETRY MODIFICATIONS FOR GEM TRACKERS (SET POSITIONS FIRST, THEN BUILD)
 /MolPol/Geo/GEM1X 0.0 cm

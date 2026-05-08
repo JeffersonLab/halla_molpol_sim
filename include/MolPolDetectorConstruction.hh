@@ -42,6 +42,7 @@ class MolPolDetectorConstruction : public G4VUserDetectorConstruction
     void SetGEMTr2Pos_z(G4double val);
     void SetGEMTr3Pos_z(G4double val);
     void BuildTracking();
+    void UseCollimatingMask();
 
     void UpdateGeometry();
 

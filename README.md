@@ -91,6 +91,7 @@ The following is a table of the current MolPol macros. --_dericking 02/05/2020_
 | /MolPol/Geo/targetPosition  | Double w/ Unit | Target position on the beamline | 
 | /MolPol/Geo/targetThickness | Double w/ Unit | Target thickness, can be modified to near zero (0) but not zero. | 
 | /MolPol/Geo/activateFluxTrackingVPs | String | Enable/disable sensitive detectors for flux virtual planes (detectors 1-8, 13-15). Use 'true' or 'false'. Default: false |
+| /MolPol/Geo/useCollimatingMask |  | Activate collimating mask material (`MolPol_WCuMix`) and visual attributes (`WCuNiVisAtt`) |
 | /MolPol/Geo/activateInternalDipoleVPs | String | Enable/disable sensitive detectors for dipole internal virtual planes (detectors 100-191). Use 'true' or 'false'. Default: false |
 | /MolPol/Geo/activatePaddleVPs | String | Enable/disable sensitive detectors for paddle virtual planes (detectors 11-12). Use 'true' or 'false'. Default: false |
 | /MolPol/Geo/GEM1X | Double w/ Unit (cm) | X position of GEM1 (upstream tracker) |
@@ -167,7 +168,9 @@ The following is a table of the Virtual "flux" Planes (VP) in the simulation
 
 100-191: Series of flux planes in the dipole which can be essential in understanding how the electron envelope moves through the dipole. Controlled by `/MolPol/Geo/activateInternalDipoleVPs` macro command (default: disabled). Use `true` to enable, `false` to disable.
 
-200-202: GEM trackers (upstream, middle, downstream). Sensitive detectors are attached when you run the build GEM tracking macro `/MolPol/Geo/buildTracking` (typically after `/run/initialize`). Positions are set via `/MolPol/Geo/GEM1X`, `GEM1Y`, `GEM1Z`, etc., or `trackingUS_Pos_z`, `trackingMD_Pos_z`, `trackingDS_Pos_z`.
+200-202: GEM trackers (upstream, middle, downstream). Sensitive detectors are attached when you run the build GEM tracking macro `/MolPol/Geo/buildTracking` (typically after `/run/initialize`). Positions are set via `/MolPol/Geo/GEM1X`, `GEM1Y`, `GEM1Z`, etc., or `trackingUS_Pos_z`, `trackingMD_Pos_z`, `trackingDS_Pos_z`. GEMs are initialized in a parked configuration and moved to active positions by `/MolPol/Geo/buildTracking`; layer materials are also reassigned to their physical GEM materials at that stage.
+
+Collimating mask: Initialized as air with a white wireframe visual. Running `/MolPol/Geo/useCollimatingMask` switches the mask to `MolPol_WCuMix` and applies the standard mask visual attributes.
 
 ## ROOT File Output
 
