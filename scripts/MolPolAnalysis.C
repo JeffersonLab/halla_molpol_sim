@@ -91,7 +91,7 @@ void MolPolAnalysis(const char *fileList,
     gStyle->SetPalette(55);
 
     // PMT row configuration (all active by default), deactivate PMT row with function call below.
-    // SetPmtRowInactive(4);
+     SetPmtRowInactive(4);SetPmtRowInactive(3);
 
     const Double_t targetPolarization = 0.08014;
     const MolPolGateMode gateMode =
@@ -134,6 +134,18 @@ void MolPolAnalysis(const char *fileList,
     TH2F *hThetaPhiCoinc = new TH2F("hThetaPhiCoinc", "MC #theta_{COM} vs. #phi for Coincidence;#theta_{COM};#phi", 360, 0.0, 180.0, 100, -180., 180.);
     TH2F *hThetaPhiLeft = new TH2F("hThetaPhiLeft", "MC #theta_{COM} vs. #phi for Left;#theta_{COM};#phi", 360, 0.0, 180.0, 100, -180., 180.);
     TH2F *hThetaPhiRight = new TH2F("hThetaPhiRight", "MC #theta_{COM} vs. #phi for Right;#theta_{COM};#phi", 360, 0.0, 180.0, 100, -180., 180.);
+
+    Double_t hitLxMin = -9.0;
+    Double_t hitLxMax = 9.0;
+    Double_t hitLyMin = -15.0;
+    Double_t hitLyMax = 15.0;
+    Int_t    hitLxBin = 90;
+    Int_t    hitLyBin = 150;
+    // Hit detector 9 Lx vs Ly maps for singles and coincidence
+    TH2F *hHitLxLyETotalSinglesMap = new TH2F("hHitLxLyETotalSinglesMap", "All Events (#SigmaE Fraction [%]);Lx [cm];Ly [cm]", hitLxBin, hitLxMin, hitLxMax, hitLyBin, hitLyMin, hitLyMax);
+    TH2F *hHitLxLyETotalCoincMap = new TH2F("hHitLxLyETotalCoincMap", "Coincidence Events (#SigmaE Fraction [%]);Lx [cm];Ly [cm]", hitLxBin, hitLxMin, hitLxMax, hitLyBin, hitLyMin, hitLyMax);
+    TH2F *hHitLxLyEBarSinglesMap = new TH2F("hHitLxLyEBarSinglesMap", "All Events (#bar{E} Per Bin [GeV]);Lx [cm];Ly [cm]", hitLxBin, hitLxMin, hitLxMax, hitLyBin, hitLyMin, hitLyMax);
+    TH2F *hHitLxLyEBarCoincMap = new TH2F("hHitLxLyEBarCoincMap", "Coincidence Events (#bar{E} Per Bin [GeV]);Lx [cm];Ly [cm]", hitLxBin, hitLxMin, hitLxMax, hitLyBin, hitLyMin, hitLyMax);
 
     // Detector 9 momentum flux (all entries; independent of analysis gate mode)
     Float_t fluxPMin = 0.0;
@@ -188,27 +200,44 @@ void MolPolAnalysis(const char *fileList,
         // Total weights for all thrown MC events
         weightTotalThrown += evUnpolWght;
         totalMollerEvXs += evXs;
+
         // Calculate the analyzing power for the current simulated event
         Double_t eventAzz = MolPolEventAsymmetry();
+        
         // Accumulate the analyzing power for the current simulated event for individual arms and coincidence
         if (MolPolPassCoinc(gateMode, momentumCut)) MolPolAccumulateChannel(accum[kMolPolAsymCoinc], eventAzz);
         if (MolPolPassLeft(gateMode, momentumCut))  MolPolAccumulateChannel(accum[kMolPolAsymLeft], eventAzz);
         if (MolPolPassRight(gateMode, momentumCut)) MolPolAccumulateChannel(accum[kMolPolAsymRight], eventAzz);
 
         // Fill the histograms with the analyzing power for the current simulated event
-        if (MolPolPassCoinc(gateMode, momentumCut) && eventAzz > 0.0)
-            hAzzCoinc->Fill(eventAzz, (evPolPlusWghtZ + evPolMinusWghtZ));
-        if (MolPolPassLeft(gateMode, momentumCut) && eventAzz > 0.0)
-            hAzzLeft->Fill(eventAzz, (evPolPlusWghtZ + evPolMinusWghtZ));
-        if (MolPolPassRight(gateMode, momentumCut) && eventAzz > 0.0)
-            hAzzRight->Fill(eventAzz, (evPolPlusWghtZ + evPolMinusWghtZ));
+        if (MolPolPassCoinc(gateMode, momentumCut) && eventAzz > 0.0) hAzzCoinc->Fill(eventAzz, (evPolPlusWghtZ + evPolMinusWghtZ));
+        if (MolPolPassLeft(gateMode, momentumCut) && eventAzz > 0.0) hAzzLeft->Fill(eventAzz, (evPolPlusWghtZ + evPolMinusWghtZ));
+        if (MolPolPassRight(gateMode, momentumCut) && eventAzz > 0.0) hAzzRight->Fill(eventAzz, (evPolPlusWghtZ + evPolMinusWghtZ));
 
         // Fill the histograms with the MC #theta_{COM} and #phi for the current simulated event
         if (MolPolPassCoinc(gateMode, momentumCut)) hThetaPhiCoinc->Fill(evThcom, evPhcom);
         if (MolPolPassLeft(gateMode, momentumCut))  hThetaPhiLeft->Fill(evThcom, evPhcom);
         if (MolPolPassRight(gateMode, momentumCut)) hThetaPhiRight->Fill(evThcom, evPhcom);
 
+        // Fill the energy deposit heat maps for coincidence and singles events
+        if (MolPolPassCoinc(gateMode, momentumCut)) {
+            for (Int_t i = 0; i < hitN; i++) {
+                if(IsActivePmtRow(i)) hHitLxLyETotalCoincMap->Fill(hitLx[i]*100.0, hitLy[i]*100.0, hitE[i]);
+                if(IsActivePmtRow(i)) hHitLxLyEBarCoincMap->Fill(hitLx[i]*100.0, hitLy[i]*100.0);
+            }
+        }
+        if (MolPolPassLeft(gateMode, momentumCut) || MolPolPassRight(gateMode, momentumCut)) {
+            for (Int_t i = 0; i < hitN; i++) {
+                if(IsActivePmtRow(i)) hHitLxLyETotalSinglesMap->Fill(hitLx[i]*100.0, hitLy[i]*100.0, hitE[i]);
+                if(IsActivePmtRow(i)) hHitLxLyEBarSinglesMap->Fill(hitLx[i]*100.0, hitLy[i]*100.0);
+            }
+        }
+
     }
+    
+    // Calculate the #bar{E} Per Bin for the hitLxLySinglesCountMap and hitLxLyCoincCountMap
+    hHitLxLyEBarSinglesMap->Divide(hHitLxLyETotalSinglesMap,hHitLxLyEBarSinglesMap,1.0,1.0);
+    hHitLxLyEBarCoincMap->Divide(hHitLxLyETotalCoincMap,hHitLxLyEBarCoincMap,1.0,1.0);
 
     // Scale the histograms by the sum of the polarized weights for the current simulated event
     hAzzCoinc->Scale(1.0/(evPolPlusWghtZ + evPolMinusWghtZ));
@@ -272,7 +301,47 @@ void MolPolAnalysis(const char *fileList,
 
     TCanvas *C4 = new TCanvas("C4", "C4", 600, 550);
     hFluxPLR->SetMinimum(0.0);
-    hFluxPLR->Draw("LEGO2");
+    hFluxPLR->Draw("COLZ");
+
+    TH2F *hHitLxLyETotalSinglesPct = (TH2F *)hHitLxLyETotalSinglesMap->Clone("hHitLxLyETotalSinglesPct");
+    TH2F *hHitLxLyETotalCoincPct = (TH2F *)hHitLxLyETotalCoincMap->Clone("hHitLxLyETotalCoincPct");
+    const Double_t intETotalSingles = hHitLxLyETotalSinglesPct->Integral();
+    if (intETotalSingles > 0.0) hHitLxLyETotalSinglesPct->Scale(100.0 / intETotalSingles);
+    const Double_t intETotalCoinc = hHitLxLyETotalCoincPct->Integral();
+    if (intETotalCoinc > 0.0) hHitLxLyETotalCoincPct->Scale(100.0 / intETotalCoinc);
+    hHitLxLyETotalCoincPct->SetMaximum(hHitLxLyETotalSinglesPct->GetMaximum());
+
+    TCanvas *C5 = new TCanvas("C5", "C5", 1600, 800);
+    C5->Divide(4, 1);
+    C5->cd(1);
+    gPad->SetRightMargin(0.15);
+    hHitLxLyETotalSinglesPct->SetStats(kFALSE);
+    hHitLxLyETotalSinglesPct->SetMinimum(0.0);
+    hHitLxLyETotalSinglesPct->Draw("COLZ");
+    gPad->SetGridx(kTRUE);
+    gPad->SetGridy(kTRUE);
+    C5->cd(2);
+    gPad->SetRightMargin(0.15);
+    hHitLxLyETotalCoincPct->SetStats(kFALSE);
+    hHitLxLyETotalCoincPct->SetMinimum(0.0);
+    hHitLxLyETotalCoincPct->Draw("COLZ");
+    gPad->SetGridx(kTRUE);
+    gPad->SetGridy(kTRUE);
+    C5->cd(3);
+    gPad->SetRightMargin(0.15);
+    hHitLxLyEBarSinglesMap->SetStats(kFALSE);
+    hHitLxLyEBarSinglesMap->SetMinimum(0.0);
+    hHitLxLyEBarSinglesMap->Draw("COLZ");
+    gPad->SetGridx(kTRUE);
+    gPad->SetGridy(kTRUE);
+    C5->cd(4);
+    gPad->SetRightMargin(0.15);
+    hHitLxLyEBarCoincMap->SetStats(kFALSE);
+    hHitLxLyEBarCoincMap->SetMinimum(0.0);
+    hHitLxLyEBarCoincMap->SetMaximum( hHitLxLyEBarSinglesMap->GetMaximum() );
+    hHitLxLyEBarCoincMap->Draw("COLZ");
+    gPad->SetGridx(kTRUE);
+    gPad->SetGridy(kTRUE);
 
     // mollerCrossSection.C: Fe rate using MC theta range (track-qualified sumEvP uses hitFluxTrackCoinc elsewhere)
     Double_t molrate = RunMollerCrossSection(kMollerRateFe, minThcom, maxThcom, fabs(maxPhcom - minPhcom), maxSumEvP, 1.0, kTRUE);
