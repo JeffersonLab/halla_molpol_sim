@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////
-// MolPolAnalysis.C
+// MolPolAnalysis.C -- Eric King 06/02/2026 (updated)
 // ROOT macro for analyzing MolPol simulation data: coincidence,
 // left singles, and right singles weighted asymmetry / analyzing power.
 //
 // Usage (from this directory):
-//   root 'MolPolAnalysis.C("path/to/file.root")'              // track gates (default)
-//   root 'MolPolAnalysis.C("filelist.txt", false)'            // momentum-cut gates
-//   root 'MolPolAnalysis.C("file.root", false, 2.0)'         // momentum cut = 2.0
+//   root 'MolPolAnalysis.C("path/to/file.root")'
+//   root 'MolPolAnalysis.C("filelist.txt", false)'
+//   root 'MolPolAnalysis.C("file.root", false, 2.0)'
 ///////////////////////////////////////////////////////////////
 
 #include "MolPolAnalysis.h"
@@ -97,10 +97,12 @@ void MolPolAnalysis(const char *fileList,
     const MolPolGateMode gateMode =
         useTrackGates ? kMolPolGateTrack : kMolPolGateMomentum;
 
-    printf("Gate mode: %s", MolPolGateModeName(gateMode));
+    printf("=== MolPolAnalysis ===\n");
+    printf("File: %s\n", fileList);
+    printf("Gate mode: %s\n", MolPolGateModeName(gateMode));
     if (gateMode == kMolPolGateMomentum)
-        printf(" (momentumCut = %g)", momentumCut);
-    printf("\n");
+        printf("Momentum cut: %g GeV\n", momentumCut);
+    PrintActiveRows();
 
     // Declare the accumulator array for the asymmetry analysis
     MolPolAsymAccum accum[kMolPolAsymN];
@@ -163,7 +165,7 @@ void MolPolAnalysis(const char *fileList,
 
     // Get the number of entries in the tree
     Long64_t nEntries = T->GetEntries();
-    printf("Processing %lld entries\n", nEntries);
+    printf("Entries: %lld\n", nEntries);
 
     // Standard event loop over number of tree/chain entries
     for (Long64_t iEntry = 0; iEntry < nEntries; iEntry++) {
@@ -200,10 +202,8 @@ void MolPolAnalysis(const char *fileList,
         // Total weights for all thrown MC events
         weightTotalThrown += evUnpolWght;
         totalMollerEvXs += evXs;
-
         // Calculate the analyzing power for the current simulated event
         Double_t eventAzz = MolPolEventAsymmetry();
-        
         // Accumulate the analyzing power for the current simulated event for individual arms and coincidence
         if (MolPolPassCoinc(gateMode, momentumCut)) MolPolAccumulateChannel(accum[kMolPolAsymCoinc], eventAzz);
         if (MolPolPassLeft(gateMode, momentumCut))  MolPolAccumulateChannel(accum[kMolPolAsymLeft], eventAzz);
@@ -213,11 +213,6 @@ void MolPolAnalysis(const char *fileList,
         if (MolPolPassCoinc(gateMode, momentumCut) && eventAzz > 0.0) hAzzCoinc->Fill(eventAzz, (evPolPlusWghtZ + evPolMinusWghtZ));
         if (MolPolPassLeft(gateMode, momentumCut) && eventAzz > 0.0) hAzzLeft->Fill(eventAzz, (evPolPlusWghtZ + evPolMinusWghtZ));
         if (MolPolPassRight(gateMode, momentumCut) && eventAzz > 0.0) hAzzRight->Fill(eventAzz, (evPolPlusWghtZ + evPolMinusWghtZ));
-
-        // Fill the histograms with the MC #theta_{COM} and #phi for the current simulated event
-        if (MolPolPassCoinc(gateMode, momentumCut)) hThetaPhiCoinc->Fill(evThcom, evPhcom);
-        if (MolPolPassLeft(gateMode, momentumCut))  hThetaPhiLeft->Fill(evThcom, evPhcom);
-        if (MolPolPassRight(gateMode, momentumCut)) hThetaPhiRight->Fill(evThcom, evPhcom);
 
         // Fill the energy deposit heat maps for coincidence and singles events
         if (MolPolPassCoinc(gateMode, momentumCut)) {
@@ -232,6 +227,11 @@ void MolPolAnalysis(const char *fileList,
                 if(IsActivePmtRow(i)) hHitLxLyEBarSinglesMap->Fill(hitLx[i]*100.0, hitLy[i]*100.0);
             }
         }
+
+        // Fill the histograms with the MC #theta_{COM} and #phi for the current simulated event
+        if (MolPolPassCoinc(gateMode, momentumCut)) hThetaPhiCoinc->Fill(evThcom, evPhcom);
+        if (MolPolPassLeft(gateMode, momentumCut))  hThetaPhiLeft->Fill(evThcom, evPhcom);
+        if (MolPolPassRight(gateMode, momentumCut)) hThetaPhiRight->Fill(evThcom, evPhcom);
 
     }
     
@@ -346,21 +346,18 @@ void MolPolAnalysis(const char *fileList,
     // mollerCrossSection.C: Fe rate using MC theta range (track-qualified sumEvP uses hitFluxTrackCoinc elsewhere)
     Double_t molrate = RunMollerCrossSection(kMollerRateFe, minThcom, maxThcom, fabs(maxPhcom - minPhcom), maxSumEvP, 1.0, kTRUE);
 
-    std::cout << "========= Kinematics and Simulated Rate=========" << std::endl;
-    std::cout << "Max sumEvP:  " << std::fixed << std::setprecision(3) << maxSumEvP << std::endl;
-    std::cout << "Min evThcom: " << std::fixed << std::setprecision(3) << minThcom  << std::endl;
-    std::cout << "Max evThcom: " << std::fixed << std::setprecision(3) << maxThcom  << std::endl;
-    std::cout << "Min evPhcom: " << std::fixed << std::setprecision(3) << minPhcom  << std::endl;
-    std::cout << "Max evPhcom: " << std::fixed << std::setprecision(3) << maxPhcom  << std::endl;
-    std::cout << "Moller rate: " << std::fixed << std::setprecision(3) << molrate   << " events/s/muA/um" << std::endl;
+    printf("\n========= Kinematics =========\n");
+    printf("Beam energy (maxSumEvP): %.3f GeV\n", maxSumEvP);
+    printf("Theta_CM range: [%.3f, %.3f] deg\n", minThcom, maxThcom);
+    printf("Phi_CM range:   [%.3f, %.3f] deg\n", minPhcom, maxPhcom);
+    printf("Moller rate:    %.3f events/s/muA/um\n", molrate);
 
     // Print the summary of asymmetry analysis results for each channel
-    std::cout << "========= Summary (" << MolPolGateModeName(gateMode) << " gates) ========="
-              << std::endl;
-    std::cout << "Total MC entries in chain: " << nEntries << std::endl;
+    printf("\n========= Summary =========\n");
+    printf("Entries: %lld\n", nEntries);
 
     for (Int_t ch = 0; ch < kMolPolAsymN; ch++) {
-        std::cout << "--- " << MolPolAsymChannelName(ch) << " ---" << std::endl;
+        printf("--- %s ---\n", MolPolAsymChannelName(ch));
 
         Double_t acceptedEventFrac = 0.0;
         if (nEntries > 0) acceptedEventFrac = (Double_t)accum[ch].nPass / (Double_t)nEntries;
@@ -371,21 +368,18 @@ void MolPolAnalysis(const char *fileList,
         Double_t mollerWtdEventFrac = 0.0;
         if (totalMollerEvXs > 0.0) mollerWtdEventFrac = accum[ch].sumMollerEvXs / totalMollerEvXs;
 
-        std::cout << "     Accepted events (raw): " << std::setprecision(4)
-                  << acceptedEventFrac << std::endl;
-        std::cout << " Moller-wtd event fraction: " << std::setprecision(4)
-                  << mollerWtdEventFrac << std::endl;
-        std::cout << "   Weighted event fraction: " << std::setprecision(4)
-                  << weightedEventFrac << std::endl;
+        printf("      Raw event fraction: %.5f\n", acceptedEventFrac);
+        printf(" Moller-wtd event fraction: %.5f\n", mollerWtdEventFrac);
+        printf("   Weighted event fraction: %.5f\n", weightedEventFrac);
 
         if (accum[ch].nPass == 0) {
-            std::cout << "  (no passing events — asymmetry omitted)" << std::endl;
+            printf("  (no passing events — asymmetry omitted)\n");
             continue;
         }
 
         Double_t totalSignalWeight = accum[ch].sumPolWtPos + accum[ch].sumPolWtNeg;
         if (totalSignalWeight <= 0.0) {
-            std::cout << "  (zero polarized weight — asymmetry omitted)" << std::endl;
+            printf("  (zero polarized weight — asymmetry omitted)\n");
             continue;
         }
 
@@ -405,10 +399,10 @@ void MolPolAnalysis(const char *fileList,
             meanAnalyzingPowerErr = polarizationFacErr / polarizationFactor / polarizationFactor / targetPolarization;
         }
 
-        std::cout << "    Polarization factor: " << std::setprecision(4) << polarizationFactor << std::endl;
-        std::cout << "Polarization factor err: " << std::setprecision(4) << polarizationFacErr << std::endl;
-        std::cout << "   Mean analyzing power: " << std::setprecision(6) << meanAnalyzingPower << std::endl;
-        std::cout << "    Analyzing power err: " << std::setprecision(6) << meanAnalyzingPowerErr << std::endl;
+        printf("    Polarization factor: %.5f +/- %.5f\n",
+               polarizationFactor, polarizationFacErr);
+        printf("   Mean analyzing power: %.7f +/- %.7f\n",
+               meanAnalyzingPower, meanAnalyzingPowerErr);
     }
 
     delete T;

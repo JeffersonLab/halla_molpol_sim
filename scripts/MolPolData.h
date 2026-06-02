@@ -1,16 +1,5 @@
-#ifndef MOLPOL_DATA_H
-#define MOLPOL_DATA_H
-
-#include "TTree.h"
-#include "TBranch.h"
-#include "TChain.h"
-
-#include <cstdio>
-#include <fstream>
-#include <string>
-
 ///////////////////////////////////////////////////////////////
-// MolPolData.h
+// MolPolData.h -- Eric King 06/02/2026 (updated)
 // MolPol simulation ROOT I/O: branch buffers, TChain setup, and
 // branch address wiring. Analysis helpers live in MolPolAnalysis.h.
 //
@@ -26,6 +15,17 @@
 // Adjust MAXNPART and MAXNHIT if your simulation exceeds
 // these limits.
 ///////////////////////////////////////////////////////////////
+
+#ifndef MOLPOL_DATA_H
+#define MOLPOL_DATA_H
+
+#include "TTree.h"
+#include "TBranch.h"
+#include "TChain.h"
+
+#include <cstdio>
+#include <fstream>
+#include <string>
 
 static const Int_t MAXNPART = 10;
 static const Int_t MAXNHIT  = 1000;

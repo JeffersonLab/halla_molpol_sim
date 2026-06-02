@@ -1,16 +1,18 @@
+///////////////////////////////////////////////////////////////
+// MolPolAnalysis.h
+// Eric King 06/02/2026 (updated)
+//
+// Analysis helpers for MolPol ROOT trees (flux gates, PMT rows,
+// event-level asymmetry, histogram axis helpers). Requires MolPolData.h (branch buffers
+// filled after SetupMolpolBranches + GetEntry).
+///////////////////////////////////////////////////////////////
+
 #ifndef MOLPOL_ANALYSIS_H
 #define MOLPOL_ANALYSIS_H
 
 #include "MolPolData.h"
 #include "TH1.h"
 #include "TH2.h"
-
-///////////////////////////////////////////////////////////////
-// MolPolAnalysis.h
-// Analysis helpers for MolPol ROOT trees (flux gates, PMT rows,
-// event-level asymmetry, histogram axis helpers). Requires MolPolData.h (branch buffers
-// filled after SetupMolpolBranches + GetEntry).
-///////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////
 // MolPolEventAsymmetry()
@@ -56,6 +58,52 @@ inline void SetPmtRowInactive(Int_t row) {
         case 2: pmtRow2Active = false; break;
         case 3: pmtRow3Active = false; break;
         case 4: pmtRow4Active = false; break;
+    }
+}
+
+// Return a string of active row digits (e.g., "12", "1234")
+inline TString GetActiveRowStr() {
+    TString s;
+    if (pmtRow1Active) s += "1";
+    if (pmtRow2Active) s += "2";
+    if (pmtRow3Active) s += "3";
+    if (pmtRow4Active) s += "4";
+    return s;
+}
+
+// Print active rows and segments to stdout
+inline void PrintActiveRows() {
+    printf("Active PMT rows: ");
+    if (pmtRow1Active) printf("1 ");
+    if (pmtRow2Active) printf("2 ");
+    if (pmtRow3Active) printf("3 ");
+    if (pmtRow4Active) printf("4 ");
+    printf("\n");
+    printf("Active segments: ");
+    Bool_t rows[4] = { pmtRow1Active, pmtRow2Active, pmtRow3Active, pmtRow4Active };
+    const char *segNames[8] = { "L1","L2","L3","L4","R1","R2","R3","R4" };
+    for (Int_t r = 0; r < 4; r++) {
+        if (rows[r]) printf("%s/%s ", segNames[r], segNames[4 + r]);
+    }
+    printf("\n");
+}
+
+// Set active rows from a string of digits 1-4.
+// E.g., "1234" = all rows, "12" = rows 1+2 only, "23" = inner rows.
+// All rows are first set inactive, then reactivated per the string.
+inline void SetActiveRowsFromStr(const char *rowStr) {
+    pmtRow1Active = false;
+    pmtRow2Active = false;
+    pmtRow3Active = false;
+    pmtRow4Active = false;
+    TString s(rowStr);
+    for (Int_t i = 0; i < s.Length(); i++) {
+        switch (s[i]) {
+            case '1': pmtRow1Active = true; break;
+            case '2': pmtRow2Active = true; break;
+            case '3': pmtRow3Active = true; break;
+            case '4': pmtRow4Active = true; break;
+        }
     }
 }
 
