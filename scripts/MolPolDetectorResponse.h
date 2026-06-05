@@ -82,6 +82,11 @@ namespace DetGeom {
     const Int_t    NPMT     = 8;
     const Double_t blockHalfY = 15.0;   // [cm] half-height of block
     const Double_t blockHalfX = 9.0;    // [cm] half-width of block
+    const Double_t detAngleDeg = 7.5;          // [deg] detector face angle from beam axis
+    const Double_t detAngleRad = detAngleDeg * 3.14159265358979 / 180.0;  // [rad]
+    const Double_t fiberDiam   = 0.1;          // [cm] scintillating fiber diameter (1 mm)
+    const Double_t fiberX0     = 45.0;         // [cm] radiation length of fiber (polystyrene)
+    const Double_t fiberVolFrac = 0.20;        // fiber-to-total volume fraction (1/5 fiber, 4/5 lead)
     // Y boundaries of the 4 rows (top to bottom), in cm
     const Double_t rowYBound[5] = { 15.0, 7.5, 0.0, -7.5, -15.0 };
 
@@ -407,23 +412,323 @@ inline void ComputePmtFractions(Double_t hitXcm, Double_t hitYcm,
 }
 
 ///////////////////////////////////////////////////////////////
-// ProcessHitShower()
-// Full shower processing for a single hit on detector 9.
-// Steps through the shower depth in 1 X0 slices, computes
-// the Grindhammer-Peters radial parameters at each depth,
-// and accumulates PMT segment energy deposits.
+// Shower processing — two-stage approach
 //
-// hitEGeV: hit energy in GeV
-// hitXcm, hitYcm: hit position in cm
-// pmtE[8]: output array, energy added to each PMT segment [GeV]
+// Stage 1: ComputeShowerProfile()
+//   Computes the full shower shape (slice energies, PMT fractions,
+//   radial parameters) at each depth step. This is independent of
+//   where the shower starts in the block.
 //
-// If diagTree is non-null, fills shower diagnostic branches.
+// Stage 2: AccumulateShowerInBlock()
+//   Shifts the profile by a start depth offset and accumulates
+//   energy into pmtE[8], stopping at the block back face
+//   (longitudinal leakage).
+//
+// The separation allows multiple MC throws of fiber penetration
+// depth to reuse a single shower profile computation.
 ///////////////////////////////////////////////////////////////
 
-const Int_t MAX_DEPTH_STEPS = 80;
+const Int_t MAX_DEPTH_STEPS = 320;
+const Int_t DR_MAXNHIT      = 20;    // max EM hits per event on det 9
+const Int_t DR_NTHROWS       = 20;   // MC throws for fiber penetration
 
-// Shower diagnostic branch buffers (Float_t to reduce file size).
-// Populated when diagTree != 0.
+// Minimum energy for shower development [GeV].
+// Below this, particles are deposited as point-like.
+const Double_t MIN_SHOWER_E_GEV = 0.050;  // 50 MeV
+const Double_t SLICE_X0         = 0.25;   // slice thickness [X0]
+
+///////////////////////////////////////////////////////////////
+// ShowerProfile — pre-computed shower shape for a single hit.
+///////////////////////////////////////////////////////////////
+
+struct ShowerProfile {
+    Int_t    nSteps;                       // valid depth steps
+    Double_t hitEGeV;                      // hit energy [GeV]
+    Double_t hitXcm, hitYcm;              // hit entry point [cm]
+    Bool_t   belowThreshold;               // true if E < minShowerE
+    Int_t    pointSeg;                     // segment for below-threshold
+    Double_t sliceFrac[MAX_DEPTH_STEPS];   // fractional energy per slice
+    Double_t frac[MAX_DEPTH_STEPS * 8];    // PMT fractions [step*8+seg]
+    Double_t depthT[MAX_DEPTH_STEPS];      // depth midpoint [X0]
+    Double_t rc[MAX_DEPTH_STEPS];          // core radius [RM]
+    Double_t rt[MAX_DEPTH_STEPS];          // tail radius [RM]
+    Double_t pw[MAX_DEPTH_STEPS];          // core weight
+};
+
+///////////////////////////////////////////////////////////////
+// ComputeShowerProfile()
+///////////////////////////////////////////////////////////////
+
+inline void ComputeShowerProfile(Double_t hitEGeV, Double_t hitXcm,
+                                  Double_t hitYcm, ShowerProfile &prof) {
+    prof.hitEGeV = hitEGeV;
+    prof.hitXcm  = hitXcm;
+    prof.hitYcm  = hitYcm;
+    prof.nSteps  = 0;
+    prof.belowThreshold = false;
+
+    Double_t hitEMeV = hitEGeV * 1000.0;
+    Double_t y = hitEMeV / PbConst::Ec;
+
+    if (y <= 1.0 || hitEGeV < MIN_SHOWER_E_GEV) {
+        prof.belowThreshold = true;
+        Int_t col = (hitXcm >= 0.0) ? 0 : 1;
+        Int_t row = 3;
+        for (Int_t r = 0; r < 4; r++) {
+            if (hitYcm >= DetGeom::rowYBound[r + 1]) { row = r; break; }
+        }
+        prof.pointSeg = col * 4 + row;
+        return;
+    }
+
+    Double_t lny = TMath::Log(y);
+    Double_t lnE = TMath::Log(hitEMeV);
+
+    Double_t T     = GPShower::Thom(lny);
+    Double_t alpha = GPShower::AlphaHom(lny, PbConst::Z);
+    if (alpha <= 1.0) alpha = 1.01;
+    Double_t beta  = (alpha - 1.0) / T;
+
+    // Full shower extent (block depth cap applied during accumulation)
+    Double_t tMax = std::max(3.5 * T, 20.0);
+    if (tMax > (Double_t)MAX_DEPTH_STEPS * SLICE_X0)
+        tMax = (Double_t)MAX_DEPTH_STEPS * SLICE_X0;
+    Int_t nSteps = (Int_t)std::ceil(tMax / SLICE_X0);
+    if (nSteps > MAX_DEPTH_STEPS) nSteps = MAX_DEPTH_STEPS;
+
+    Double_t cumFrac = 0.0;
+    Int_t nValid = 0;
+
+    for (Int_t iStep = 0; iStep < nSteps; iStep++) {
+        Double_t t1 = iStep * SLICE_X0;
+        Double_t t2 = t1 + SLICE_X0;
+        Double_t tMid = t1 + SLICE_X0 / 2.0;
+
+        Double_t sf = GPShower::GammaSliceIntegral(t1, t2, alpha, beta);
+        cumFrac += sf;
+
+        if (sf < 1.0e-8) {
+            if (cumFrac > 0.999) break;
+            continue;
+        }
+
+        Double_t tau = tMid / T;
+        Double_t rc  = GPShower::RC(tau, lnE, PbConst::Z);
+        Double_t rt  = GPShower::RT(tau, lnE, PbConst::Z);
+        Double_t p   = GPShower::CoreWeight(tau, lnE, PbConst::Z);
+
+        Double_t stepFrac[8];
+        ComputePmtFractions(hitXcm, hitYcm, p, rc, rt, stepFrac);
+
+        prof.sliceFrac[nValid] = sf;
+        prof.depthT[nValid]    = tMid;
+        prof.rc[nValid]        = rc;
+        prof.rt[nValid]        = rt;
+        prof.pw[nValid]        = p;
+        for (Int_t s = 0; s < 8; s++)
+            prof.frac[nValid * 8 + s] = stepFrac[s];
+
+        nValid++;
+        if (cumFrac > 0.999) break;
+    }
+
+    prof.nSteps = nValid;
+}
+
+///////////////////////////////////////////////////////////////
+// AccumulateShowerInBlock()
+// Shifts profile by startDepth_cm and accumulates into pmtE[8].
+// Slices beyond the calorimeter depth are skipped (leakage).
+///////////////////////////////////////////////////////////////
+
+inline void AccumulateShowerInBlock(const ShowerProfile &prof,
+                                     Double_t startDepth_cm,
+                                     Double_t pmtE[8]) {
+    if (prof.belowThreshold) {
+        if (startDepth_cm < DetGeom::caloDepth &&
+            prof.hitYcm >= DetGeom::rowYBound[4] &&
+            prof.hitYcm <= DetGeom::rowYBound[0]) {
+            pmtE[prof.pointSeg] += prof.hitEGeV;
+        }
+        return;
+    }
+
+    Double_t startDepthX0 = startDepth_cm / PbConst::X0;
+
+    for (Int_t iStep = 0; iStep < prof.nSteps; iStep++) {
+        // Slice boundaries in X0 from shower start
+        Double_t sliceStartX0 = prof.depthT[iStep] - SLICE_X0 / 2.0;
+        Double_t sliceEndX0   = prof.depthT[iStep] + SLICE_X0 / 2.0;
+
+        // Physical position in block [X0]
+        Double_t physStartX0 = startDepthX0 + sliceStartX0;
+        Double_t physEndX0   = startDepthX0 + sliceEndX0;
+
+        if (physStartX0 >= DetGeom::caloDepthX0) break;  // entire slice beyond block
+
+        // Fractional last slice: if slice partially extends beyond block
+        Double_t fracUsed = 1.0;
+        if (physEndX0 > DetGeom::caloDepthX0) {
+            fracUsed = (DetGeom::caloDepthX0 - physStartX0) / SLICE_X0;
+        }
+
+        Double_t sliceE = prof.hitEGeV * prof.sliceFrac[iStep] * fracUsed;
+        for (Int_t s = 0; s < 8; s++)
+            pmtE[s] += sliceE * prof.frac[iStep * 8 + s];
+
+        if (fracUsed < 1.0) break;  // partial slice was the last one
+    }
+}
+
+///////////////////////////////////////////////////////////////
+// DetermineStartMaterial()
+// Flat MC to determine if the particle enters lead or fiber.
+// Returns true if fiber, false if lead.
+///////////////////////////////////////////////////////////////
+
+inline Bool_t DetermineStartMaterial(TRandom3 *rng) {
+    return (rng->Uniform() < DetGeom::fiberVolFrac);
+}
+
+///////////////////////////////////////////////////////////////
+// SampleShowerStartDepth()
+// Samples the depth at which the shower initiates, drawn from
+// an exponential distribution with mean = X0_start.
+//
+// PDF:  P(z) = (1/X0) * exp(-z/X0)
+// CDF:  F(z) = 1 - exp(-z/X0)
+// Inverse CDF: z = -X0 * ln(1-u), u ~ Uniform(0,1)
+///////////////////////////////////////////////////////////////
+
+inline Double_t SampleShowerStartDepth(Double_t X0_start, TRandom3 *rng) {
+    return rng->Exp(X0_start);
+}
+
+///////////////////////////////////////////////////////////////
+// SampleFiberTransverseDistance()
+// Samples the transverse distance (chord length) a particle
+// traverses through a fiber, using the inverse CDF method.
+//
+// CDF: f(u) = 1 - sqrt(1 - u^2),  u ~ Uniform(0,1)
+// Returns a chord length as a fraction of the fiber diameter,
+// scaled to cm.
+///////////////////////////////////////////////////////////////
+
+inline Double_t SampleFiberTransverseDistance(TRandom3 *rng) {
+    Double_t u = rng->Uniform();
+    Double_t frac = sqrt(1.0 - u * u);
+    return frac * DetGeom::fiberDiam;
+}
+
+///////////////////////////////////////////////////////////////
+// ComputeFiberPenetration()
+// Monte Carlo determination of the shower start depth [cm]
+// in the calorimeter block, accounting for fiber penetration.
+//
+// Process:
+//   1. Determine if the particle enters lead or fiber.
+//   2. Sample z_start from exponential(X0_start).
+//   3. If fiber: compute z_available from the incidence angle
+//      and fiber transverse distance. If z_start > z_available,
+//      the particle exits the fiber at z_available and enters
+//      lead (effective start depth = z_available).
+//   4. If lead: z_start is the effective start depth directly.
+//
+// Returns the effective shower start depth [cm] in the block.
+// Returns -1.0 if the particle passes through the entire block
+// without showering (complete leakage).
+// If z_avail_out is non-null, stores the available fiber depth
+// (only meaningful when the particle hits a fiber).
+// If z_start_raw_out is non-null, stores the raw exponential
+// draw before clamping to z_available (for diagnostics).
+// If d_trans_out is non-null, stores the sampled fiber transverse
+// distance (only meaningful when the particle hits a fiber).
+// If verbose is true, prints detailed MC calculation steps.
+///////////////////////////////////////////////////////////////
+
+inline Double_t ComputeFiberPenetration(Double_t hitPx, Double_t hitPy,
+                                         Double_t hitPz, TRandom3 *rng,
+                                         Double_t *z_avail_out = 0,
+                                         Double_t *z_start_raw_out = 0,
+                                         Double_t *d_trans_out = 0,
+                                         Bool_t verbose = false) {
+
+    if (z_avail_out) *z_avail_out = -1.0;
+    if (z_start_raw_out) *z_start_raw_out = -1.0;
+    if (d_trans_out) *d_trans_out = -1.0;
+
+    Bool_t isFiber = DetermineStartMaterial(rng);
+    Double_t X0_start = isFiber ? DetGeom::fiberX0 : PbConst::X0;
+
+    // Sample shower start depth from exponential distribution
+    Double_t z_start = SampleShowerStartDepth(X0_start, rng);
+    if (z_start_raw_out) *z_start_raw_out = z_start;
+
+    if (verbose) {
+        printf("      Material: %s (X0 = %.4f cm)\n",
+               isFiber ? "FIBER" : "LEAD", X0_start);
+        printf("      z_start (raw): %.4f cm\n", z_start);
+        printf("      hitP: (%.4f, %.4f, %.4f) GeV\n", hitPx, hitPy, hitPz);
+    }
+
+    if (isFiber) {
+        // Compute transverse distance available in the fiber
+        Double_t d_trans = SampleFiberTransverseDistance(rng);
+
+        if (d_trans_out) *d_trans_out = d_trans;
+
+        // Compute incidence angle relative to fiber axis.
+        Double_t pT = sqrt(hitPx * hitPx + hitPy * hitPy);
+        Double_t theta_particle = atan2(pT, hitPz);
+        Double_t theta_incident = fabs(theta_particle - DetGeom::detAngleRad);
+
+        if (verbose) {
+            printf("      d_trans: %.4f cm\n", d_trans);
+            printf("      theta_particle: %.4f rad (%.2f deg)\n",
+                   theta_particle, theta_particle * 180.0 / 3.14159265358979);
+            printf("      theta_incident: %.6f rad (%.4f deg)\n",
+                   theta_incident, theta_incident * 180.0 / 3.14159265358979);
+        }
+
+        // Protect against near-zero incidence (nearly parallel to fiber)
+        if (theta_incident < 1.0e-6) theta_incident = 1.0e-6;
+
+        // Available depth in the fiber before exiting into lead
+        Double_t z_available = d_trans / sin(theta_incident);
+
+        if (z_avail_out) *z_avail_out = z_available;
+
+        if (verbose) {
+            printf("      z_available: %.4f cm\n", z_available);
+            printf("      z_start %s z_available => %s\n",
+                   z_start > z_available ? ">" : "<=",
+                   z_start > z_available ? "exits fiber, clamped" : "showers in fiber");
+        }
+
+        // If z_start exceeds z_available, particle exits fiber
+        // at z_available and enters lead
+        if (z_start > z_available) {
+            z_start = z_available;
+        }
+    }
+
+    // Check for complete pass-through (beyond block depth)
+    if (z_start > DetGeom::caloDepth) {
+        return -1.0;
+    }
+
+    if (verbose) {
+        printf("      effective start depth: %.4f cm\n", z_start);
+    }
+
+    return z_start;
+}
+
+///////////////////////////////////////////////////////////////
+// FillShowerDiag()
+// Fills the TShower diagnostic tree from a ShowerProfile.
+///////////////////////////////////////////////////////////////
+
 Int_t   diag_eventIdx;
 Int_t   diag_hitIdx;
 Float_t diag_hitX;
@@ -435,132 +740,46 @@ Float_t diag_sliceE[MAX_DEPTH_STEPS];
 Float_t diag_RC[MAX_DEPTH_STEPS];
 Float_t diag_RT[MAX_DEPTH_STEPS];
 Float_t diag_p[MAX_DEPTH_STEPS];
-Float_t diag_pmtFrac[MAX_DEPTH_STEPS * 8]; // [step * 8 + seg]
+Float_t diag_pmtFrac[MAX_DEPTH_STEPS * 8];
+Float_t diag_hitZ[DR_NTHROWS];  // shower start depth per throw [cm]
 
-inline void ProcessHitShower(Double_t hitEGeV, Double_t hitXcm, Double_t hitYcm,
-                              Double_t pmtE[8],
-                              TTree *diagTree = 0, Int_t eventIdx = 0, Int_t hitIdx = 0) {
+inline void FillShowerDiag(const ShowerProfile &prof,
+                            TTree *diagTree, Int_t eventIdx, Int_t hitIdx,
+                            const Float_t hitZ[DR_NTHROWS] = 0) {
+    diag_eventIdx = eventIdx;
+    diag_hitIdx   = hitIdx;
+    diag_hitX     = (Float_t)prof.hitXcm;
+    diag_hitY     = (Float_t)prof.hitYcm;
+    diag_hitE     = (Float_t)prof.hitEGeV;
+    diag_nDepthSteps = prof.nSteps;
 
-    // Minimum energy for shower development [GeV].
-    // Below this threshold, particles are deposited as point-like
-    // in the segment containing the hit. This avoids the regime
-    // where the Grindhammer-Peters parameterization breaks down:
-    // for very low-energy particles (E ~ Ec), the shower maximum
-    // T is < 1 X0, and the depth-dependent radial parameters
-    // (especially RT) grow exponentially at tau >> 1, producing
-    // unphysical containment radii.
-    const Double_t minShowerEGeV = 0.050;  // 50 MeV
+    for (Int_t k = 0; k < MAX_DEPTH_STEPS; k++) {
+        diag_depthT[k] = 0.0f;
+        diag_sliceE[k] = 0.0f;
+        diag_RC[k]     = 0.0f;
+        diag_RT[k]     = 0.0f;
+        diag_p[k]      = 0.0f;
+    }
+    for (Int_t k = 0; k < MAX_DEPTH_STEPS * 8; k++)
+        diag_pmtFrac[k] = 0.0f;
 
-    Double_t hitEMeV = hitEGeV * 1000.0;
-    Double_t y = hitEMeV / PbConst::Ec;
-    if (y <= 1.0 || hitEGeV < minShowerEGeV) {
-        // Below critical energy or minimum shower threshold:
-        // deposit all energy in the segment containing the hit.
-        Int_t col = (hitXcm >= 0.0) ? 0 : 1;
-        Int_t row = 3;
-        for (Int_t r = 0; r < 4; r++) {
-            if (hitYcm >= DetGeom::rowYBound[r + 1]) {
-                row = r;
-                break;
-            }
-        }
-        Int_t seg = col * 4 + row;
-        if (hitYcm >= DetGeom::rowYBound[4] && hitYcm <= DetGeom::rowYBound[0])
-            pmtE[seg] += hitEGeV;
-        return;
+    for (Int_t iStep = 0; iStep < prof.nSteps; iStep++) {
+        diag_depthT[iStep] = (Float_t)prof.depthT[iStep];
+        diag_sliceE[iStep] = (Float_t)(prof.hitEGeV * prof.sliceFrac[iStep]);
+        diag_RC[iStep]     = (Float_t)prof.rc[iStep];
+        diag_RT[iStep]     = (Float_t)prof.rt[iStep];
+        diag_p[iStep]      = (Float_t)prof.pw[iStep];
+        for (Int_t s = 0; s < 8; s++)
+            diag_pmtFrac[iStep * 8 + s] = (Float_t)prof.frac[iStep * 8 + s];
     }
 
-    Double_t lny = TMath::Log(y);
-    Double_t lnE = TMath::Log(hitEMeV);  // ln(E) in MeV for radial params
+    // Copy hitZ (start depths per throw)
+    for (Int_t k = 0; k < DR_NTHROWS; k++)
+        diag_hitZ[k] = (hitZ != 0) ? hitZ[k] : 0.0f;
 
-    // Longitudinal profile parameters (Appendix A.1.1)
-    Double_t T     = GPShower::Thom(lny);
-    Double_t alpha = GPShower::AlphaHom(lny, PbConst::Z);
-    if (alpha <= 1.0) alpha = 1.01;  // safety clamp
-    Double_t beta  = (alpha - 1.0) / T;
-
-    // Integration depth: limited by calorimeter physical depth.
-    // Shower development beyond caloDepthX0 is longitudinal leakage
-    // (energy escaping the back of the block, not detected).
-    Double_t tMax = std::min(DetGeom::caloDepthX0,
-                             std::max(3.5 * T, 20.0));
-    if (tMax > (Double_t)MAX_DEPTH_STEPS) tMax = (Double_t)MAX_DEPTH_STEPS;
-    Int_t nSteps = (Int_t)std::ceil(tMax);
-
-    // Diagnostic setup
-    Bool_t writeDiag = (diagTree != 0);
-    if (writeDiag) {
-        diag_eventIdx = eventIdx;
-        diag_hitIdx   = hitIdx;
-        diag_hitX     = (Float_t)hitXcm;
-        diag_hitY     = (Float_t)hitYcm;
-        diag_hitE     = (Float_t)hitEGeV;
-        diag_nDepthSteps = nSteps;
-        // Zero the full arrays to avoid stale data
-        for (Int_t k = 0; k < MAX_DEPTH_STEPS; k++) {
-            diag_depthT[k] = 0.0f;
-            diag_sliceE[k] = 0.0f;
-            diag_RC[k]     = 0.0f;
-            diag_RT[k]     = 0.0f;
-            diag_p[k]      = 0.0f;
-        }
-        for (Int_t k = 0; k < MAX_DEPTH_STEPS * 8; k++)
-            diag_pmtFrac[k] = 0.0f;
-    }
-
-    Double_t cumFrac = 0.0;
-
-    for (Int_t iStep = 0; iStep < nSteps; iStep++) {
-        Double_t t1 = (Double_t)iStep;
-        Double_t t2 = t1 + 1.0;
-        Double_t tMid = t1 + 0.5;
-
-        // Fractional energy in this X0 slice
-        Double_t sliceFrac = GPShower::GammaSliceIntegral(t1, t2, alpha, beta);
-        cumFrac += sliceFrac;
-
-        // Skip negligible slices
-        if (sliceFrac < 1.0e-8) {
-            if (cumFrac > 0.999) break;
-            continue;
-        }
-
-        Double_t sliceE = hitEGeV * sliceFrac;
-
-        // Radial profile parameters at this depth
-        Double_t tau = tMid / T;
-        Double_t rc  = GPShower::RC(tau, lnE, PbConst::Z);
-        Double_t rt  = GPShower::RT(tau, lnE, PbConst::Z);
-        Double_t p   = GPShower::CoreWeight(tau, lnE, PbConst::Z);
-
-        // Compute PMT segment fractions
-        Double_t frac[8];
-        ComputePmtFractions(hitXcm, hitYcm, p, rc, rt, frac);
-
-        // Accumulate energy deposits
-        for (Int_t s = 0; s < 8; s++) {
-            pmtE[s] += sliceE * frac[s];
-        }
-
-        // Fill diagnostics
-        if (writeDiag) {
-            diag_depthT[iStep] = (Float_t)tMid;
-            diag_sliceE[iStep] = (Float_t)sliceE;
-            diag_RC[iStep]     = (Float_t)rc;
-            diag_RT[iStep]     = (Float_t)rt;
-            diag_p[iStep]      = (Float_t)p;
-            for (Int_t s = 0; s < 8; s++)
-                diag_pmtFrac[iStep * 8 + s] = (Float_t)frac[s];
-        }
-
-        if (cumFrac > 0.999) {
-            if (writeDiag) diag_nDepthSteps = iStep + 1;
-            break;
-        }
-    }
-
-    if (writeDiag) diagTree->Fill();
+    diagTree->Fill();
 }
+
 
 ///////////////////////////////////////////////////////////////
 // DetResp output tree branch buffers and reader functions
@@ -569,24 +788,30 @@ inline void ProcessHitShower(Double_t hitEGeV, Double_t hitXcm, Double_t hitYcm,
 
 // Branch buffers for TDetResp tree
 Double_t dr_evXs, dr_evAsym, dr_evUnpolWght;
-Double_t dr_evPolPlusWghtX, dr_evPolPlusWghtY, dr_evPolPlusWghtZ;
-Double_t dr_evPolMinusWghtX, dr_evPolMinusWghtY, dr_evPolMinusWghtZ;
-Double_t dr_pmtE[8];
-Double_t dr_pmtETotal, dr_pmtELeft, dr_pmtERight;
+Double_t dr_evPolPlusWghtZ;
+Double_t dr_evPolMinusWghtZ;
+Float_t  dr_pmtE[DR_NTHROWS * 8];       // [throw*8 + seg]
+Float_t  dr_pmtETotal[DR_NTHROWS];
+Float_t  dr_pmtELeft[DR_NTHROWS];
+Float_t  dr_pmtERight[DR_NTHROWS];
+Float_t  dr_hitZ[DR_NTHROWS];           // shower start depth per throw [cm]
+Double_t dr_hitPx[DR_MAXNHIT];
+Double_t dr_hitPy[DR_MAXNHIT];
+Double_t dr_hitPz[DR_MAXNHIT];
+Double_t dr_hitE[DR_MAXNHIT];
 Int_t    dr_nHitsDet9;
 
 // Branch pointers
 TBranch *b_dr_evXs, *b_dr_evAsym, *b_dr_evUnpolWght;
-TBranch *b_dr_evPolPlusWghtX, *b_dr_evPolPlusWghtY, *b_dr_evPolPlusWghtZ;
-TBranch *b_dr_evPolMinusWghtX, *b_dr_evPolMinusWghtY, *b_dr_evPolMinusWghtZ;
+TBranch *b_dr_evPolPlusWghtZ;
+TBranch *b_dr_evPolMinusWghtZ;
 TBranch *b_dr_pmtE, *b_dr_pmtETotal, *b_dr_pmtELeft, *b_dr_pmtERight;
+TBranch *b_dr_hitZ;
+TBranch *b_dr_hitPx, *b_dr_hitPy, *b_dr_hitPz, *b_dr_hitE;
 TBranch *b_dr_nHitsDet9;
 
 ///////////////////////////////////////////////////////////////
 // SetupDetRespChain()
-// Creates TChain("TDetResp") and adds files from fileList.
-// Same logic as SetupMolpolChain but for the detector response
-// output tree.
 ///////////////////////////////////////////////////////////////
 
 inline TChain *SetupDetRespChain(const char *fileList) {
@@ -623,28 +848,28 @@ inline TChain *SetupDetRespChain(const char *fileList) {
 
 ///////////////////////////////////////////////////////////////
 // SetupDetRespBranches()
-// Wires branch addresses for reading the TDetResp tree.
 ///////////////////////////////////////////////////////////////
 
 inline void SetupDetRespBranches(TTree *tree) {
     tree->SetBranchAddress("evXs",            &dr_evXs,            &b_dr_evXs);
     tree->SetBranchAddress("evAsym",          &dr_evAsym,          &b_dr_evAsym);
     tree->SetBranchAddress("evUnpolWght",     &dr_evUnpolWght,     &b_dr_evUnpolWght);
-    tree->SetBranchAddress("evPolPlusWghtX",  &dr_evPolPlusWghtX,  &b_dr_evPolPlusWghtX);
-    tree->SetBranchAddress("evPolPlusWghtY",  &dr_evPolPlusWghtY,  &b_dr_evPolPlusWghtY);
     tree->SetBranchAddress("evPolPlusWghtZ",  &dr_evPolPlusWghtZ,  &b_dr_evPolPlusWghtZ);
-    tree->SetBranchAddress("evPolMinusWghtX", &dr_evPolMinusWghtX, &b_dr_evPolMinusWghtX);
-    tree->SetBranchAddress("evPolMinusWghtY", &dr_evPolMinusWghtY, &b_dr_evPolMinusWghtY);
     tree->SetBranchAddress("evPolMinusWghtZ", &dr_evPolMinusWghtZ, &b_dr_evPolMinusWghtZ);
     tree->SetBranchAddress("pmtE",            dr_pmtE,             &b_dr_pmtE);
-    tree->SetBranchAddress("pmtETotal",       &dr_pmtETotal,       &b_dr_pmtETotal);
-    tree->SetBranchAddress("pmtELeft",        &dr_pmtELeft,        &b_dr_pmtELeft);
-    tree->SetBranchAddress("pmtERight",       &dr_pmtERight,       &b_dr_pmtERight);
+    tree->SetBranchAddress("pmtETotal",       dr_pmtETotal,        &b_dr_pmtETotal);
+    tree->SetBranchAddress("pmtELeft",        dr_pmtELeft,         &b_dr_pmtELeft);
+    tree->SetBranchAddress("pmtERight",       dr_pmtERight,        &b_dr_pmtERight);
+    tree->SetBranchAddress("hitZ",            dr_hitZ,             &b_dr_hitZ);
+    tree->SetBranchAddress("hitPx",           dr_hitPx,            &b_dr_hitPx);
+    tree->SetBranchAddress("hitPy",           dr_hitPy,            &b_dr_hitPy);
+    tree->SetBranchAddress("hitPz",           dr_hitPz,            &b_dr_hitPz);
+    tree->SetBranchAddress("hitE",            dr_hitE,             &b_dr_hitE);
     tree->SetBranchAddress("nHitsDet9",       &dr_nHitsDet9,       &b_dr_nHitsDet9);
 }
 
 ///////////////////////////////////////////////////////////////
-// DetResp event asymmetry (Z-polarization, same as MolPolAnalysis.h)
+// DetResp event asymmetry (Z-polarization)
 ///////////////////////////////////////////////////////////////
 
 inline Double_t DetRespEventAsymmetry() {

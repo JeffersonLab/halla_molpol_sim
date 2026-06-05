@@ -1,11 +1,10 @@
 ///////////////////////////////////////////////////////////////
 // MolPolDetectorResponseAnalysis.C
-// Eric King 06/02/2026 (updated)
-//
 // Combined analysis and plotting for the MolPol detector
 // response model output. Computes analyzing power with
-// configurable active PMT rows and gate modes, and produces
-// PMT energy spectra, L/R correlations, and A_zz histograms.
+// configurable active PMT rows and energy threshold, and
+// produces PMT energy spectra, L/R correlations, and A_zz
+// histograms.
 //
 // Also provides standalone interactive functions:
 //   PlotEventShower(tShower, eventNum)
@@ -13,15 +12,22 @@
 //
 // Usage:
 //   root 'MolPolDetectorResponseAnalysis.C("input_detresponse.root")'
-//   root 'MolPolDetectorResponseAnalysis.C("input_detresponse.root", "c", 0.5)'
-//   root 'MolPolDetectorResponseAnalysis.C("input_detresponse.root", "c", 0.5, "23")'
+//   root 'MolPolDetectorResponseAnalysis.C("input_detresponse.root", 0.5)'
+//   root 'MolPolDetectorResponseAnalysis.C("input_detresponse.root", 0.5, "23")'
+//
+// Interactive shower visualization (requires writeShowerDiag):
+//   root [0] .L MolPolDetectorResponseAnalysis.C
+//   root [1] TChain *t = new TChain("TShower");
+//   root [2] t->Add("input_detresponse.root");
+//   root [3] PlotEventShower(t, 1);    // 3D shower for event 1
+//   root [4] PlotShowerParams(t, 1);   // RC, RT, p, dE/dt for event 1
 //
 ///////////////////////////////////////////////////////////////
 
 #ifndef MOLPOL_DETECTOR_RESPONSE_ANALYSIS_C
 #define MOLPOL_DETECTOR_RESPONSE_ANALYSIS_C
 
-#include "MolPolDetectorResponse.h"
+#include "MolPolDetectorResponseAnalysis.h"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -46,133 +52,6 @@
 #include <vector>
 #include <cmath>
 
-///////////////////////////////////////////////////////////////
-// Gate mode enumeration and parser
-///////////////////////////////////////////////////////////////
-
-enum DetRespGateMode {
-    kDetRespGateCoinc = 0,
-    kDetRespGateLeft,
-    kDetRespGateRight
-};
-
-const char *DetRespGateModeName(DetRespGateMode mode) {
-    switch (mode) {
-        case kDetRespGateCoinc: return "Coincidence";
-        case kDetRespGateLeft:  return "Left";
-        case kDetRespGateRight: return "Right";
-        default:                return "Unknown";
-    }
-}
-
-Bool_t ParseGateMode(const char *input, DetRespGateMode &mode) {
-    TString s(input);
-    s.ToLower();
-    if (s == "coincidence") { mode = kDetRespGateCoinc; return true; }
-    if (s == "left")        { mode = kDetRespGateLeft;  return true; }
-    if (s == "right")       { mode = kDetRespGateRight; return true; }
-    if (s == "c") { mode = kDetRespGateCoinc; return true; }
-    if (s == "l") { mode = kDetRespGateLeft;  return true; }
-    if (s == "r") { mode = kDetRespGateRight; return true; }
-    if (s.Length() > 0) {
-        char first = s[0];
-        if (first == 'c') { mode = kDetRespGateCoinc; printf("WARNING: \"%s\" interpreted as Coincidence.\n", input); return true; }
-        if (first == 'l') { mode = kDetRespGateLeft;  printf("WARNING: \"%s\" interpreted as Left.\n", input);        return true; }
-        if (first == 'r') { mode = kDetRespGateRight;  printf("WARNING: \"%s\" interpreted as Right.\n", input);       return true; }
-    }
-    printf("ERROR: \"%s\" is not a recognized gate mode.\n", input);
-    return false;
-}
-
-///////////////////////////////////////////////////////////////
-// Active PMT row parsing
-///////////////////////////////////////////////////////////////
-
-void ParseActiveRows(const char *rowStr, Bool_t activeRow[4]) {
-    for (Int_t r = 0; r < 4; r++) activeRow[r] = false;
-    TString s(rowStr);
-    for (Int_t i = 0; i < s.Length(); i++) {
-        Int_t row = s[i] - '1';
-        if (row >= 0 && row < 4) activeRow[row] = true;
-    }
-}
-
-///////////////////////////////////////////////////////////////
-// Asymmetry accumulator
-///////////////////////////////////////////////////////////////
-
-struct DetRespAsymAccum {
-    Int_t    nPass;
-    Double_t weightAccepted;
-    Double_t sumMollerEvXs;
-    Double_t summedAsym;
-    Double_t summedAsym2;
-    Double_t sumPolWtPos;
-    Double_t sumPolWtNeg;
-};
-
-void DetRespAccumulate(DetRespAsymAccum &a, Double_t eventAzz) {
-    a.nPass++;
-    a.weightAccepted += dr_evUnpolWght;
-    a.sumMollerEvXs  += dr_evXs;
-    a.summedAsym  += eventAzz * (dr_evPolPlusWghtZ + dr_evPolMinusWghtZ);
-    a.summedAsym2 += eventAzz * eventAzz * (dr_evPolPlusWghtZ + dr_evPolMinusWghtZ);
-    a.sumPolWtPos += dr_evPolPlusWghtZ;
-    a.sumPolWtNeg += dr_evPolMinusWghtZ;
-}
-
-enum DetRespAsymChannel {
-    kDetRespAsymCoinc = 0,
-    kDetRespAsymLeft,
-    kDetRespAsymRight,
-    kDetRespAsymN
-};
-
-const char *DetRespAsymChannelName(Int_t ch) {
-    switch (ch) {
-        case kDetRespAsymCoinc: return "Coincidence";
-        case kDetRespAsymLeft:  return "Left singles";
-        case kDetRespAsymRight: return "Right singles";
-        default:                return "?";
-    }
-}
-
-// Solve90PctRadius()
-// Numerically solve for the radius enclosing 90% of the
-// energy in the two-component radial profile:
-//   p * r^2/(r^2 + RC^2) + (1-p) * r^2/(r^2 + RT^2) = 0.9
-// Uses bisection. r, RC, RT all in Moliere units.
-///////////////////////////////////////////////////////////////
-
-Double_t Solve90PctRadius(Double_t p, Double_t Rc, Double_t Rt) {
-    Double_t rLo = 0.0;
-    Double_t rHi = 20.0;  // well beyond any physical radius in RM
-    for (Int_t iter = 0; iter < 60; iter++) {
-        Double_t rMid = 0.5 * (rLo + rHi);
-        Double_t cdf = GPShower::RadialCDFTotal(rMid, p, Rc, Rt);
-        if (cdf < 0.9)
-            rLo = rMid;
-        else
-            rHi = rMid;
-    }
-    return 0.5 * (rLo + rHi);
-}
-
-
-///////////////////////////////////////////////////////////////
-// HitSlice — per-depth-slice data for shower visualization
-///////////////////////////////////////////////////////////////
-
-struct HitSlice {
-    Float_t x, y;       // hit position [cm]
-    Float_t depth_cm;   // depth into calorimeter [cm]
-    Float_t energy;     // slice energy [GeV]
-    Float_t r90;        // 90% containment radius [cm]
-    Float_t rc, rt, p;  // Grindhammer params (RM units) for debug
-    Int_t   hitIdx;
-};
-
-///////////////////////////////////////////////////////////////
 // PlotEventShower()
 // 3D visualization of the modeled shower for a specific event
 // in the TShower diagnostic tree.
@@ -818,23 +697,17 @@ void PlotShowerParams(TTree *tShower, Int_t eventNum = 1) {
     cParams->Update();
 }
 
-
 ///////////////////////////////////////////////////////////////
 // Main macro function
 ///////////////////////////////////////////////////////////////
 
 void MolPolDetectorResponseAnalysis(const char *fileList,
-                                     const char *gateModeStr = "coincidence",
                                      Float_t energyCut = 0.0,
                                      const char *activeRowStr = "1234") {
 
     printf("=== MolPolDetectorResponseAnalysis ===\n");
     printf("File: %s\n", fileList);
-
-    // --- Parse gate mode ---
-    DetRespGateMode gateMode;
-    if (!ParseGateMode(gateModeStr, gateMode)) return;
-    printf("Gate mode: %s\n", DetRespGateModeName(gateMode));
+    printf("Gate: PMT Response\n");
     printf("Energy cut: %.4f GeV\n", energyCut);
 
     // --- Parse active PMT rows ---
@@ -862,15 +735,8 @@ void MolPolDetectorResponseAnalysis(const char *fileList,
 
     // --- Initialize accumulators ---
     DetRespAsymAccum accum[kDetRespAsymN];
-    for (Int_t ch = 0; ch < kDetRespAsymN; ch++) {
-        accum[ch].nPass = 0;
-        accum[ch].weightAccepted = 0.0;
-        accum[ch].sumMollerEvXs = 0.0;
-        accum[ch].summedAsym = 0.0;
-        accum[ch].summedAsym2 = 0.0;
-        accum[ch].sumPolWtPos = 0.0;
-        accum[ch].sumPolWtNeg = 0.0;
-    }
+    for (Int_t ch = 0; ch < kDetRespAsymN; ch++)
+        DetRespAccumInit(accum[ch]);
 
     Double_t weightTotalThrown = 0.0;
     Double_t totalMollerEvXs = 0.0;
@@ -881,10 +747,11 @@ void MolPolDetectorResponseAnalysis(const char *fileList,
     Double_t maxPmtETotal_active = 0.0;
     Double_t maxPmtETotal_all    = 0.0;
     Double_t maxPmtESeg          = 0.0;
+    Double_t maxPmtELeft         = 0.0;
+    Double_t maxPmtERight        = 0.0;
     for (Long64_t i = 0; i < nEntries; i++) {
         tree->GetEntry(i);
 
-        // Apply gate for max scan
         Double_t eL_active = 0.0, eR_active = 0.0;
         Double_t eL_all = 0.0, eR_all = 0.0;
         for (Int_t r = 0; r < 4; r++) {
@@ -896,17 +763,14 @@ void MolPolDetectorResponseAnalysis(const char *fileList,
             }
         }
 
-        Bool_t passGate = true;
-        if (energyCut > 0.0) {
-            switch (gateMode) {
-                case kDetRespGateCoinc: passGate = (eL_active > energyCut && eR_active > energyCut); break;
-                case kDetRespGateLeft:  passGate = (eL_active > energyCut); break;
-                case kDetRespGateRight: passGate = (eR_active > energyCut); break;
-            }
-        }
-        if (passGate) {
-            if (eL_active + eR_active > maxPmtETotal_active) maxPmtETotal_active = eL_active + eR_active;
-            if (eL_all + eR_all > maxPmtETotal_all) maxPmtETotal_all = eL_all + eR_all;
+        // Gate: at least one arm above threshold
+        if (eL_active + eR_active > 0.0) {
+            if (eL_active + eR_active > maxPmtETotal_active)
+                maxPmtETotal_active = eL_active + eR_active;
+            if (eL_all + eR_all > maxPmtETotal_all)
+                maxPmtETotal_all = eL_all + eR_all;
+            if (eL_active > maxPmtELeft)  maxPmtELeft  = eL_active;
+            if (eR_active > maxPmtERight) maxPmtERight = eR_active;
             for (Int_t s = 0; s < 8; s++) {
                 if (dr_pmtE[s] > maxPmtESeg) maxPmtESeg = dr_pmtE[s];
             }
@@ -915,26 +779,73 @@ void MolPolDetectorResponseAnalysis(const char *fileList,
 
     Double_t eMaxSeg = ceil(maxPmtESeg * 2.0) / 2.0;
     Double_t eMaxSum = ceil(maxPmtETotal_all * 2.0) / 2.0;
-    printf("Max pmtETotal (gated, active): %.3f GeV\n", maxPmtETotal_active);
-    printf("Max pmtETotal (gated, all):    %.3f GeV\n", maxPmtETotal_all);
+    Double_t eMaxLR  = ceil(std::max(maxPmtELeft, maxPmtERight) * 2.0) / 2.0;
+    printf("Max pmtETotal (active): %.3f GeV\n", maxPmtETotal_active);
+    printf("Max pmtETotal (all):    %.3f GeV\n", maxPmtETotal_all);
+    printf("Max arm (L/R):          %.3f / %.3f GeV\n", maxPmtELeft, maxPmtERight);
 
     // --- Create histograms ---
     const Int_t nBins = 200;
 
     // Per-segment energy spectra
     TH1F *hPmtSeg[8];
+    TH1F *hPmtSegAbove[8];
+    TH1F *hPmtSegBelow[8];
     for (Int_t s = 0; s < 8; s++) {
         hPmtSeg[s] = new TH1F(
             TString::Format("hPmt%s", DetGeom::PmtSegName[s]).Data(),
             TString::Format("%s Energy;E [GeV];Events", DetGeom::PmtSegName[s]).Data(),
             nBins, 0.0, eMaxSeg);
         hPmtSeg[s]->SetLineWidth(2);
+
+        hPmtSegAbove[s] = new TH1F(
+            TString::Format("hPmt%sAbove", DetGeom::PmtSegName[s]).Data(),
+            TString::Format("%s Energy - %s Sum Cut: %.2f GeV;E [GeV];Events",
+                            DetGeom::PmtSegName[s],
+                            (s < 4) ? "Left" : "Right", energyCut).Data(),
+            nBins, 0.0, eMaxSeg);
+        hPmtSegAbove[s]->SetLineColor(kBlue);
+        hPmtSegAbove[s]->SetLineWidth(2);
+
+        hPmtSegBelow[s] = new TH1F(
+            TString::Format("hPmt%sBelow", DetGeom::PmtSegName[s]).Data(),
+            TString::Format("%s Energy - %s Sum Cut: %.2f GeV;E [GeV];Events",
+                            DetGeom::PmtSegName[s],
+                            (s < 4) ? "Left" : "Right", energyCut).Data(),
+            nBins, 0.0, eMaxSeg);
+        hPmtSegBelow[s]->SetLineColor(kMagenta);
+        hPmtSegBelow[s]->SetLineWidth(2);
+        hPmtSegBelow[s]->SetLineStyle(2);
+    }
+
+    // Per-segment: coincidence-gated above/below
+    TH1F *hPmtSegAboveCoinc[8];
+    TH1F *hPmtSegBelowCoinc[8];
+    for (Int_t s = 0; s < 8; s++) {
+        hPmtSegAboveCoinc[s] = new TH1F(
+            TString::Format("hPmt%sAboveCoinc", DetGeom::PmtSegName[s]).Data(),
+            TString::Format("%s Energy - Threshold & Coinc Cut: %.2f GeV;E [GeV];Events",
+                            DetGeom::PmtSegName[s], energyCut).Data(),
+            nBins, 0.0, eMaxSeg);
+        hPmtSegAboveCoinc[s]->SetLineColor(kCyan+1);
+        hPmtSegAboveCoinc[s]->SetLineWidth(2);
+
+        hPmtSegBelowCoinc[s] = new TH1F(
+            TString::Format("hPmt%sBelowCoinc", DetGeom::PmtSegName[s]).Data(),
+            TString::Format("%s Energy - Threshold & Coinc Cut: %.2f GeV;E [GeV];Events",
+                            DetGeom::PmtSegName[s], energyCut).Data(),
+            nBins, 0.0, eMaxSeg);
+        hPmtSegBelowCoinc[s]->SetLineColor(kMagenta);
+        hPmtSegBelowCoinc[s]->SetLineWidth(2);
+        hPmtSegBelowCoinc[s]->SetLineStyle(2);
     }
 
     // Sum histograms: active rows and all rows
     const char *sumLabels[3] = { "Left", "Right", "Total" };
     TH1F *hSumActive[3];
     TH1F *hSumAll[3];
+    TH1F *hSumActiveCut[3];
+    TH1F *hSumAllCut[3];
     for (Int_t i = 0; i < 3; i++) {
         hSumActive[i] = new TH1F(
             TString::Format("hSum%sActive", sumLabels[i]).Data(),
@@ -950,23 +861,91 @@ void MolPolDetectorResponseAnalysis(const char *fileList,
         hSumAll[i]->SetLineColor(kRed);
         hSumAll[i]->SetLineWidth(2);
         hSumAll[i]->SetLineStyle(2);
+
+        hSumActiveCut[i] = new TH1F(
+            TString::Format("hSum%sActiveCut", sumLabels[i]).Data(),
+            TString::Format("%s Energy - Threshold & Coincidence Cut: %.2f GeV;E [GeV];Events",
+                            sumLabels[i], energyCut).Data(),
+            nBins, 0.0, eMaxSum);
+        hSumActiveCut[i]->SetLineColor(kCyan+1);
+        hSumActiveCut[i]->SetLineWidth(2);
+
+        hSumAllCut[i] = new TH1F(
+            TString::Format("hSum%sAllCut", sumLabels[i]).Data(),
+            TString::Format("%s Energy - Threshold & Coincidence Cut: %.2f GeV;E [GeV];Events",
+                            sumLabels[i], energyCut).Data(),
+            nBins, 0.0, eMaxSum);
+        hSumAllCut[i]->SetLineColor(kMagenta);
+        hSumAllCut[i]->SetLineWidth(2);
+        hSumAllCut[i]->SetLineStyle(2);
     }
 
-    // L-vs-R heatmap (active rows)
-    TH2F *hLR = new TH2F("hLR", "Left vs Right (Active PMT);pmtELeft [GeV];pmtERight [GeV]",
-                          nBins, 0.0, eMaxSum / 2.0, nBins, 0.0, eMaxSum / 2.0);
+    // Sum histograms: single-arm threshold cut
+    TH1F *hSumActiveSingle[3];
+    TH1F *hSumAllSingle[3];
+    for (Int_t i = 0; i < 3; i++) {
+        hSumActiveSingle[i] = new TH1F(
+            TString::Format("hSum%sActiveSingle", sumLabels[i]).Data(),
+            TString::Format("%s Energy - %s Arm Cut: %.2f GeV;E [GeV];Events",
+                            sumLabels[i],
+                            (i < 2) ? ((i == 0) ? "Left" : "Right") : "Either",
+                            energyCut).Data(),
+            nBins, 0.0, eMaxSum);
+        hSumActiveSingle[i]->SetLineColor(kBlue);
+        hSumActiveSingle[i]->SetLineWidth(2);
 
-    // A_zz histograms
+        hSumAllSingle[i] = new TH1F(
+            TString::Format("hSum%sAllSingle", sumLabels[i]).Data(),
+            TString::Format("%s Energy - %s Arm Cut: %.2f GeV;E [GeV];Events",
+                            sumLabels[i],
+                            (i < 2) ? ((i == 0) ? "Left" : "Right") : "Either",
+                            energyCut).Data(),
+            nBins, 0.0, eMaxSum);
+        hSumAllSingle[i]->SetLineColor(kRed);
+        hSumAllSingle[i]->SetLineWidth(2);
+        hSumAllSingle[i]->SetLineStyle(2);
+    }
+
+    // L-vs-R heatmap (active rows, square aspect)
+    TH2F *hLR = new TH2F("hLR",
+        "Left vs Right (Active PMT);pmtELeft [GeV];pmtERight [GeV]",
+        nBins, 0.0, eMaxLR, nBins, 0.0, eMaxLR);
+
+    // A_zz histograms (coincidence gets double bins for finer resolution)
     const Double_t azzMax = 7.0 / 9.0;
     TH1F *hAzz[kDetRespAsymN];
     hAzz[kDetRespAsymCoinc] = new TH1F("hAzzCoinc",
-        "A_{zz} Coincidence;A_{zz};Weighted counts", 200, 0.0, azzMax);
+        "A_{zz} Coincidence;A_{zz};Weighted counts", 400, 0.0, azzMax);
     hAzz[kDetRespAsymLeft] = new TH1F("hAzzLeft",
         "A_{zz} Left singles;A_{zz};Weighted counts", 200, 0.0, azzMax);
     hAzz[kDetRespAsymRight] = new TH1F("hAzzRight",
         "A_{zz} Right singles;A_{zz};Weighted counts", 200, 0.0, azzMax);
     for (Int_t ch = 0; ch < kDetRespAsymN; ch++)
         hAzz[ch]->SetLineWidth(2);
+
+    // Energy ratio diagnostic histograms
+    TH1F *hRatioAll  = new TH1F("hRatioAll",
+        "All events;E_{det}/E_{actual};Events", 300, 0.0, 1.5);
+    TH1F *hRatio1hit = new TH1F("hRatio1hit",
+        "1 hit;E_{det}/E_{actual};Events", 300, 0.0, 1.5);
+    TH1F *hRatio2hit = new TH1F("hRatio2hit",
+        "2 hits;E_{det}/E_{actual};Events", 300, 0.0, 1.5);
+    TH1F *hRatio3plus = new TH1F("hRatio3plus",
+        "3+ hits;E_{det}/E_{actual};Events", 300, 0.0, 1.5);
+    hRatioAll->SetLineColor(kBlack);     hRatioAll->SetLineWidth(2);
+    hRatio1hit->SetLineColor(kRed);      hRatio1hit->SetLineWidth(2);
+    hRatio2hit->SetLineColor(kBlue);     hRatio2hit->SetLineWidth(2);
+    hRatio3plus->SetLineColor(kGreen+2); hRatio3plus->SetLineWidth(2);
+
+    TH2F *hRatioVsHitZ = new TH2F("hRatioVsHitZ",
+        "E_{det}/E_{actual} vs Shower Start Depth (per-hit);hitZ [cm];E_{det}/E_{actual}",
+        240, 0.0, 12.0, 200, 0.0, 1.5);
+    TH2F *hRatioVsHitE = new TH2F("hRatioVsHitE",
+        "E_{det}/E_{actual} vs Hit Energy (per-hit);E_{hit} [GeV];E_{det}/E_{actual}",
+        240, 0.0, 12.0, 200, 0.0, 1.5);
+    TH2F *hRatioVsSumE = new TH2F("hRatioVsSumE",
+        "E_{det}/E_{actual} vs Event Energy (per-event);E_{actual} [GeV];E_{det}/E_{actual}",
+        240, 0.0, 12.0, 200, 0.0, 1.5);
 
     // --- Main event loop ---
     for (Long64_t iEntry = 0; iEntry < nEntries; iEntry++) {
@@ -987,26 +966,34 @@ void MolPolDetectorResponseAnalysis(const char *fileList,
             }
         }
 
-        // Apply gate on active-row sums
+        // Gate: pass if at least one arm (active) has energy above threshold
+        Bool_t hasActivity = (pmtELeft_active + pmtERight_active > 0.0);
+
+        // Channel gates (using active-row sums)
         Bool_t passCoinc = (pmtELeft_active > energyCut &&
                             pmtERight_active > energyCut);
         Bool_t passLeft  = (pmtELeft_active > energyCut);
         Bool_t passRight = (pmtERight_active > energyCut);
 
-        // Determine if this event passes the selected gate mode
-        Bool_t passGate = false;
-        switch (gateMode) {
-            case kDetRespGateCoinc: passGate = passCoinc; break;
-            case kDetRespGateLeft:  passGate = passLeft;  break;
-            case kDetRespGateRight: passGate = passRight; break;
-        }
-
-        // Fill histograms for gated events
-        if (passGate) {
+        // Fill PMT plots for events with any activity
+        if (hasActivity) {
             // Per-segment spectra
             for (Int_t s = 0; s < 8; s++) {
-                if (dr_pmtE[s] > 0.0)
+                if (dr_pmtE[s] > 0.0) {
                     hPmtSeg[s]->Fill(dr_pmtE[s]);
+                    // Per-arm gating: left segs (0-3) by passLeft,
+                    // right segs (4-7) by passRight
+                    Bool_t passArm = (s < 4) ? passLeft : passRight;
+                    if (passArm)
+                        hPmtSegAbove[s]->Fill(dr_pmtE[s]);
+                    else
+                        hPmtSegBelow[s]->Fill(dr_pmtE[s]);
+                    // Coincidence gating
+                    if (passCoinc)
+                        hPmtSegAboveCoinc[s]->Fill(dr_pmtE[s]);
+                    else
+                        hPmtSegBelowCoinc[s]->Fill(dr_pmtE[s]);
+                }
             }
 
             // Sum histograms
@@ -1020,8 +1007,63 @@ void MolPolDetectorResponseAnalysis(const char *fileList,
             if (pmtELeft_all + pmtERight_all > 0.0)
                 hSumAll[2]->Fill(pmtELeft_all + pmtERight_all);
 
-            // L-vs-R heatmap
+            // L-vs-R heatmap (coincidence gate: both arms above energyCut)
+        }
+        if (passCoinc) {
             hLR->Fill(pmtELeft_active, pmtERight_active);
+        }
+
+        // Fill threshold-cut sum histograms
+        if (passLeft) {
+            hSumActiveCut[0]->Fill(pmtELeft_active);
+            if (pmtELeft_all > 0.0) hSumAllCut[0]->Fill(pmtELeft_all);
+        }
+        if (passRight) {
+            hSumActiveCut[1]->Fill(pmtERight_active);
+            if (pmtERight_all > 0.0) hSumAllCut[1]->Fill(pmtERight_all);
+        }
+        if (passCoinc) {
+            hSumActiveCut[2]->Fill(pmtELeft_active + pmtERight_active);
+            if (pmtELeft_all + pmtERight_all > 0.0)
+                hSumAllCut[2]->Fill(pmtELeft_all + pmtERight_all);
+        }
+
+        // Single-arm threshold-cut sum histograms
+        if (passLeft) {
+            hSumActiveSingle[0]->Fill(pmtELeft_active);
+            if (pmtELeft_all > 0.0) hSumAllSingle[0]->Fill(pmtELeft_all);
+        }
+        if (passRight) {
+            hSumActiveSingle[1]->Fill(pmtERight_active);
+            if (pmtERight_all > 0.0) hSumAllSingle[1]->Fill(pmtERight_all);
+        }
+        if (passLeft || passRight) {
+            hSumActiveSingle[2]->Fill(pmtELeft_active + pmtERight_active);
+            if (pmtELeft_all + pmtERight_all > 0.0)
+                hSumAllSingle[2]->Fill(pmtELeft_all + pmtERight_all);
+        }
+
+        // Energy ratio diagnostics (throw 0)
+        if (dr_nHitsDet9 > 0) {
+            Double_t sumHitE = 0.0;
+            for (Int_t h = 0; h < dr_nHitsDet9; h++)
+                sumHitE += dr_hitE[h];
+
+            if (sumHitE > 0.0) {
+                Double_t detTotal = 0.0;
+                for (Int_t s = 0; s < 8; s++) detTotal += dr_pmtE[s];
+                Double_t ratio = detTotal / sumHitE;
+
+                hRatioAll->Fill(ratio);
+                if (dr_nHitsDet9 == 1)      hRatio1hit->Fill(ratio);
+                else if (dr_nHitsDet9 == 2) hRatio2hit->Fill(ratio);
+                else                        hRatio3plus->Fill(ratio);
+
+                hRatioVsHitZ->Fill(dr_hitZ[0], ratio);
+                hRatioVsSumE->Fill(sumHitE, ratio);
+                if (dr_nHitsDet9 == 1)
+                    hRatioVsHitE->Fill(dr_hitE[0], ratio);
+            }
         }
 
         // A_zz accumulation (all three channels independently)
@@ -1110,83 +1152,345 @@ void MolPolDetectorResponseAnalysis(const char *fileList,
     // =================================================================
 
     // --- Canvas 1: PMT segment energy spectra (4R x 2C) ---
-    TCanvas *cPmtSeg = new TCanvas("cPmtSeg", "PMT Segment Energy", 800, 900);
+    TString segCanvasTitle = TString::Format(
+        "PMT Segment Energy - Per-Arm Threshold Cut: %.2f GeV", energyCut);
+
+    TCanvas *cPmtSeg = new TCanvas("cPmtSeg", segCanvasTitle.Data(), 800, 900);
     cPmtSeg->Divide(2, 4, 0.01, 0.01);
 
-    // Pad layout mirrors detector face: left column = L, right = R
-    // Row 1 (top) = segments L1/R1, Row 4 (bottom) = L4/R4
-    Int_t padMap[8] = { 1, 3, 5, 7,   // L1,L2,L3,L4 -> left column
-                        2, 4, 6, 8 };  // R1,R2,R3,R4 -> right column
+    Int_t padMap[8] = { 1, 3, 5, 7, 2, 4, 6, 8 };
 
     for (Int_t s = 0; s < 8; s++) {
         cPmtSeg->cd(padMap[s]);
-
-        // Determine row for this segment
         Int_t row = s % 4;
+
+        Double_t yMaxSeg = std::max(hPmtSegAbove[s]->GetMaximum(),
+                                     hPmtSegBelow[s]->GetMaximum()) * 1.15;
+        if (yMaxSeg <= 0.0) yMaxSeg = 1.0;
+
         if (!activeRow[row]) {
-            // Inactive row: washed-out red background
+            gPad->SetFillColor(TColor::GetColor(1.0f, 0.9f, 0.9f));
+            hPmtSegBelow[s]->SetMaximum(yMaxSeg);
+            hPmtSegBelow[s]->SetMinimum(0.0);
+            hPmtSegBelow[s]->Draw("HISTE");
+            hPmtSegAbove[s]->Draw("HISTE same");
+            TPaveText *ptInactive = new TPaveText(0.3, 0.4, 0.7, 0.6, "NDC");
+            ptInactive->SetBorderSize(1);
+            ptInactive->SetFillStyle(1001);
+            ptInactive->SetFillColor(kWhite);
+            ptInactive->SetTextColor(TColor::GetColor(139, 0, 0));
+            ptInactive->AddText("Inactive PMT");
+            ptInactive->Draw();
+        } else {
+            gPad->SetFillColor(kWhite);
+            hPmtSegBelow[s]->SetMaximum(yMaxSeg);
+            hPmtSegBelow[s]->SetMinimum(0.0);
+            hPmtSegBelow[s]->Draw("HISTE");
+            hPmtSegAbove[s]->Draw("HISTE same");
+        }
+
+        // Legend on first pad only
+        if (s == 0) {
+            TLegend *legSeg = new TLegend(0.45, 0.7, 0.88, 0.88);
+            legSeg->AddEntry(hPmtSegAbove[s], "Above cut", "l");
+            legSeg->AddEntry(hPmtSegBelow[s], "Below cut", "l");
+            legSeg->SetBorderSize(0);
+            legSeg->SetFillStyle(0);
+            legSeg->Draw();
+        }
+    }
+    cPmtSeg->Update();
+
+    // --- Canvas 1b: PMT segment energy (log) ---
+    TCanvas *cPmtSegLog = new TCanvas("cPmtSegLog",
+        (segCanvasTitle + " (log)").Data(), 800, 900);
+    cPmtSegLog->Divide(2, 4, 0.01, 0.01);
+
+    for (Int_t s = 0; s < 8; s++) {
+        cPmtSegLog->cd(padMap[s]);
+        Int_t row = s % 4;
+        gPad->SetLogy();
+
+        if (!activeRow[row]) {
             gPad->SetFillColor(TColor::GetColor(1.0f, 0.9f, 0.9f));
         } else {
             gPad->SetFillColor(kWhite);
         }
 
-        hPmtSeg[s]->SetMinimum(0.0);
-        hPmtSeg[s]->Draw("HISTE");
-    }
-    cPmtSeg->Update();
+        TH1F *hBelowLog = (TH1F*)hPmtSegBelow[s]->Clone(
+            TString::Format("hPmtSegBelowLog_%d", s).Data());
+        TH1F *hAboveLog = (TH1F*)hPmtSegAbove[s]->Clone(
+            TString::Format("hPmtSegAboveLog_%d", s).Data());
+        hBelowLog->SetMinimum(0.9);
+        hBelowLog->Draw("HISTE");
+        hAboveLog->Draw("HISTE same");
 
-    // --- Canvas 2: PMT sum energy (3R x 1C, linear) ---
-    TCanvas *cPmtSums = new TCanvas("cPmtSums", "PMT Energy Sums (linear)", 600, 900);
-    cPmtSums->Divide(1, 3, 0.01, 0.01);
+        if (!activeRow[row]) {
+            TPaveText *ptInactive = new TPaveText(0.3, 0.4, 0.7, 0.6, "NDC");
+            ptInactive->SetBorderSize(1);
+            ptInactive->SetFillStyle(1001);
+            ptInactive->SetFillColor(kWhite);
+            ptInactive->SetTextColor(TColor::GetColor(139, 0, 0));
+            ptInactive->AddText("Inactive PMT");
+            ptInactive->Draw();
+        }
+
+        if (s == 0) {
+            TLegend *legSegLog = new TLegend(0.45, 0.7, 0.88, 0.88);
+            legSegLog->AddEntry(hAboveLog, "Above cut", "l");
+            legSegLog->AddEntry(hBelowLog, "Below cut", "l");
+            legSegLog->SetBorderSize(0);
+            legSegLog->SetFillStyle(0);
+            legSegLog->Draw();
+        }
+    }
+    cPmtSegLog->Update();
+
+    // --- Canvas 1c: PMT segment energy - Coincidence cut (linear) ---
+    TString segCoincTitle = TString::Format(
+        "PMT Segment Energy - Threshold & Coincidence Cut: %.2f GeV", energyCut);
+
+    TCanvas *cPmtSegCoinc = new TCanvas("cPmtSegCoinc",
+        segCoincTitle.Data(), 800, 900);
+    cPmtSegCoinc->Divide(2, 4, 0.01, 0.01);
+
+    for (Int_t s = 0; s < 8; s++) {
+        cPmtSegCoinc->cd(padMap[s]);
+        Int_t row = s % 4;
+
+        Double_t yMaxSC = std::max(hPmtSegAboveCoinc[s]->GetMaximum(),
+                                    hPmtSegBelowCoinc[s]->GetMaximum()) * 1.15;
+        if (yMaxSC <= 0.0) yMaxSC = 1.0;
+
+        if (!activeRow[row]) {
+            gPad->SetFillColor(TColor::GetColor(1.0f, 0.9f, 0.9f));
+        } else {
+            gPad->SetFillColor(kWhite);
+        }
+
+        hPmtSegBelowCoinc[s]->SetMaximum(yMaxSC);
+        hPmtSegBelowCoinc[s]->SetMinimum(0.0);
+        hPmtSegBelowCoinc[s]->Draw("HISTE");
+        hPmtSegAboveCoinc[s]->Draw("HISTE same");
+
+        if (!activeRow[row]) {
+            TPaveText *ptI = new TPaveText(0.3, 0.4, 0.7, 0.6, "NDC");
+            ptI->SetBorderSize(1);
+            ptI->SetFillStyle(1001);
+            ptI->SetFillColor(kWhite);
+            ptI->SetTextColor(TColor::GetColor(139, 0, 0));
+            ptI->AddText("Inactive PMT");
+            ptI->Draw();
+        }
+
+        if (s == 0) {
+            TLegend *legSC = new TLegend(0.45, 0.7, 0.88, 0.88);
+            legSC->AddEntry(hPmtSegAboveCoinc[s], "Above cut", "l");
+            legSC->AddEntry(hPmtSegBelowCoinc[s], "Below cut", "l");
+            legSC->SetBorderSize(0);
+            legSC->SetFillStyle(0);
+            legSC->Draw();
+        }
+    }
+    cPmtSegCoinc->Update();
+
+    // --- Canvas 1d: PMT segment energy - Coincidence cut (log) ---
+    TCanvas *cPmtSegCoincLog = new TCanvas("cPmtSegCoincLog",
+        (segCoincTitle + " (log)").Data(), 800, 900);
+    cPmtSegCoincLog->Divide(2, 4, 0.01, 0.01);
+
+    for (Int_t s = 0; s < 8; s++) {
+        cPmtSegCoincLog->cd(padMap[s]);
+        Int_t row = s % 4;
+        gPad->SetLogy();
+
+        if (!activeRow[row]) {
+            gPad->SetFillColor(TColor::GetColor(1.0f, 0.9f, 0.9f));
+        } else {
+            gPad->SetFillColor(kWhite);
+        }
+
+        TH1F *hBCLog = (TH1F*)hPmtSegBelowCoinc[s]->Clone(
+            TString::Format("hPmtSegBelowCoincLog_%d", s).Data());
+        TH1F *hACLog = (TH1F*)hPmtSegAboveCoinc[s]->Clone(
+            TString::Format("hPmtSegAboveCoincLog_%d", s).Data());
+        hBCLog->SetMinimum(0.9);
+        hBCLog->Draw("HISTE");
+        hACLog->Draw("HISTE same");
+
+        if (!activeRow[row]) {
+            TPaveText *ptI = new TPaveText(0.3, 0.4, 0.7, 0.6, "NDC");
+            ptI->SetBorderSize(1);
+            ptI->SetFillStyle(1001);
+            ptI->SetFillColor(kWhite);
+            ptI->SetTextColor(TColor::GetColor(139, 0, 0));
+            ptI->AddText("Inactive PMT");
+            ptI->Draw();
+        }
+
+        if (s == 0) {
+            TLegend *legSCL = new TLegend(0.45, 0.7, 0.88, 0.88);
+            legSCL->AddEntry(hACLog, "Above cut", "l");
+            legSCL->AddEntry(hBCLog, "Below cut", "l");
+            legSCL->SetBorderSize(0);
+            legSCL->SetFillStyle(0);
+            legSCL->Draw();
+        }
+    }
+    cPmtSegCoincLog->Update();
+
+    // --- Canvas 2: PMT sum energy (3R x 2C: linear left, log right) ---
+    TCanvas *cPmtSums = new TCanvas("cPmtSums", "PMT Energy Sums", 1000, 900);
+    cPmtSums->Divide(2, 3, 0.01, 0.01);
 
     for (Int_t i = 0; i < 3; i++) {
-        cPmtSums->cd(i + 1);
-
-        // Draw "All" first (background), then "Active" on top
-        Double_t yMax = std::max(hSumAll[i]->GetMaximum(), hSumActive[i]->GetMaximum()) * 1.15;
+        // Left column: linear
+        cPmtSums->cd(i * 2 + 1);
+        Double_t yMax = std::max(hSumAll[i]->GetMaximum(),
+                                 hSumActive[i]->GetMaximum()) * 1.15;
         hSumAll[i]->SetMaximum(yMax);
         hSumAll[i]->SetMinimum(0.0);
         hSumAll[i]->Draw("HISTE");
         hSumActive[i]->Draw("HISTE same");
 
-        TLegend *leg = new TLegend(0.15, 0.75, 0.45, 0.88);
-        leg->AddEntry(hSumActive[i], "Active PMT", "l");
-        leg->AddEntry(hSumAll[i], "All PMT", "l");
-        leg->SetBorderSize(0);
-        leg->SetFillStyle(0);
-        leg->Draw();
+        TLegend *legLin = new TLegend(0.15, 0.75, 0.45, 0.88);
+        legLin->AddEntry(hSumActive[i], "Active PMT", "l");
+        legLin->AddEntry(hSumAll[i], "All PMT", "l");
+        legLin->SetBorderSize(0);
+        legLin->SetFillStyle(0);
+        legLin->Draw();
+
+        // Right column: log
+        cPmtSums->cd(i * 2 + 2);
+        gPad->SetLogy();
+        // Clone for independent y-axis range in log pad
+        TH1F *hAllLog = (TH1F*)hSumAll[i]->Clone(
+            TString::Format("hSumAllLog_%d", i).Data());
+        TH1F *hActiveLog = (TH1F*)hSumActive[i]->Clone(
+            TString::Format("hSumActiveLog_%d", i).Data());
+        hAllLog->SetMinimum(0.9);
+        hAllLog->SetMaximum(yMax);
+        hAllLog->Draw("HISTE");
+        hActiveLog->Draw("HISTE same");
+
+        TLegend *legLog = new TLegend(0.15, 0.75, 0.45, 0.88);
+        legLog->AddEntry(hActiveLog, "Active PMT", "l");
+        legLog->AddEntry(hAllLog, "All PMT", "l");
+        legLog->SetBorderSize(0);
+        legLog->SetFillStyle(0);
+        legLog->Draw();
     }
     cPmtSums->Update();
 
-    // --- Canvas 3: PMT sum energy (3R x 1C, log) ---
-    TCanvas *cPmtSumsLog = new TCanvas("cPmtSumsLog", "PMT Energy Sums (log)", 600, 900);
-    cPmtSumsLog->Divide(1, 3, 0.01, 0.01);
+    // --- Canvas 2b: PMT sum energy - Threshold cut (3R x 2C: linear left, log right) ---
+    TString sumCutTitle = TString::Format(
+        "PMT Energy Sums - Threshold & Coincidence Cut: %.2f GeV", energyCut);
+    TCanvas *cPmtSumsCut = new TCanvas("cPmtSumsCut",
+        sumCutTitle.Data(), 1000, 900);
+    cPmtSumsCut->Divide(2, 3, 0.01, 0.01);
 
     for (Int_t i = 0; i < 3; i++) {
-        cPmtSumsLog->cd(i + 1);
+        // Left column: linear
+        cPmtSumsCut->cd(i * 2 + 1);
+        Double_t yMaxCut = std::max(hSumAllCut[i]->GetMaximum(),
+                                    hSumActiveCut[i]->GetMaximum()) * 1.15;
+        if (yMaxCut <= 0.0) yMaxCut = 1.0;
+        hSumAllCut[i]->SetMaximum(yMaxCut);
+        hSumAllCut[i]->SetMinimum(0.0);
+        hSumAllCut[i]->Draw("HISTE");
+        hSumActiveCut[i]->Draw("HISTE same");
+
+        TLegend *legCutLin = new TLegend(0.15, 0.75, 0.45, 0.88);
+        legCutLin->AddEntry(hSumActiveCut[i], "Active PMT", "l");
+        legCutLin->AddEntry(hSumAllCut[i], "All PMT", "l");
+        legCutLin->SetBorderSize(0);
+        legCutLin->SetFillStyle(0);
+        legCutLin->Draw();
+
+        // Right column: log
+        cPmtSumsCut->cd(i * 2 + 2);
         gPad->SetLogy();
+        TH1F *hAllCutLog = (TH1F*)hSumAllCut[i]->Clone(
+            TString::Format("hSumAllCutLog_%d", i).Data());
+        TH1F *hActiveCutLog = (TH1F*)hSumActiveCut[i]->Clone(
+            TString::Format("hSumActiveCutLog_%d", i).Data());
+        hAllCutLog->SetMinimum(0.9);
+        hAllCutLog->SetMaximum(yMaxCut);
+        hAllCutLog->Draw("HISTE");
+        hActiveCutLog->Draw("HISTE same");
 
-        hSumAll[i]->Draw("HISTE");
-        hSumActive[i]->Draw("HISTE same");
-
-        TLegend *leg = new TLegend(0.15, 0.75, 0.45, 0.88);
-        leg->AddEntry(hSumActive[i], "Active PMT", "l");
-        leg->AddEntry(hSumAll[i], "All PMT", "l");
-        leg->SetBorderSize(0);
-        leg->SetFillStyle(0);
-        leg->Draw();
+        TLegend *legCutLog = new TLegend(0.15, 0.75, 0.45, 0.88);
+        legCutLog->AddEntry(hActiveCutLog, "Active PMT", "l");
+        legCutLog->AddEntry(hAllCutLog, "All PMT", "l");
+        legCutLog->SetBorderSize(0);
+        legCutLog->SetFillStyle(0);
+        legCutLog->Draw();
     }
-    cPmtSumsLog->Update();
+    cPmtSumsCut->Update();
 
-    // --- Canvas 4: L-vs-R heatmap ---
+    // --- Canvas 2c: PMT sum energy - Single arm cut (3R x 2C) ---
+    TString sumSingleTitle = TString::Format(
+        "PMT Energy Sums - Single Arm Cut: %.2f GeV", energyCut);
+    TCanvas *cPmtSumsSingle = new TCanvas("cPmtSumsSingle",
+        sumSingleTitle.Data(), 1000, 900);
+    cPmtSumsSingle->Divide(2, 3, 0.01, 0.01);
+
+    for (Int_t i = 0; i < 3; i++) {
+        // Left column: linear
+        cPmtSumsSingle->cd(i * 2 + 1);
+        Double_t yMaxSng = std::max(hSumAllSingle[i]->GetMaximum(),
+                                    hSumActiveSingle[i]->GetMaximum()) * 1.15;
+        if (yMaxSng <= 0.0) yMaxSng = 1.0;
+        hSumAllSingle[i]->SetMaximum(yMaxSng);
+        hSumAllSingle[i]->SetMinimum(0.0);
+        hSumAllSingle[i]->Draw("HISTE");
+        hSumActiveSingle[i]->Draw("HISTE same");
+
+        TLegend *legSngLin = new TLegend(0.15, 0.75, 0.45, 0.88);
+        legSngLin->AddEntry(hSumActiveSingle[i], "Active PMT", "l");
+        legSngLin->AddEntry(hSumAllSingle[i], "All PMT", "l");
+        legSngLin->SetBorderSize(0);
+        legSngLin->SetFillStyle(0);
+        legSngLin->Draw();
+
+        // Right column: log
+        cPmtSumsSingle->cd(i * 2 + 2);
+        gPad->SetLogy();
+        TH1F *hAllSngLog = (TH1F*)hSumAllSingle[i]->Clone(
+            TString::Format("hSumAllSingleLog_%d", i).Data());
+        TH1F *hActiveSngLog = (TH1F*)hSumActiveSingle[i]->Clone(
+            TString::Format("hSumActiveSingleLog_%d", i).Data());
+        hAllSngLog->SetMinimum(0.9);
+        hAllSngLog->SetMaximum(yMaxSng);
+        hAllSngLog->Draw("HISTE");
+        hActiveSngLog->Draw("HISTE same");
+
+        TLegend *legSngLog = new TLegend(0.15, 0.75, 0.45, 0.88);
+        legSngLog->AddEntry(hActiveSngLog, "Active PMT", "l");
+        legSngLog->AddEntry(hAllSngLog, "All PMT", "l");
+        legSngLog->SetBorderSize(0);
+        legSngLog->SetFillStyle(0);
+        legSngLog->Draw();
+    }
+    cPmtSumsSingle->Update();
+
+    // --- Canvas 3: L-vs-R heatmap (linear) ---
+    gStyle->SetPalette(55);
+
     TCanvas *cPmtLR = new TCanvas("cPmtLR", "Left vs Right", 700, 600);
     cPmtLR->SetRightMargin(0.15);
     hLR->SetStats(kFALSE);
     hLR->Draw("COLZ");
     cPmtLR->Update();
 
+    // --- Canvas 4: L-vs-R heatmap (log-z) ---
+    TCanvas *cPmtLRLog = new TCanvas("cPmtLRLog", "Left vs Right (log)", 700, 600);
+    cPmtLRLog->SetRightMargin(0.15);
+    cPmtLRLog->SetLogz();
+    hLR->Draw("COLZ");
+    cPmtLRLog->Update();
+
     // --- Canvas 5: A_zz histograms ---
-    // Auto-range x-axis
     for (Int_t ch = 0; ch < kDetRespAsymN; ch++) {
         Int_t firstBin = 1;
         for (Int_t b = 1; b <= hAzz[ch]->GetNbinsX(); b++) {
@@ -1210,6 +1514,52 @@ void MolPolDetectorResponseAnalysis(const char *fileList,
         hAzz[ch]->Draw("HISTE");
     }
     cAzz->Update();
+
+    // --- Canvas: Energy Ratio Diagnostics (2x2) ---
+    TCanvas *cEratio = new TCanvas("cEratio",
+        "Energy Ratio Diagnostics", 1200, 1000);
+    cEratio->Divide(2, 2);
+
+    // Panel 1: ratio by multiplicity
+    cEratio->cd(1);
+    gPad->SetLogy();
+    hRatioAll->SetMinimum(0.9);
+    hRatioAll->SetTitle("E_{det}/E_{actual} by Hit Multiplicity");
+    hRatioAll->Draw("HISTE");
+    hRatio1hit->Draw("HISTE same");
+    hRatio2hit->Draw("HISTE same");
+    hRatio3plus->Draw("HISTE same");
+    TLegend *legR = new TLegend(0.15, 0.65, 0.45, 0.88);
+    legR->AddEntry(hRatioAll, "All", "l");
+    legR->AddEntry(hRatio1hit, "1 hit", "l");
+    legR->AddEntry(hRatio2hit, "2 hits", "l");
+    legR->AddEntry(hRatio3plus, "3+ hits", "l");
+    legR->SetBorderSize(0);
+    legR->SetFillStyle(0);
+    legR->Draw();
+
+    // Panel 2: ratio vs hitE (per-hit, single-hit only)
+    cEratio->cd(2);
+    gPad->SetRightMargin(0.15);
+    gPad->SetLogz();
+    hRatioVsHitE->SetStats(kFALSE);
+    hRatioVsHitE->Draw("COLZ");
+
+    // Panel 3: ratio vs hitZ (per-hit)
+    cEratio->cd(3);
+    gPad->SetRightMargin(0.15);
+    gPad->SetLogz();
+    hRatioVsHitZ->SetStats(kFALSE);
+    hRatioVsHitZ->Draw("COLZ");
+
+    // Panel 4: ratio vs sumHitE (per-event)
+    cEratio->cd(4);
+    gPad->SetRightMargin(0.15);
+    gPad->SetLogz();
+    hRatioVsSumE->SetStats(kFALSE);
+    hRatioVsSumE->Draw("COLZ");
+
+    cEratio->Update();
 }
 
 #endif // MOLPOL_DETECTOR_RESPONSE_ANALYSIS_C

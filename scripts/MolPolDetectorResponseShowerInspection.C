@@ -785,12 +785,7 @@ void BuildEventIndex() {
     }
 
     // --- Look up arm energies and segment deposits for each eventIdx in TDetResp ---
-    Double_t dr_pmtELeft, dr_pmtERight;
-    Double_t dr_pmtE[8];
-    gTDetResp->SetBranchAddress("pmtELeft",  &dr_pmtELeft);
-    gTDetResp->SetBranchAddress("pmtERight", &dr_pmtERight);
-    gTDetResp->SetBranchAddress("pmtE",       dr_pmtE);
-
+    // Uses dr_* globals from SetupDetRespBranches(), reading throw 0 values.
     Long64_t nDetResp = gTDetResp->GetEntries();
 
     for (size_t u = 0; u < gShowerEventList.size(); u++) {
@@ -811,9 +806,9 @@ void BuildEventIndex() {
 
         gTDetResp->GetEntry(evIdx);
         EventIndexEntry e;
-        e.pmtELeft  = dr_pmtELeft;
-        e.pmtERight = dr_pmtERight;
-        for (Int_t s = 0; s < 8; s++) e.pmtE[s] = dr_pmtE[s];
+        e.pmtELeft  = (Double_t)dr_pmtELeft[0];    // throw 0
+        e.pmtERight = (Double_t)dr_pmtERight[0];   // throw 0
+        for (Int_t s = 0; s < 8; s++) e.pmtE[s] = (Double_t)dr_pmtE[s];  // throw 0, segs 0-7
         gEventIndex[evIdx] = e;
     }
 
@@ -1257,6 +1252,9 @@ void MolPolDetectorResponseShowerInspection(const char *filename) {
         f->Close();
         return;
     }
+
+    // Wire up TDetResp branches using the standard reader
+    SetupDetRespBranches(gTDetResp);
 
     gTShower = (TTree *)f->Get("TShower");
     if (!gTShower) {
