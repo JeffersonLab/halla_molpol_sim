@@ -135,20 +135,6 @@ void MolPolDetectorResponseEratioInspection(const char *filename) {
     hRatio2hit->Draw("HISTE same");
     hRatio3plus->Draw("HISTE same");
 
-    // Shade the dump window
-    TLine *lLow = new TLine(ratioLow, hRatioAll->GetMinimum(),
-                              ratioLow, hRatioAll->GetMaximum());
-    lLow->SetLineColor(kMagenta);
-    lLow->SetLineStyle(2);
-    lLow->SetLineWidth(2);
-    lLow->Draw("same");
-    TLine *lHigh = new TLine(ratioHigh, hRatioAll->GetMinimum(),
-                               ratioHigh, hRatioAll->GetMaximum());
-    lHigh->SetLineColor(kMagenta);
-    lHigh->SetLineStyle(2);
-    lHigh->SetLineWidth(2);
-    lHigh->Draw("same");
-
     TLegend *leg1 = new TLegend(0.15, 0.65, 0.45, 0.88);
     leg1->AddEntry(hRatioAll, "All", "l");
     leg1->AddEntry(hRatio1hit, "1 hit", "l");
