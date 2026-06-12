@@ -7,6 +7,7 @@
 //   root 'MolPolAnalysis.C("path/to/file.root")'
 //   root 'MolPolAnalysis.C("filelist.txt", false)'
 //   root 'MolPolAnalysis.C("file.root", false, 2.0)'
+//   root 'MolPolAnalysis.C("file.root", true, 0.0, "12")'
 ///////////////////////////////////////////////////////////////
 
 #include "MolPolAnalysis.h"
@@ -81,7 +82,8 @@ void MolPolSetStatsBoxNDC(TH1 *h, Double_t x1, Double_t y1, Double_t x2, Double_
 // useTrackGates: true (default) = hitFluxTrack* ; false = hitFluxP* with momentumCut
 void MolPolAnalysis(const char *fileList, 
                     Bool_t useTrackGates = kTRUE, 
-                    Double_t momentumCut = 0.0) {
+                    Double_t momentumCut = 0.0,
+                    const char *activeRowStr = "1234") {
 
     TChain *T = SetupMolpolChain(fileList);
     if (!T) return;
@@ -90,8 +92,8 @@ void MolPolAnalysis(const char *fileList,
 
     gStyle->SetPalette(55);
 
-    // PMT row configuration (all active by default), deactivate PMT row with function call below.
-     SetPmtRowInactive(4);SetPmtRowInactive(3);
+    // PMT row configuration from activeRowStr argument (default "1234" = all active)
+    SetActiveRowsFromStr(activeRowStr);
 
     const Double_t targetPolarization = 0.08014;
     const MolPolGateMode gateMode =
